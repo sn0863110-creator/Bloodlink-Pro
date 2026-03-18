@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blood Banks — BloodLink Pro</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+  <style>
+    #map { height: 420px; border-radius: 16px; border: 1px solid #f0d0d0; box-shadow: 0 4px 24px rgba(230,57,70,0.10); }
+    .map-section { margin-bottom: 2rem; }
+    .city-tab-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1.5rem; }
+    .city-tab {
+      padding:6px 18px; border-radius:20px; border:1.5px solid #f0d0d0;
+      background:#fff; font-size:0.82rem; font-weight:600; cursor:pointer;
+      transition:0.18s; color:#6b7280; font-family:inherit;
+    }
+    .city-tab.active, .city-tab:hover { background:#e63946; color:#fff; border-color:#e63946; }
+    .banks-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1.2rem; }
+    .bank-card {
+      background:#fff; border-radius:14px; padding:1.2rem 1.4rem;
+      border:1.5px solid #f0d0d0; transition:0.18s; cursor:pointer;
+      box-shadow:0 2px 10px rgba(230,57,70,0.05);
+    }
+    .bank-card:hover { border-color:#e63946; box-shadow:0 4px 20px rgba(230,57,70,0.13); transform:translateY(-2px); }
+    .bank-card h3 { font-size:0.95rem; font-weight:700; margin-bottom:8px; color:#1a1a2e; }
+    .bank-meta { display:flex; flex-direction:column; gap:4px; }
+    .bank-meta span { font-size:0.8rem; color:#6b7280; }
+    .bank-meta a { color:#e63946; font-weight:600; text-decoration:none; }
+    .tag { display:inline-block; padding:2px 9px; border-radius:10px; font-size:0.7rem; font-weight:700; }
+    .tag-gov { background:#dbeafe; color:#1d4ed8; }
+    .tag-pvt { background:#fef3c7; color:#92400e; }
+    .tag-247 { background:#dcfce7; color:#15803d; }
+    .tag-open { background:#f0fdf4; color:#16a34a; }
+    .card-footer { display:flex; align-items:center; gap:8px; margin-top:10px; }
+    .search-bar-wrap { display:flex; gap:1rem; align-items:center; flex-wrap:wrap; margin-bottom:1.2rem; }
+    .search-bar-wrap input {
+      flex:1; min-width:220px; padding:0.65rem 1rem;
+      border:1.5px solid #f0d0d0; border-radius:10px;
+      font-size:0.9rem; font-family:inherit; outline:none;
+      transition:0.18s;
+    }
+    .search-bar-wrap input:focus { border-color:#e63946; box-shadow:0 0 0 3px rgba(230,57,70,0.1); }
+    .result-count { font-size:0.85rem; color:#6b7280; white-space:nowrap; }
+    .empty-state { grid-column:1/-1; text-align:center; padding:3rem; color:#6b7280; }
+    .popup-box { font-family:'Inter',sans-serif; min-width:210px; }
+    .popup-box h4 { font-size:0.9rem; font-weight:800; color:#e63946; margin-bottom:5px; }
+    .popup-box p { font-size:0.78rem; color:#374151; margin:3px 0; line-height:1.4; }
+    .popup-box a { color:#e63946; font-weight:600; }
+    .popup-tag { display:inline-block; margin-top:6px; padding:2px 8px; border-radius:8px; font-size:0.7rem; font-weight:700; }
+    .btn-directions { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; background:#1d4ed8; color:#fff; border:none; border-radius:8px; font-size:0.78rem; font-weight:700; cursor:pointer; font-family:inherit; transition:0.18s; }
+    .btn-directions:hover { background:#1e40af; }
+    .route-info-bar { background:#1a1a2e; color:#fff; border-radius:12px; padding:12px 18px; margin-bottom:1rem; display:none; align-items:center; gap:12px; flex-wrap:wrap; font-size:0.85rem; }
+    .route-info-bar.show { display:flex; }
+    .leaflet-routing-container { display:none !important; }
+  </style>
+</head>
+<body data-page="banks">
+
+<nav class="navbar">
+  <a href="index.html" class="nav-brand"><span class="drop-icon">🩸</span> BloodLink<span style="color:#1a1a2e;font-weight:400">Pro</span></a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="search.html">Find Donors</a>
+    <a href="banks.html" class="active">Blood Banks</a>
+    <a href="pricing.html">Market</a>
+    <a href="about.html">About Us</a>
+    <span id="nav-user" style="display:none;font-size:0.85rem;font-weight:600;color:#e63946;padding:0.4rem 0.8rem;background:#fff5f5;border-radius:8px;"></span>
+    <a href="login.html" id="nav-login" class="btn btn-outline btn-sm">Login</a>
+    <a href="register.html" id="nav-register" class="btn btn-primary btn-sm">Register</a>
+    <button id="nav-logout" class="btn btn-ghost btn-sm" style="display:none;">Logout</button>
+  </div>
+</nav>
+
+<!-- Header -->
+<div style="background:linear-gradient(135deg,#e63946,#c1121f);color:#fff;padding:2.5rem 2rem;text-align:center;">
+  <h1 style="font-size:2rem;font-weight:900;margin-bottom:0.4rem;">🏥 Blood Banks Near You</h1>
+  <p style="opacity:0.85;font-size:0.95rem;">Verified blood banks — click any marker on the map for details</p>
+</div>
+
+<div style="padding:2rem;max-width:1200px;margin:0 auto;">
+
+  <!-- Route Info Bar -->
+  <div class="route-info-bar" id="route-info-bar">
+    <span>🗺️</span>
+    <span id="route-summary">Calculating route...</span>
+    <button onclick="clearRoute()" style="margin-left:auto;background:#e63946;border:none;color:#fff;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.78rem;font-weight:700;font-family:inherit;">✕ Clear Route</button>
+  </div>
+
+  <!-- Search + count -->
+  <div class="search-bar-wrap">
+    <input type="text" id="bank-search" placeholder="🔍  Search by name or city..." oninput="filterBanks()" />
+    <span class="result-count" id="result-count"></span>
+  </div>
+
+  <!-- City tabs -->
+  <div class="city-tab-bar" id="city-tabs"></div>
+
+  <!-- Map -->
+  <div class="map-section">
+    <div id="map"></div>
+  </div>
+
+  <!-- Cards -->
+  <div class="banks-grid" id="banks-grid"></div>
+
+</div>
+
+<footer class="footer"><p>© 2025 <strong>BloodLink Pro</strong> — Built with ❤️ by <strong style="color:#e63946;">Satish Kumar Nishad · Team HackForce</strong></p></footer>
+
+<script src="script.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+<script>
+/* ── Data ─────────────────────────────────────────────────── */
+const ALL_BANKS = [
+  // Unnao
+  { name:'District Hospital Unnao', city:'Unnao', address:'Civil Lines, Unnao, UP 209801', phone:'0515-2820123', hours:'24/7', type:'Government', lat:26.5458, lng:80.4897 },
+  { name:'Sarojini Naidu District Women Hospital', city:'Unnao', address:'Collectorganj, Unnao, UP 209801', phone:'0515-2822456', hours:'Mon–Sat 8am–8pm', type:'Government', lat:26.5480, lng:80.4925 },
+  { name:'Rama Devi Memorial Hospital', city:'Unnao', address:'Shuklaganj Road, Unnao, UP 209861', phone:'0515-2830789', hours:'24/7', type:'Private', lat:26.5510, lng:80.5050 },
+  { name:'Shri Ram Hospital & Blood Bank', city:'Unnao', address:'Station Road, Unnao, UP 209801', phone:'0515-2825001', hours:'Mon–Sun 7am–9pm', type:'Private', lat:26.5435, lng:80.4860 },
+  { name:'CHC Bangarmau Blood Bank', city:'Unnao', address:'Bangarmau, Unnao, UP 209831', phone:'0515-2760100', hours:'Mon–Sat 9am–5pm', type:'Government', lat:26.6900, lng:80.2100 },
+  { name:'PHC Hasanganj Collection Centre', city:'Unnao', address:'Hasanganj, Unnao, UP 209870', phone:'0515-2780200', hours:'Mon–Fri 9am–4pm', type:'Government', lat:26.7200, lng:80.5500 },
+  // Kanpur
+  { name:'GSVM Medical College Blood Bank', city:'Kanpur', address:'Swaroop Nagar, Kanpur, UP 208002', phone:'0512-2533001', hours:'Mon–Sat 8am–8pm', type:'Government', lat:26.4499, lng:80.3319 },
+  { name:'Lala Lajpat Rai Hospital Blood Bank', city:'Kanpur', address:'LLR Hospital, Kanpur, UP 208001', phone:'0512-2304448', hours:'24/7', type:'Government', lat:26.4609, lng:80.3218 },
+  { name:'Regency Hospital Blood Bank', city:'Kanpur', address:'Sarvodaya Nagar, Kanpur, UP 208005', phone:'0512-3081972', hours:'Mon–Sun 7am–9pm', type:'Private', lat:26.4744, lng:80.3088 },
+  { name:'Rama Medical College Blood Bank', city:'Kanpur', address:'Mandhana, Kanpur, UP 209217', phone:'0512-2280001', hours:'24/7', type:'Private', lat:26.5200, lng:80.2700 },
+  // Lucknow
+  { name:'KGMU Blood Bank', city:'Lucknow', address:'Shah Mina Road, Lucknow, UP 226003', phone:'0522-2257540', hours:'24/7', type:'Government', lat:26.8467, lng:80.9462 },
+  { name:'Sanjay Gandhi PGI Blood Bank', city:'Lucknow', address:'Raebareli Road, Lucknow, UP 226014', phone:'0522-2668700', hours:'24/7', type:'Government', lat:26.8100, lng:80.9900 },
+  // Delhi
+  { name:'AIIMS Delhi Blood Bank', city:'Delhi', address:'Ansari Nagar, New Delhi 110029', phone:'011-26588500', hours:'24/7', type:'Government', lat:28.5672, lng:77.2100 },
+  { name:'Safdarjung Hospital Blood Bank', city:'Delhi', address:'Ansari Nagar West, New Delhi 110029', phone:'011-26707444', hours:'24/7', type:'Government', lat:28.5700, lng:77.2050 }
+];
+
+/* ── State ────────────────────────────────────────────────── */
+let map = null;
+let markers = [];
+let activeCity = 'All';
+
+/* ── Map init ─────────────────────────────────────────────── */
+function initMap() {
+  map = L.map('map', { scrollWheelZoom: false }).setView([26.5458, 80.4897], 8);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+    maxZoom: 18
+  }).addTo(map);
+  placeMarkers(ALL_BANKS);
+}
+
+function markerIcon(b) {
+  const color = b.hours.includes('24') ? '#16a34a' : (b.type === 'Government' ? '#e63946' : '#f59e0b');
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:13px;height:13px;background:${color};border:2.5px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.28);"></div>`,
+    iconSize: [13,13], iconAnchor: [6,6]
+  });
+}
+
+function placeMarkers(banks) {
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+  banks.forEach((b, i) => {
+    const m = L.marker([b.lat, b.lng], { icon: markerIcon(b) }).addTo(map);
+    const tagColor = b.hours.includes('24') ? '#dcfce7' : '#fef3c7';
+    const tagText  = b.hours.includes('24') ? '#15803d' : '#92400e';
+    m.bindPopup(`
+      <div class="popup-box">
+        <h4>🏥 ${b.name}</h4>
+        <p>📍 ${b.address}</p>
+        <p>📞 <a href="tel:${b.phone}">${b.phone}</a></p>
+        <p>🕐 ${b.hours}</p>
+        <span class="popup-tag" style="background:${tagColor};color:${tagText};">
+          ${b.hours.includes('24') ? '🟢 24/7 Open' : '🟡 ' + b.hours}
+        </span>
+      </div>`, { maxWidth: 260 });
+    m.on('click', () => highlightCard(i));
+    markers.push(m);
+  });
+  if (banks.length) {
+    const grp = L.featureGroup(markers);
+    map.fitBounds(grp.getBounds().pad(0.25));
+  }
+}
+
+function highlightCard(idx) {
+  document.querySelectorAll('.bank-card').forEach((c, i) => {
+    c.style.borderColor = i === idx ? '#e63946' : '';
+    c.style.boxShadow  = i === idx ? '0 0 0 3px rgba(230,57,70,0.2)' : '';
+    if (i === idx) c.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  });
+}
+
+function focusMarker(i) {
+  if (!markers[i]) return;
+  map.setView(markers[i].getLatLng(), 14, { animate: true });
+  markers[i].openPopup();
+  highlightCard(i);
+}
+
+/* ── City tabs ────────────────────────────────────────────── */
+function buildTabs() {
+  const cities = ['All', ...new Set(ALL_BANKS.map(b => b.city))];
+  document.getElementById('city-tabs').innerHTML = cities.map(c =>
+    `<button class="city-tab ${c==='All'?'active':''}" onclick="selectCity('${c}')">${c}</button>`
+  ).join('');
+}
+
+function selectCity(city) {
+  activeCity = city;
+  document.querySelectorAll('.city-tab').forEach(t =>
+    t.classList.toggle('active', t.textContent === city)
+  );
+  filterBanks();
+}
+
+/* ── Filter + render ──────────────────────────────────────── */
+let currentBankList = ALL_BANKS;
+
+function filterBanks() {
+  const q = document.getElementById('bank-search').value.trim().toLowerCase();
+  currentBankList = ALL_BANKS.filter(b => {
+    const cityOk = activeCity === 'All' || b.city === activeCity;
+    const qOk    = !q || b.name.toLowerCase().includes(q) || b.city.toLowerCase().includes(q);
+    return cityOk && qOk;
+  });
+  document.getElementById('result-count').textContent = `${currentBankList.length} bank${currentBankList.length!==1?'s':''} found`;
+  renderCards(currentBankList);
+  if (map) placeMarkers(currentBankList);
+}
+
+function renderCards(banks) {
+  const grid = document.getElementById('banks-grid');
+  if (!banks.length) {
+    grid.innerHTML = `<div class="empty-state"><div style="font-size:2.5rem;margin-bottom:0.8rem;">🏥</div><h3 style="font-weight:700;margin-bottom:4px;">No blood banks found</h3><p>Try a different city or search term.</p></div>`;
+    return;
+  }
+  grid.innerHTML = banks.map((b, i) => `
+    <div class="bank-card" onclick="focusMarker(${i})">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;">
+        <h3>🏥 ${b.name}</h3>
+        <span class="tag ${b.type==='Government'?'tag-gov':'tag-pvt'}">${b.type}</span>
+      </div>
+      <div class="bank-meta">
+        <span>📍 ${b.address}</span>
+        <span>📞 <a href="tel:${b.phone}" onclick="event.stopPropagation()">${b.phone}</a></span>
+        <span>🕐 ${b.hours}</span>
+        <span>🏙️ ${b.city}</span>
+      </div>
+      <div class="card-footer">
+        <span class="tag ${b.hours.includes('24')?'tag-247':'tag-open'}">${b.hours.includes('24')?'🟢 24/7':'🟡 Open'}</span>
+        <a href="tel:${b.phone}" class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="event.stopPropagation()">📞 Call</a>
+        <button class="btn-directions" onclick="event.stopPropagation();getDirections(${i})" title="Get turn-by-turn directions">🗺️ Directions</button>
+      </div>
+    </div>`).join('');
+}
+
+/* ── Boot ─────────────────────────────────────────────────── */
+buildTabs();
+filterBanks();
+
+// Init map after Leaflet + Routing Machine scripts load
+window.addEventListener('load', () => {
+  if (typeof L !== 'undefined') initMap();
+});
+
+/* ── Routing ──────────────────────────────────────────────── */
+let routingControl = null;
+
+function getDirections(cardIdx) {
+  const bank = currentBankList[cardIdx];
+  if (!bank) return;
+
+  if (!navigator.geolocation) {
+    showToast('Geolocation not supported by your browser', 'error');
+    return;
+  }
+
+  showToast('📍 Getting your location...', 'success');
+
+  navigator.geolocation.getCurrentPosition(pos => {
+    const userLat = pos.coords.latitude;
+    const userLng = pos.coords.longitude;
+
+    // Clear previous route
+    if (routingControl) { map.removeControl(routingControl); routingControl = null; }
+
+    // Add user location marker
+    L.marker([userLat, userLng], {
+      icon: L.divIcon({
+        className: '',
+        html: `<div style="width:16px;height:16px;background:#1d4ed8;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>`,
+        iconSize:[16,16], iconAnchor:[8,8]
+      })
+    }).addTo(map).bindPopup('<b>📍 Your Location</b>').openPopup();
+
+    routingControl = L.Routing.control({
+      waypoints: [
+        L.latLng(userLat, userLng),
+        L.latLng(bank.lat, bank.lng)
+      ],
+      routeWhileDragging: false,
+      addWaypoints: false,
+      fitSelectedRoutes: true,
+      show: false,
+      lineOptions: {
+        styles: [{ color: '#e63946', weight: 5, opacity: 0.85 }]
+      },
+      createMarker: () => null
+    }).addTo(map);
+
+    routingControl.on('routesfound', e => {
+      const r = e.routes[0];
+      const dist = (r.summary.totalDistance / 1000).toFixed(1);
+      const mins = Math.round(r.summary.totalTime / 60);
+      const bar = document.getElementById('route-info-bar');
+      document.getElementById('route-summary').innerHTML =
+        `<strong style="color:#e63946;">${bank.name}</strong> — 📏 ${dist} km &nbsp;|&nbsp; ⏱️ ~${mins} min &nbsp;|&nbsp; 🚗 Fastest route selected`;
+      bar.classList.add('show');
+      bar.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    });
+
+    routingControl.on('routingerror', () => {
+      showToast('Could not calculate route. Try again.', 'error');
+    });
+
+    focusMarker(cardIdx);
+  }, () => {
+    showToast('Location access denied. Please allow location to get directions.', 'error');
+  });
+}
+
+function clearRoute() {
+  if (routingControl) { map.removeControl(routingControl); routingControl = null; }
+  document.getElementById('route-info-bar').classList.remove('show');
+}
+
+updateNav();
+</script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — BloodLink Pro</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body data-page="dashboard">
+
+<nav class="navbar">
+  <a href="index.html" class="nav-brand"><span class="drop-icon">🩸</span> BloodLink<span style="color:#1a1a2e;font-weight:400">Pro</span></a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="search.html">Find Donors</a>
+    <a href="banks.html">Blood Banks</a>
+    <a href="pricing.html">Market</a>
+    <a href="about.html">About Us</a>
+    <a href="donor.html" class="btn btn-outline btn-sm">+ Add Donor</a>
+    <span id="nav-user" style="display:none;font-size:0.85rem;font-weight:600;color:var(--primary);padding:0.4rem 0.8rem;background:var(--bg-soft);border-radius:8px;"></span>
+    <a href="login.html" id="nav-login" class="btn btn-outline btn-sm">Login</a>
+    <a href="register.html" id="nav-register" class="btn btn-primary btn-sm">Register</a>
+    <button id="nav-logout" class="btn btn-ghost btn-sm" style="display:none;">Logout</button>
+  </div>
+</nav>
+
+<div class="dashboard">
+  <div class="dash-header">
+    <div>
+      <h1>📊 Dashboard</h1>
+      <p id="last-updated">Loading...</p>
+    </div>
+    <div style="display:flex;gap:0.8rem;align-items:center;">
+      <a href="donor.html" class="btn btn-primary btn-sm">+ Register Donor</a>
+      <a href="search.html" class="btn btn-outline btn-sm">🔍 Search</a>
+    </div>
+  </div>
+
+  <div class="dash-body">
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon red">🩸</div>
+        <div class="stat-info"><div class="num" id="stat-total">—</div><div class="lbl">Total Donors</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">✅</div>
+        <div class="stat-info"><div class="num" id="stat-available">—</div><div class="lbl">Available Now</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange">🚨</div>
+        <div class="stat-info"><div class="num" id="stat-emergency">—</div><div class="lbl">Emergency Requests</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue">🏙️</div>
+        <div class="stat-info"><div class="num" id="stat-cities">—</div><div class="lbl">Cities Covered</div></div>
+      </div>
+    </div>
+
+    <!-- Emergency SOS Panel -->
+    <div class="emergency-panel" style="margin-bottom:2rem;">
+      <h2>🚨 Emergency Blood Request</h2>
+      <p>Critical situation? Send an instant SOS to all available donors in your network.</p>
+      <button class="sos-btn" id="sos-btn" onclick="triggerSOS()">🆘 Send Emergency SOS</button>
+      <div class="sos-alert" id="sos-alert"></div>
+    </div>
+
+    <!-- Charts + Recent -->
+    <div class="dash-grid">
+      <div class="dash-card">
+        <h3>🩸 Blood Group Distribution</h3>
+        <div class="chart-wrap"><canvas id="chart-bloodgroup"></canvas></div>
+      </div>
+      <div class="dash-card">
+        <h3>📊 Donor Availability</h3>
+        <div id="chart-total-badge" style="font-size:0.78rem;color:#9ca3af;font-weight:600;margin-bottom:6px;"></div>
+        <div class="chart-wrap" style="position:relative;">
+          <canvas id="chart-availability"></canvas>
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;">
+            <div id="donut-pct" style="font-size:1.6rem;font-weight:900;color:#16a34a;line-height:1;">0%</div>
+            <div style="font-size:0.65rem;color:#9ca3af;font-weight:600;">Available</div>
+          </div>
+        </div>
+        <div id="donut-legend" style="display:flex;gap:1rem;justify-content:center;margin-top:10px;font-size:0.78rem;"></div>
+      </div>
+    </div>
+
+    <!-- Recent Donors -->
+    <div class="dash-card" style="margin-bottom:2rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+        <h3 style="margin:0;">🕐 Recently Added Donors</h3>
+        <a href="search.html" class="btn btn-ghost btn-sm">View All →</a>
+      </div>
+      <div class="recent-list" id="recent-list">
+        <div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;">
+      <a href="donor.html" class="btn btn-primary btn-lg" style="justify-content:center;">🩸 Register New Donor</a>
+      <a href="search.html" class="btn btn-outline btn-lg" style="justify-content:center;">🔍 Search Donors</a>
+      <a href="banks.html" class="btn btn-ghost btn-lg" style="justify-content:center;border:1.5px solid var(--border);">🏥 Blood Banks</a>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer"><p>© 2025 <strong>BloodLink Pro</strong> — Built with ❤️ by <strong style="color:#e63946;">Satish Kumar Nishad · Team HackForce</strong></p></footer>
+
+<script src="script.js"></script>
+</body>
+</html>

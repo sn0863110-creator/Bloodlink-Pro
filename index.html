@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BloodLink Pro — Intelligent Blood Donation Network</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ══ WELCOME SCREEN ══ */
+    #welcome-screen {
+      position: fixed; inset: 0; z-index: 99999;
+      background: #fff;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 2rem;
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    #welcome-screen.hide { opacity: 0; transform: scale(1.03); pointer-events: none; }
+
+    .wc-bg-blob {
+      position: absolute; top: -100px; right: -100px;
+      width: 420px; height: 420px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(230,57,70,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .wc-bg-blob2 {
+      position: absolute; bottom: -80px; left: -80px;
+      width: 320px; height: 320px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(230,57,70,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .wc-inner { position: relative; z-index: 1; max-width: 400px; width: 100%; }
+
+    .wc-drop {
+      font-size: 3.8rem; margin-bottom: 0.4rem;
+      display: inline-block;
+      animation: wc-pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes wc-pulse {
+      0%,100% { transform: scale(1) rotate(-5deg); }
+      50%      { transform: scale(1.15) rotate(5deg); }
+    }
+    .wc-brand {
+      font-size: 2.4rem; font-weight: 900; color: #1a1a2e;
+      letter-spacing: -1.5px; margin-bottom: 0.2rem; line-height: 1;
+    }
+    .wc-brand span { color: #e63946; }
+    .wc-tagline {
+      font-size: 0.82rem; color: #9ca3af; font-weight: 500;
+      margin-bottom: 2rem; letter-spacing: 0.3px;
+    }
+
+    .wc-card {
+      background: #fff; border: 1.5px solid #f0d0d0;
+      border-radius: 20px; padding: 1.8rem 2rem;
+      box-shadow: 0 8px 40px rgba(230,57,70,0.1);
+      margin-bottom: 1.5rem;
+    }
+    .wc-hello {
+      font-size: 0.72rem; font-weight: 800; letter-spacing: 2px;
+      text-transform: uppercase; color: #e63946;
+      background: #fff5f5; padding: 4px 14px; border-radius: 20px;
+      display: inline-block; margin-bottom: 0.8rem;
+    }
+    .wc-welcome-text {
+      font-size: 1.6rem; font-weight: 900; color: #1a1a2e;
+      line-height: 1.2; margin-bottom: 0.6rem; letter-spacing: -0.5px;
+    }
+    .wc-welcome-text span { color: #e63946; }
+    .wc-sub {
+      font-size: 0.83rem; color: #6b7280;
+      line-height: 1.65; margin-bottom: 1.4rem;
+    }
+    .wc-divider { height: 1px; background: #f0d0d0; margin-bottom: 1.2rem; }
+    .wc-stats {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 0;
+    }
+    .wc-stat .n { font-size: 1.3rem; font-weight: 900; color: #e63946; }
+    .wc-stat .l { font-size: 0.62rem; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 2px; }
+    .wc-stat + .wc-stat { border-left: 1px solid #f0d0d0; }
+
+    .wc-enter-btn {
+      background: linear-gradient(135deg, #e63946, #c1121f);
+      color: #fff; border: none; padding: 14px 36px;
+      border-radius: 50px; font-size: 1rem; font-weight: 800;
+      cursor: pointer; font-family: inherit; width: 100%;
+      box-shadow: 0 6px 28px rgba(230,57,70,0.35);
+      transition: 0.2s; letter-spacing: 0.2px;
+      animation: wc-glow 2.2s ease-in-out infinite;
+    }
+    @keyframes wc-glow {
+      0%,100% { box-shadow: 0 6px 28px rgba(230,57,70,0.35); }
+      50%      { box-shadow: 0 6px 44px rgba(230,57,70,0.6); }
+    }
+    .wc-enter-btn:hover { transform: translateY(-2px); }
+    .wc-skip {
+      font-size: 0.75rem; color: #d1d5db; cursor: pointer;
+      margin-top: 0.8rem; background: none; border: none;
+      font-family: inherit; transition: 0.2s; display: block; width: 100%;
+    }
+    .wc-skip:hover { color: #9ca3af; }
+    .wc-built {
+      position: absolute; bottom: 1rem; left: 0; right: 0;
+      font-size: 0.68rem; color: #d1d5db; font-weight: 600;
+    }
+    .wc-built span { color: #e63946; }
+  </style>
+</head>
+<body data-page="home">
+
+<!-- ══ WELCOME SCREEN ══ -->
+<div id="welcome-screen">
+  <div class="wc-bg-blob"></div>
+  <div class="wc-bg-blob2"></div>
+  <div class="wc-inner">
+    <div class="wc-drop">🩸</div>
+    <div class="wc-brand">BloodLink<span>Pro</span></div>
+    <div class="wc-tagline">India's Smart Blood Donation Network</div>
+
+    <div class="wc-card">
+      <div class="wc-hello">👋 Welcome</div>
+      <div class="wc-welcome-text">Glad you're here.<br>Let's <span>save lives</span> together.</div>
+      <div class="wc-sub">Connect with verified blood donors instantly. Every second counts — every drop matters.</div>
+      <div class="wc-divider"></div>
+      <div class="wc-stats">
+        <div class="wc-stat"><div class="n">24/7</div><div class="l">Available</div></div>
+        <div class="wc-stat"><div class="n">8+</div><div class="l">Blood Types</div></div>
+        <div class="wc-stat"><div class="n">∞</div><div class="l">Lives Saved</div></div>
+      </div>
+    </div>
+
+    <button class="wc-enter-btn" onclick="enterSite()">🩸 Enter BloodLink Pro</button>
+    <button class="wc-skip" onclick="enterSite()">Skip →</button>
+  </div>
+  <div class="wc-built">Built with ❤️ by <span>Satish Kumar Nishad · Team HackForce</span></div>
+</div>
+
+<script>
+  // Show welcome only once per session (not on every page reload)
+  function enterSite() {
+    const ws = document.getElementById('welcome-screen');
+    ws.classList.add('hide');
+    sessionStorage.setItem('blp_welcomed', '1');
+    setTimeout(() => ws.remove(), 750);
+  }
+  // If already welcomed this session, skip instantly
+  if (sessionStorage.getItem('blp_welcomed')) {
+    document.getElementById('welcome-screen').remove();
+  }
+  // Auto-dismiss after 6 seconds if user doesn't click
+  setTimeout(() => {
+    const ws = document.getElementById('welcome-screen');
+    if (ws) enterSite();
+  }, 6000);
+</script>
+
+<!-- Emergency Ticker -->
+<div class="emergency-ticker">
+  <span class="ticker-inner">
+    🚨 URGENT: O- blood needed at GSVM Medical College, Kanpur — CRITICAL &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+    🩸 A+ donors needed in Lucknow — Please register &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+    ✅ BloodLink Pro — Connecting donors to those in need, 24/7 &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+    📞 Emergency Helpline: 1800-XXX-XXXX &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+    🆘 B+ blood required urgently at Regency Hospital, Kanpur
+  </span>
+</div>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a href="index.html" class="nav-brand">
+    <span class="drop-icon">🩸</span> BloodLink<span style="color:#1a1a2e;font-weight:400">Pro</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="active">Home</a>
+    <a href="search.html">Find Donors</a>
+    <a href="banks.html">Blood Banks</a>
+    <a href="pricing.html">Market</a>
+    <a href="about.html">About Us</a>
+    <span id="nav-user" style="display:none;font-size:0.85rem;font-weight:600;color:var(--primary);padding:0.4rem 0.8rem;background:var(--bg-soft);border-radius:8px;"></span>
+    <a href="dashboard.html" id="nav-dashboard" class="btn btn-ghost btn-sm" style="display:none;">Dashboard</a>
+    <a href="login.html" id="nav-login" class="btn btn-outline btn-sm">Login</a>
+    <a href="register.html" id="nav-register" class="btn btn-primary btn-sm">Register</a>
+    <button id="nav-logout" class="btn btn-ghost btn-sm" style="display:none;">Logout</button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-text">
+      <div class="hero-badge">🏥 India's Smart Blood Network</div>
+      <h1>Every Drop<br><span>Counts.</span><br>Every Second<br>Matters.</h1>
+      <p>Connect with verified blood donors instantly. BloodLink Pro bridges the gap between donors and those in critical need — fast, reliable, and real.</p>
+      <div class="hero-actions">
+        <a href="donor.html" class="btn btn-primary btn-lg">🩸 Become a Donor</a>
+        <a href="search.html" class="btn btn-outline btn-lg">🔍 Find Blood Now</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="num" id="home-total">0</div><div class="lbl">Registered Donors</div></div>
+        <div class="hero-stat"><div class="num" id="home-available">0</div><div class="lbl">Available Now</div></div>
+        <div class="hero-stat"><div class="num" id="home-cities">0</div><div class="lbl">Cities Covered</div></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="blood-drop-anim"></div>
+      <div class="blood-types-grid">
+        <span class="blood-badge">A+</span><span class="blood-badge">A-</span>
+        <span class="blood-badge">B+</span><span class="blood-badge">B-</span>
+        <span class="blood-badge">AB+</span><span class="blood-badge">AB-</span>
+        <span class="blood-badge">O+</span><span class="blood-badge">O-</span>
+      </div>
+      <p style="font-size:0.8rem;color:var(--text-muted);text-align:center;">All blood types covered</p>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="section" style="background:var(--bg-soft);">
+  <div class="container section-center">
+    <div class="section-title">How It Works</div>
+    <div class="section-divider"></div>
+    <div class="how-grid">
+      <div class="how-card"><div class="how-icon">📝</div><h3>Register</h3><p>Sign up as a donor with your blood group and location details.</p></div>
+      <div class="how-card"><div class="how-icon">🔔</div><h3>Get Notified</h3><p>Receive instant alerts when someone nearby needs your blood type.</p></div>
+      <div class="how-card"><div class="how-icon">🏥</div><h3>Donate</h3><p>Head to the hospital or blood bank and save a life.</p></div>
+      <div class="how-card"><div class="how-icon">❤️</div><h3>Track Impact</h3><p>See your donation history and the lives you've helped save.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- Blood Compatibility Chart -->
+<section class="section">
+  <div class="container section-center">
+    <div class="section-title">Blood Compatibility Chart</div>
+    <div class="section-divider"></div>
+    <div class="compat-table-wrap">
+      <table class="compat-table">
+        <thead><tr><th>Blood Type</th><th>Can Donate To</th><th>Can Receive From</th></tr></thead>
+        <tbody>
+          <tr><td><span class="bg-pill">O-</span></td><td>All types (Universal Donor)</td><td>O-</td></tr>
+          <tr><td><span class="bg-pill">O+</span></td><td>O+, A+, B+, AB+</td><td>O+, O-</td></tr>
+          <tr><td><span class="bg-pill">A-</span></td><td>A-, A+, AB-, AB+</td><td>A-, O-</td></tr>
+          <tr><td><span class="bg-pill">A+</span></td><td>A+, AB+</td><td>A+, A-, O+, O-</td></tr>
+          <tr><td><span class="bg-pill">B-</span></td><td>B-, B+, AB-, AB+</td><td>B-, O-</td></tr>
+          <tr><td><span class="bg-pill">B+</span></td><td>B+, AB+</td><td>B+, B-, O+, O-</td></tr>
+          <tr><td><span class="bg-pill">AB-</span></td><td>AB-, AB+</td><td>AB-, A-, B-, O-</td></tr>
+          <tr><td><span class="bg-pill">AB+</span></td><td>AB+ only</td><td>All types (Universal Recipient)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section" style="background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;text-align:center;">
+  <div class="container">
+    <h2 style="font-size:2rem;font-weight:900;margin-bottom:0.8rem;">Ready to Save a Life?</h2>
+    <p style="opacity:0.85;margin-bottom:2rem;font-size:1rem;">Join thousands of donors across India. Your blood can be someone's second chance.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+      <a href="donor.html" class="btn btn-lg" style="background:#fff;color:var(--primary);font-weight:800;">🩸 Register as Donor</a>
+      <a href="search.html" class="btn btn-lg" style="background:rgba(255,255,255,0.15);color:#fff;border:2px solid rgba(255,255,255,0.4);">🔍 Find Donors</a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <p>© 2025 <strong>BloodLink Pro</strong> — Built with ❤️ by <strong style="color:#e63946;">Satish Kumar Nishad · Team HackForce</strong></p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

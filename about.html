@@ -1,0 +1,294 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About Us - BloodLink Pro</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    .ab-hero{background:linear-gradient(135deg,#fff5f5 0%,#fff 55%,#ffe4e4 100%);padding:2.5rem 2rem;text-align:center;position:relative;overflow:hidden;}
+    .ab-hero::before{content:'';position:absolute;top:-80px;right:-80px;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(230,57,70,0.07) 0%,transparent 70%);pointer-events:none;}
+    .hf-chip{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#e63946,#c1121f);color:#fff;padding:8px 22px;border-radius:30px;font-size:0.78rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:1.2rem;box-shadow:0 4px 18px rgba(230,57,70,0.35);}
+    .ab-hero h1{font-size:2.2rem;font-weight:900;color:#1a1a2e;letter-spacing:-1.5px;line-height:1.1;margin-bottom:0.6rem;}
+    .ab-hero h1 span{color:#e63946;}
+    .ab-hero .sub{color:#6b7280;font-size:0.88rem;max-width:460px;margin:0 auto 1.4rem;line-height:1.6;}
+    .hero-btns{display:flex;gap:0.8rem;justify-content:center;flex-wrap:wrap;}
+    .stats-bar{background:#e63946;display:grid;grid-template-columns:repeat(3,1fr);}
+    .sb-item{padding:1rem;text-align:center;color:#fff;}
+    .sb-item .n{font-size:1.6rem;font-weight:900;line-height:1;}
+    .sb-item .l{font-size:0.65rem;opacity:0.82;font-weight:600;margin-top:3px;text-transform:uppercase;letter-spacing:0.5px;}
+    .sb-item+.sb-item{border-left:1px solid rgba(255,255,255,0.22);}
+    .page-wrap{max-width:860px;margin:0 auto;padding:1.8rem 1.5rem;}
+    .profile-card{background:#fff;border-radius:20px;border:1.5px solid #f0d0d0;box-shadow:0 4px 28px rgba(230,57,70,0.07);overflow:hidden;margin-bottom:1.5rem;}
+    .pc-top{background:linear-gradient(135deg,#e63946,#c1121f);padding:1.6rem 2rem;display:flex;align-items:center;gap:1.4rem;flex-wrap:wrap;}
+    .pc-avatar-wrap{position:relative;flex-shrink:0;cursor:pointer;width:96px;height:96px;display:flex;align-items:center;justify-content:center;}
+    .insta-ring{position:absolute;inset:0;border-radius:50%;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);}
+    .insta-ring-inner{position:absolute;inset:3px;border-radius:50%;background:#c1121f;}
+    .pc-avatar-wrap:hover .insta-ring{animation:ring-spin 1.2s linear infinite;}
+    @keyframes ring-spin{to{transform:rotate(360deg);}}
+    .pc-avatar{width:84px;height:84px;border-radius:50%;overflow:hidden;border:3px solid #fff;background:rgba(255,255,255,0.2);box-shadow:0 2px 12px rgba(0,0,0,0.2);position:relative;z-index:1;}
+    .pc-avatar img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block;}
+    .pc-init{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:900;color:#e63946;background:#fff;}
+    .pc-name{font-size:1.4rem;font-weight:900;color:#fff;margin-bottom:3px;}
+    .pc-role{font-size:0.8rem;color:rgba(255,255,255,0.75);font-weight:600;margin-bottom:8px;}
+    .pc-tags{display:flex;gap:6px;flex-wrap:wrap;}
+    .pc-tag{background:rgba(255,255,255,0.18);color:#fff;padding:4px 12px;border-radius:20px;font-size:0.7rem;font-weight:700;}
+    .contacts-grid{display:grid;grid-template-columns:1fr 1fr;}
+    .ci{display:flex;align-items:center;gap:11px;padding:12px 1.5rem;border-bottom:1px solid #fdf0f0;}
+    .ci:nth-child(even){border-left:1px solid #fdf0f0;}
+    .ci-icon{width:34px;height:34px;border-radius:9px;background:#fff5f5;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;}
+    .ci .lbl{font-size:0.6rem;color:#9ca3af;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:1px;}
+    .ci .val{font-size:0.83rem;color:#1a1a2e;font-weight:600;}
+    .ci .val a{color:#e63946;text-decoration:none;}
+    .ci .val a:hover{text-decoration:underline;}
+    .social-row{padding:0.9rem 1.5rem;background:#f9fafb;border-top:1px solid #f0d0d0;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+    .sb{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;font-size:0.78rem;font-weight:700;text-decoration:none;transition:0.18s;border:1.5px solid transparent;}
+    .sb-li{background:#0a66c2;color:#fff;}.sb-li:hover{background:#004182;}
+    .sb-ig{background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;}.sb-ig:hover{opacity:0.85;}
+    .sb-em{background:#fff;color:#374151;border-color:#e5e7eb;}.sb-em:hover{border-color:#e63946;color:#e63946;}
+    .sb-ph{background:#e63946;color:#fff;}.sb-ph:hover{background:#c1121f;}
+    .sec-head{margin-bottom:1rem;}
+    .sec-head h2{font-size:1.2rem;font-weight:900;letter-spacing:-0.4px;margin-bottom:3px;}
+    .sec-head p{font-size:0.8rem;color:#6b7280;}
+    .red-bar{width:32px;height:4px;background:#e63946;border-radius:2px;margin-bottom:6px;}
+    .mission-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:1rem;margin-bottom:1.5rem;}
+    .mc{background:#fff;border-radius:13px;padding:1.2rem;border:1.5px solid #f0d0d0;transition:0.2s;}
+    .mc:hover{border-color:#e63946;transform:translateY(-3px);box-shadow:0 6px 22px rgba(230,57,70,0.1);}
+    .mc .mi{width:42px;height:42px;border-radius:11px;background:#fff5f5;display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin-bottom:0.6rem;}
+    .mc h3{font-size:0.86rem;font-weight:800;margin-bottom:3px;}
+    .mc p{font-size:0.75rem;color:#6b7280;line-height:1.6;}
+    .qr-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.5rem;}
+    .qr-card{background:#fff;border-radius:16px;padding:1.3rem;border:1.5px solid #f0d0d0;text-align:center;box-shadow:0 2px 14px rgba(230,57,70,0.05);}
+    .qr-card h3{font-size:0.86rem;font-weight:800;margin-bottom:3px;color:#1a1a2e;}
+    .qr-card p{font-size:0.72rem;color:#6b7280;margin-bottom:0.8rem;}
+    .qr-card img{width:148px;height:148px;border-radius:10px;border:1px solid #f0d0d0;}
+    .qr-upi{margin-top:0.5rem;font-size:0.68rem;color:#9ca3af;font-weight:600;}
+    .upi-copy-row{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:8px;}
+    .upi-id-text{font-size:0.72rem;color:#6b7280;font-weight:600;font-family:monospace;}
+    .upi-copy-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:7px;font-size:0.72rem;font-weight:700;color:#16a34a;cursor:pointer;transition:0.18s;font-family:inherit;}
+    .upi-copy-btn:hover{background:#dcfce7;}
+    .upi-copy-btn.copied{background:#dcfce7;border-color:#16a34a;}
+    .hack-banner{background:linear-gradient(135deg,#1a1a2e,#0f172a);padding:2rem 1.5rem;text-align:center;}
+    .hack-banner .hb-label{font-size:0.65rem;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,0.3);text-transform:uppercase;margin-bottom:0.4rem;}
+    .hack-banner h2{font-size:1.8rem;font-weight:900;color:#fff;letter-spacing:2px;margin-bottom:0.3rem;}
+    .hack-banner .venue{font-size:0.82rem;color:rgba(255,255,255,0.5);margin-bottom:1rem;}
+    .hack-pills{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;}
+    .hp{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:20px;font-size:0.72rem;font-weight:700;}
+    .hp-red{background:#e63946;color:#fff;}
+    .hp-out{background:transparent;color:rgba(255,255,255,0.6);border:1.5px solid rgba(255,255,255,0.18);}
+    #story-viewer{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.94);display:none;flex-direction:column;align-items:center;justify-content:center;}
+    #story-viewer.open{display:flex;animation:sv-in 0.25s ease;}
+    @keyframes sv-in{from{opacity:0;transform:scale(0.9);}to{opacity:1;transform:scale(1);}}
+    .sv-header{position:absolute;top:0;left:0;right:0;padding:14px 18px;display:flex;align-items:center;gap:10px;background:linear-gradient(to bottom,rgba(0,0,0,0.75),transparent);}
+    .sv-prog-bar{position:absolute;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.25);}
+    .sv-prog-fill{height:100%;background:#fff;animation:sv-prog 5s linear forwards;}
+    @keyframes sv-prog{from{width:0}to{width:100%}}
+    .sv-mini-av{width:34px;height:34px;border-radius:50%;overflow:hidden;border:2px solid #fff;flex-shrink:0;}
+    .sv-mini-av img{width:100%;height:100%;object-fit:cover;object-position:top center;}
+    .sv-info .sv-uname{color:#fff;font-size:0.88rem;font-weight:700;}
+    .sv-info .sv-time{color:rgba(255,255,255,0.5);font-size:0.7rem;}
+    .sv-close{margin-left:auto;background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;opacity:0.75;line-height:1;}
+    .sv-close:hover{opacity:1;}
+    .sv-photo{max-width:min(400px,88vw);max-height:70vh;border-radius:16px;object-fit:contain;box-shadow:0 20px 80px rgba(0,0,0,0.6);display:block;}
+    .sv-footer{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+    .sv-pill{background:rgba(255,255,255,0.1);color:#fff;padding:6px 14px;border-radius:20px;font-size:0.75rem;font-weight:600;border:1px solid rgba(255,255,255,0.18);}
+    @media(max-width:580px){
+      .ab-hero h1{font-size:1.8rem;}
+      .contacts-grid{grid-template-columns:1fr;}
+      .ci:nth-child(even){border-left:none;}
+      .qr-grid{grid-template-columns:1fr;}
+      .pc-top{flex-direction:column;text-align:center;}
+      .pc-tags{justify-content:center;}
+      .stats-bar{grid-template-columns:1fr;}
+      .sb-item+.sb-item{border-left:none;border-top:1px solid rgba(255,255,255,0.2);}
+    }
+  </style>
+</head>
+<body data-page="about">
+
+<nav class="navbar">
+  <a href="index.html" class="nav-brand"><span class="drop-icon">&#x1F9B8;</span> BloodLink<span style="color:#1a1a2e;font-weight:400">Pro</span></a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="search.html">Find Donors</a>
+    <a href="banks.html">Blood Banks</a>
+    <a href="pricing.html">Market</a>
+    <a href="about.html" class="active">About Us</a>
+    <span id="nav-user" style="display:none;font-size:0.85rem;font-weight:600;color:var(--primary);padding:0.4rem 0.8rem;background:var(--bg-soft);border-radius:8px;"></span>
+    <a href="login.html" id="nav-login" class="btn btn-outline btn-sm">Login</a>
+    <a href="register.html" id="nav-register" class="btn btn-primary btn-sm">Register</a>
+    <button id="nav-logout" class="btn btn-ghost btn-sm" style="display:none;">Logout</button>
+  </div>
+</nav>
+
+<div class="ab-hero">
+  <div class="hf-chip">&#x26A1; TEAM HACKFORCE</div>
+  <h1>Built with <span>Purpose.</span><br>Driven by Impact.</h1>
+  <p class="sub">A developer from Uttar Pradesh who built BloodLink Pro to solve a real-world emergency connecting blood donors to those in critical need, instantly.</p>
+  <div class="hero-btns">
+    <a href="donor.html" class="btn btn-primary btn-lg">&#x1FA78; Become a Donor</a>
+    <a href="search.html" class="btn btn-outline btn-lg">&#x1F50D; Find Donors</a>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="sb-item"><div class="n">1</div><div class="l">Developer</div></div>
+  <div class="sb-item"><div class="n">1</div><div class="l">Powerful App</div></div>
+  <div class="sb-item"><div class="n">&#x221E;</div><div class="l">Lives to Save</div></div>
+</div>
+
+<div class="page-wrap">
+  <div class="profile-card">
+    <div class="pc-top">
+      <div class="pc-avatar-wrap" onclick="openStory()" title="Tap to view photo">
+        <div class="insta-ring"><div class="insta-ring-inner"></div></div>
+        <div class="pc-avatar">
+          <img src="images/satish.jpg" alt="Satish" onerror="this.style.display='none';document.getElementById('pc-init').style.display='flex';" />
+          <div class="pc-init" id="pc-init" style="display:none;">S</div>
+        </div>
+      </div>
+      <div>
+        <div class="pc-name">Satish Kumar Nishad</div>
+        <div class="pc-role">Full Stack Developer &middot; Team HackForce</div>
+        <div class="pc-tags">
+          <span class="pc-tag">&#x1F468;&#x200D;&#x1F4BB; Developer</span>
+          <span class="pc-tag">&#x1F3C6; Hackathon</span>
+          <span class="pc-tag">&#x1F4CD; Unnao, UP</span>
+        </div>
+      </div>
+    </div>
+    <div class="contacts-grid">
+      <div class="ci"><div class="ci-icon">&#x1F4E7;</div><div><div class="lbl">Email</div><div class="val"><a href="mailto:sn0863110@gmail.com">sn0863110@gmail.com</a></div></div></div>
+      <div class="ci"><div class="ci-icon">&#x1F4DE;</div><div><div class="lbl">Phone</div><div class="val"><a href="tel:9335857482">+91 93358 57482</a></div></div></div>
+      <div class="ci"><div class="ci-icon">&#x1F4CD;</div><div><div class="lbl">Address</div><div class="val">Saraiya, Shuklaganj, Unnao, UP</div></div></div>
+      <div class="ci"><div class="ci-icon">&#x1F3C6;</div><div><div class="lbl">Venue</div><div class="val" style="color:#e63946;">Allenhouse Business School, UP</div></div></div>
+    </div>
+    <div class="social-row">
+      <a href="https://www.linkedin.com/in/satish-kumar-nishad-9b4685230" target="_blank" class="sb sb-li">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+        LinkedIn
+      </a>
+      <a href="https://www.instagram.com/satish_mallah_?igsh=MWw1cjY4a3kxZWhkdA==" target="_blank" class="sb sb-ig">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        Instagram
+      </a>
+      <a href="mailto:sn0863110@gmail.com" class="sb sb-em">&#x1F4E7; Email</a>
+      <a href="tel:9335857482" class="sb sb-ph">&#x1F4DE; Call Now</a>
+    </div>
+  </div>
+
+  <div class="sec-head"><div class="red-bar"></div><h2>Our Mission</h2><p>Why BloodLink Pro was built</p></div>
+  <div class="mission-grid">
+    <div class="mc"><div class="mi">&#x1F3AF;</div><h3>Save Lives</h3><p>Bridge the gap between blood donors and patients in critical need instantly.</p></div>
+    <div class="mc"><div class="mi">&#x26A1;</div><h3>Fast Response</h3><p>Emergency SOS system that alerts available donors within seconds.</p></div>
+    <div class="mc"><div class="mi">&#x1F30D;</div><h3>Community First</h3><p>Built for real communities starting from Unnao and Kanpur, expanding across India.</p></div>
+    <div class="mc"><div class="mi">&#x1F512;</div><h3>Trustworthy</h3><p>Verified donor profiles with real contact info, blood group, and live availability.</p></div>
+  </div>
+
+  <div class="sec-head"><div class="red-bar"></div><h2>Scan &amp; Connect</h2><p>Scan to open the website or pay via UPI</p></div>
+  <div class="qr-grid">
+    <div class="qr-card">
+      <h3>&#x1F4F1; BloodLink Pro Website</h3>
+      <p>Scan to open the live website on your phone</p>
+      <img id="qr-website" src="" alt="Website QR" />
+      <div class="qr-upi">&#x1F517; sn0863110-creator.github.io/Bloodlink-Pro</div>
+      <a href="https://sn0863110-creator.github.io/Bloodlink-Pro/" target="_blank" class="btn btn-primary btn-sm" style="margin-top:0.8rem;justify-content:center;width:100%;">&#x1F310; Open Website</a>
+    </div>
+    <div class="qr-card">
+      <h3>&#x1F4B3; Google Pay UPI</h3>
+      <p>Scan to pay Satish Kumar Nishad via UPI</p>
+      <img src="images/gpay-qr.jpg" alt="Google Pay QR" id="gpay-qr" />
+      <div class="upi-copy-row">
+        <span class="upi-id-text">sn0863110-2@okhdfcbank</span>
+        <button class="upi-copy-btn" id="upi-copy-btn" onclick="copyUPI()">&#x2398; Copy</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="hack-banner">
+  <div class="hb-label">Competing at</div>
+  <h2>&#x26A1; TEAM HACKFORCE</h2>
+  <div class="venue">Allenhouse Business School &middot; Uttar Pradesh State Level Hackathon 2025</div>
+  <div class="hack-pills">
+    <span class="hp hp-red">&#x1F3C6; State Level Competition</span>
+    <span class="hp hp-out">&#x1F4CD; Uttar Pradesh</span>
+    <span class="hp hp-out">&#x1F4BB; HTML &middot; CSS &middot; JavaScript</span>
+    <span class="hp hp-out">&#x1F468;&#x200D;&#x1F4BB; Solo Developer</span>
+  </div>
+</div>
+
+<footer class="footer">
+  <p>&copy; 2025 <strong>BloodLink Pro</strong> &mdash; Built with &#x2764;&#xFE0F; by <strong style="color:#e63946;">Satish Kumar Nishad &middot; Team HackForce</strong></p>
+</footer>
+
+<div id="story-viewer" onclick="closeStory(event)">
+  <div class="sv-prog-bar"><div class="sv-prog-fill" id="sv-prog"></div></div>
+  <div class="sv-header">
+    <div class="sv-mini-av"><img src="images/satish.jpg" alt="S" /></div>
+    <div class="sv-info">
+      <div class="sv-uname">satish_mallah_</div>
+      <div class="sv-time">Satish Kumar Nishad &middot; Now</div>
+    </div>
+    <button class="sv-close" onclick="closeStory()">&#x2715;</button>
+  </div>
+  <img class="sv-photo" src="images/satish.jpg" alt="Satish Kumar Nishad" />
+  <div class="sv-footer">
+    <span class="sv-pill">&#x1F4CD; Unnao, UP</span>
+    <span class="sv-pill">&#x1F3C6; Team HackForce</span>
+    <span class="sv-pill">&#x1F468;&#x200D;&#x1F4BB; Full Stack Dev</span>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+  var svTimer;
+  function openStory() {
+    var sv = document.getElementById('story-viewer');
+    sv.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    var prog = document.getElementById('sv-prog');
+    prog.style.animation = 'none'; prog.offsetHeight;
+    prog.style.animation = 'sv-prog 5s linear forwards';
+    clearTimeout(svTimer);
+    svTimer = setTimeout(closeStory, 5000);
+  }
+  function closeStory(e) {
+    if (e && e.target !== document.getElementById('story-viewer')) return;
+    document.getElementById('story-viewer').classList.remove('open');
+    document.body.style.overflow = '';
+    clearTimeout(svTimer);
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.getElementById('story-viewer').classList.remove('open');
+      document.body.style.overflow = '';
+      clearTimeout(svTimer);
+    }
+  });
+  function copyUPI() {
+    navigator.clipboard.writeText('sn0863110-2@okhdfcbank').then(function() {
+      var btn = document.getElementById('upi-copy-btn');
+      var iconCopy  = document.getElementById('upi-icon-copy');
+      var iconCheck = document.getElementById('upi-icon-check');
+      btn.classList.add('copied');
+      iconCopy.style.display  = 'none';
+      iconCheck.style.display = 'inline';
+      setTimeout(function() {
+        btn.classList.remove('copied');
+        iconCopy.style.display  = 'inline';
+        iconCheck.style.display = 'none';
+      }, 2000);
+    });
+  }
+  document.getElementById('qr-website').src = 'https://api.qrserver.com/v1/create-qr-code/?size=148x148&data=' + encodeURIComponent('https://sn0863110-creator.github.io/Bloodlink-Pro/') + '&color=e63946&bgcolor=ffffff&margin=8';
+  var gpay = document.getElementById('gpay-qr');
+  gpay.onerror = function() {
+    this.src = 'https://api.qrserver.com/v1/create-qr-code/?size=148x148&data=' + encodeURIComponent('upi://pay?pa=sn0863110-2@okhdfcbank&pn=Satish+Kumar+Nishad&cu=INR') + '&color=000000&bgcolor=ffffff&margin=8';
+    this.onerror = null;
+  };
+  updateNav();
+</script>
+</body>
+</html>

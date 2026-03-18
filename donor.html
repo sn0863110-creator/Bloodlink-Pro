@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Become a Donor — BloodLink Pro</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+</head>
+<body data-page="donor">
+
+<nav class="navbar">
+  <a href="index.html" class="nav-brand"><span class="drop-icon">🩸</span> BloodLink<span style="color:#1a1a2e;font-weight:400">Pro</span></a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="search.html">Find Donors</a>
+    <a href="banks.html">Blood Banks</a>
+    <a href="pricing.html">Market</a>
+    <a href="about.html">About Us</a>
+    <span id="nav-user" style="display:none;font-size:0.85rem;font-weight:600;color:var(--primary);padding:0.4rem 0.8rem;background:var(--bg-soft);border-radius:8px;"></span>
+    <a href="login.html" id="nav-login" class="btn btn-outline btn-sm">Login</a>
+    <a href="register.html" id="nav-register" class="btn btn-primary btn-sm">Register</a>
+    <button id="nav-logout" class="btn btn-ghost btn-sm" style="display:none;">Logout</button>
+  </div>
+</nav>
+
+<div class="form-page" style="padding:2rem 1rem;">
+  <div class="form-card form-card-wide">
+    <div class="form-header">
+      <div class="icon">🩸</div>
+      <h2>Become a Donor</h2>
+      <p>Register yourself and help save lives in your community</p>
+    </div>
+
+    <div id="donor-success" class="success-banner"></div>
+
+    <!-- Why donate info strip -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.5rem;">
+      <div style="background:var(--bg-soft);border-radius:8px;padding:10px;text-align:center;font-size:0.78rem;">
+        <div style="font-size:1.3rem;">💉</div><strong>Safe Process</strong><br><span style="color:var(--text-muted);">Takes 30 mins</span>
+      </div>
+      <div style="background:var(--bg-soft);border-radius:8px;padding:10px;text-align:center;font-size:0.78rem;">
+        <div style="font-size:1.3rem;">❤️</div><strong>Save 3 Lives</strong><br><span style="color:var(--text-muted);">Per donation</span>
+      </div>
+      <div style="background:var(--bg-soft);border-radius:8px;padding:10px;text-align:center;font-size:0.78rem;">
+        <div style="font-size:1.3rem;">🔄</div><strong>Every 56 Days</strong><br><span style="color:var(--text-muted);">You can donate</span>
+      </div>
+    </div>
+
+    <form id="donor-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="d-name">Full Name *</label>
+          <input type="text" id="d-name" placeholder="Your full name" required />
+        </div>
+        <div class="form-group">
+          <label for="d-blood">Blood Group *</label>
+          <select id="d-blood" required>
+            <option value="">Select Blood Group</option>
+            <option>A+</option><option>A-</option>
+            <option>B+</option><option>B-</option>
+            <option>AB+</option><option>AB-</option>
+            <option>O+</option><option>O-</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="d-city">City *</label>
+          <input type="text" id="d-city" placeholder="e.g. Kanpur" required />
+        </div>
+        <div class="form-group">
+          <label for="d-contact">Contact Number *</label>
+          <input type="tel" id="d-contact" placeholder="10-digit mobile" maxlength="10" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="d-available">Availability Status *</label>
+        <select id="d-available" required>
+          <option value="yes">✅ Available to Donate</option>
+          <option value="no">⏸️ Not Available Right Now</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:0.5rem;">
+        🩸 Register as Donor
+      </button>
+    </form>
+
+    <div class="form-footer" style="margin-top:1rem;">
+      Want to search for donors? <a href="search.html">Find Blood Now</a>
+    </div>
+  </div>
+</div>
+
+<footer class="footer"><p>© 2025 <strong>BloodLink Pro</strong> — Built with ❤️ by <strong style="color:#e63946;">Satish Kumar Nishad · Team HackForce</strong></p></footer>
+<script src="script.js"></script>
+</body>
+</html>

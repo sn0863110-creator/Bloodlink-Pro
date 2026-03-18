@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find Donors — BloodLink Pro</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+</head>
+<body data-page="search">
+
+<nav class="navbar">
+  <a href="index.html" class="nav-brand"><span class="drop-icon">🩸</span> BloodLink<span style="color:#1a1a2e;font-weight:400">Pro</span></a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="search.html" class="active">Find Donors</a>
+    <a href="banks.html">Blood Banks</a>
+    <a href="pricing.html">Market</a>
+    <a href="about.html">About Us</a>
+    <span id="nav-user" style="display:none;font-size:0.85rem;font-weight:600;color:var(--primary);padding:0.4rem 0.8rem;background:var(--bg-soft);border-radius:8px;"></span>
+    <a href="login.html" id="nav-login" class="btn btn-outline btn-sm">Login</a>
+    <a href="register.html" id="nav-register" class="btn btn-primary btn-sm">Register</a>
+    <button id="nav-logout" class="btn btn-ghost btn-sm" style="display:none;">Logout</button>
+  </div>
+</nav>
+
+<div class="search-page">
+  <div style="max-width:1100px;margin:0 auto;">
+
+    <!-- Search Hero -->
+    <div class="search-hero">
+      <h1>🔍 Find Blood Donors</h1>
+      <p>Search verified donors by blood group and city. Results show real-time availability.</p>
+    </div>
+
+    <!-- Emergency Panel -->
+    <div class="emergency-panel">
+      <h2>🚨 Emergency Blood Needed?</h2>
+      <p>If this is a critical emergency, send an SOS alert to all available donors in your area immediately.</p>
+      <button class="sos-btn" id="sos-btn" onclick="triggerSOS()">
+        🆘 Send Emergency SOS
+      </button>
+      <div class="sos-alert" id="sos-alert"></div>
+    </div>
+
+    <!-- Search Filters -->
+    <div class="search-box">
+      <form id="search-form">
+        <div class="search-filters">
+          <div class="form-group" style="margin:0;">
+            <label for="filter-blood" style="font-size:0.85rem;font-weight:600;margin-bottom:6px;display:block;">Blood Group</label>
+            <select id="filter-blood">
+              <option value="">All Blood Groups</option>
+              <option>A+</option><option>A-</option>
+              <option>B+</option><option>B-</option>
+              <option>AB+</option><option>AB-</option>
+              <option>O+</option><option>O-</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label for="filter-city" style="font-size:0.85rem;font-weight:600;margin-bottom:6px;display:block;">City</label>
+            <input type="text" id="filter-city" placeholder="e.g. Kanpur, Delhi..." />
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg" style="align-self:flex-end;">Search</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Quick Blood Group Buttons -->
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.5rem;">
+      <span style="font-size:0.82rem;color:var(--text-muted);align-self:center;">Quick select:</span>
+      <button class="blood-badge" style="cursor:pointer;border:none;" onclick="quickSearch('A+')">A+</button>
+      <button class="blood-badge" style="cursor:pointer;border:none;" onclick="quickSearch('B+')">B+</button>
+      <button class="blood-badge" style="cursor:pointer;border:none;" onclick="quickSearch('O+')">O+</button>
+      <button class="blood-badge" style="cursor:pointer;border:none;" onclick="quickSearch('O-')">O-</button>
+      <button class="blood-badge" style="cursor:pointer;border:none;" onclick="quickSearch('AB+')">AB+</button>
+    </div>
+
+    <!-- Results -->
+    <div class="results-header">
+      <span id="results-count" style="font-size:0.9rem;color:var(--text-muted);"></span>
+      <span id="last-updated" style="font-size:0.78rem;color:var(--text-muted);"></span>
+    </div>
+    <div id="results-wrap">
+      <div class="empty-state">
+        <div class="icon">🩸</div>
+        <h3>Search for Donors</h3>
+        <p>Select a blood group or city above and click Search to find available donors.</p>
+      </div>
+    </div>
+
+    <!-- Nearby Blood Banks -->
+    <div style="margin-top:3rem;">
+      <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:0.4rem;">🏥 Nearby Blood Banks</h2>
+      <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:1.5rem;">Verified blood banks in your region — open 24/7 for emergencies</p>
+      <div class="banks-grid" id="banks-mini"></div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer"><p>© 2025 <strong>BloodLink Pro</strong> — Built with ❤️ by <strong style="color:#e63946;">Satish Kumar Nishad · Team HackForce</strong></p></footer>
+
+<script src="script.js"></script>
+<script>
+  function quickSearch(blood) {
+    document.getElementById('filter-blood').value = blood;
+    performSearch();
+  }
+
+  // Render mini blood banks
+  const banks = [
+    { name: 'GSVM Medical College Blood Bank', address: 'Swaroop Nagar, Kanpur, UP 208002', phone: '0512-2533001', hours: 'Mon–Sat 8am–8pm' },
+    { name: 'Lala Lajpat Rai Hospital Blood Bank', address: 'Lala Lajpat Rai Hospital, Kanpur, UP 208001', phone: '0512-2304448', hours: '24/7' },
+    { name: 'Regency Hospital Blood Bank', address: 'A-2, Sarvodaya Nagar, Kanpur, UP 208005', phone: '0512-3081972', hours: 'Mon–Sun 7am–9pm' },
+    { name: 'Rama Medical College Blood Bank', address: 'Mandhana, Kanpur, UP 209217', phone: '0512-2280001', hours: '24/7' },
+    { name: 'Ursala Hospital Blood Bank', address: 'Civil Lines, Kanpur, UP 208001', phone: '0512-2531001', hours: 'Mon–Sat 9am–5pm' },
+    { name: 'Chandra Hospital Blood Bank', address: 'Kidwai Nagar, Kanpur, UP 208011', phone: '0512-2600100', hours: '24/7' }
+  ];
+  document.getElementById('banks-mini').innerHTML = banks.map(b => `
+    <div class="bank-card">
+      <h3>🏥 ${b.name}</h3>
+      <div class="bank-meta">
+        <span>📍 ${b.address}</span>
+        <span>📞 <a href="tel:${b.phone}" style="color:var(--primary);font-weight:600;">${b.phone}</a></span>
+        <span>🕐 ${b.hours}</span>
+      </div>
+      <span class="bank-status ${b.hours.includes('24') ? 'status-247' : 'status-open'}">${b.hours.includes('24') ? '🔵 24/7 Open' : '🟢 Open'}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('last-updated').textContent = 'Updated: ' + new Date().toLocaleTimeString();
+</script>
+</body>
+</html>
