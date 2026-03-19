@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sn0863110-creator.github.io/BloodLink-Pro/sitemap.xml
