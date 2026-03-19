@@ -94,23 +94,36 @@ function updateNav() {
     const nd = el('nav-dashboard'); if (nd) nd.style.display = 'none';
   }
   el('nav-logout')?.addEventListener('click', logout);
+}
 
-  // Hamburger toggle
-  const toggle = el('nav-toggle');
-  const links  = el('nav-links');
-  if (toggle && links) {
-    toggle.addEventListener('click', function() {
-      toggle.classList.toggle('open');
-      links.classList.toggle('open');
+// ── Hamburger — setup once ────────────────────────
+function setupHamburger() {
+  const toggle = document.getElementById('nav-toggle');
+  const links  = document.getElementById('nav-links');
+  if (!toggle || !links) return;
+
+  toggle.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const isOpen = links.classList.contains('open');
+    toggle.classList.toggle('open', !isOpen);
+    links.classList.toggle('open', !isOpen);
+  });
+
+  // Close on nav link / button click
+  links.querySelectorAll('a, button').forEach(function(item) {
+    item.addEventListener('click', function() {
+      toggle.classList.remove('open');
+      links.classList.remove('open');
     });
-    // Close menu on link click
-    links.querySelectorAll('a, button').forEach(function(item) {
-      item.addEventListener('click', function() {
-        toggle.classList.remove('open');
-        links.classList.remove('open');
-      });
-    });
-  }
+  });
+
+  // Close on outside tap (mobile)
+  document.addEventListener('click', function(e) {
+    if (!toggle.contains(e.target) && !links.contains(e.target)) {
+      toggle.classList.remove('open');
+      links.classList.remove('open');
+    }
+  });
 }
 
 // ── HOME PAGE ─────────────────────────────────────
@@ -539,6 +552,7 @@ function renderCharts() {
 
 // ── PAGE ROUTER ───────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  setupHamburger();
   const page = document.body.dataset.page;
   if      (page === 'home')      initHome();
   else if (page === 'login')     initLoginForm();
@@ -546,5 +560,5 @@ document.addEventListener('DOMContentLoaded', () => {
   else if (page === 'donor')     initDonorForm();
   else if (page === 'search')    initSearch();
   else if (page === 'dashboard') initDashboard();
-  else updateNav(); // banks page etc.
+  else { updateNav(); } // banks, pricing, about
 });
