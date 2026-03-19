@@ -43,7 +43,7 @@
     <div class="emergency-panel">
       <h2>🚨 Emergency Blood Needed?</h2>
       <p>If this is a critical emergency, send an SOS alert to all available donors in your area immediately.</p>
-      <button class="sos-btn" id="sos-btn" onclick="triggerSOS()">
+      <button class="sos-btn" id="sos-btn">
         🆘 Send Emergency SOS
       </button>
       <div class="sos-alert" id="sos-alert"></div>
@@ -195,6 +195,9 @@ async function adminApproveFromSearch(id) {
   performSearch();
 }
 document.getElementById('search-form').addEventListener('submit',function(e){e.preventDefault();performSearch();});
+// SOS button
+var sosBtn=document.getElementById('sos-btn');
+if(sosBtn) sosBtn.addEventListener('click',function(){if(typeof triggerSOS==='function')triggerSOS();});
 </script>
 </body>
 </html>

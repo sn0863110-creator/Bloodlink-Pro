@@ -84,8 +84,17 @@ function setupHamburger() {
   const btn  = document.getElementById('nav-toggle') || document.getElementById('hamburger');
   const menu = document.getElementById('nav-links')  || document.getElementById('nav-menu');
   if (!btn || !menu) return;
-  btn.addEventListener('click', function(e){ e.stopPropagation(); menu.classList.toggle('open'); });
-  document.addEventListener('click', function(e){ if (!menu.contains(e.target) && e.target !== btn) menu.classList.remove('open'); });
+  btn.addEventListener('click', function(e){
+    e.stopPropagation();
+    menu.classList.toggle('open');
+    btn.classList.toggle('open');
+  });
+  document.addEventListener('click', function(e){
+    if (!menu.contains(e.target) && e.target !== btn) {
+      menu.classList.remove('open');
+      btn.classList.remove('open');
+    }
+  });
 }
 
 function updateNavAuth() {
@@ -214,7 +223,12 @@ document.addEventListener('DOMContentLoaded', function() {
       var hc=document.getElementById('home-cities'); if(hc) hc.textContent=Object.keys(cities).length;
     });
   }
-});
+  // SOS on all pages
+  var sosBtnGlobal=document.getElementById('sos-btn');
+  if(sosBtnGlobal && !sosBtnGlobal._sosAttached) {
+    sosBtnGlobal._sosAttached=true;
+    sosBtnGlobal.addEventListener('click', triggerSOS);
+  }});
 
 async function initLogin() {
   var form=document.getElementById('login-form'); if (!form) return;
@@ -227,6 +241,7 @@ async function initSearch()   { /* search.html inline handles */ }
 async function initDashboard() {
   trackVisitor();
   var user=currentUser();
+  if (!user) { window.location.href='login.html'; return; }
   var ne=document.getElementById('user-name'); if(ne) ne.textContent=user?user.name:'Guest';
   var lu=document.getElementById('last-updated'); if(lu) lu.textContent='Loading...';
   var donors=await getDonors();

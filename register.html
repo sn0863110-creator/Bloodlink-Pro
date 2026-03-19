@@ -142,7 +142,9 @@ window.addEventListener('DOMContentLoaded', function() {
     const role  = (document.getElementById('r-role')||{value:'user'}).value;
     const available = (document.getElementById('r-available')||{value:'yes'}).value || 'yes';
     const btn   = fresh.querySelector('button[type=submit]');
-    if(!name||!email||!pass){_toast2('Please fill all fields.','error');return;}
+    if(!name||!email||!pass){_toast2('Please fill all required fields.','error');return;}
+    if(pass.length<6){_toast2('Password must be at least 6 characters.','error');return;}
+    if(role==='donor'&&phone&&!/^[6-9]\d{9}$/.test(phone)){_toast2('Enter a valid 10-digit mobile number.','error');return;}
     btn.disabled=true;btn.textContent='Registering...';
     const users=await _getUsers2();
     if(users.find(function(u){return u.email.toLowerCase()===email;})){

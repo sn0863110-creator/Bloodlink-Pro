@@ -121,7 +121,8 @@ window.addEventListener('DOMContentLoaded', function() {
     const city      = document.getElementById('d-city').value.trim();
     const phone     = document.getElementById('d-contact').value.trim();
     const available = document.getElementById('d-available').value || 'yes';
-    if(!name||!blood||!city||!phone){_toast3('Please fill all required fields.','error');btn.disabled=false;btn.textContent='Register as Donor';return;}
+    if(!name||!blood||!city||!phone){_toast3('Please fill all required fields.','error');btn.disabled=false;btn.textContent='🩸 Register as Donor';return;}
+    if(!/^[6-9]\d{9}$/.test(phone)){_toast3('Enter a valid 10-digit mobile number.','error');btn.disabled=false;btn.textContent='🩸 Register as Donor';return;}
     const donors = await _getDonors3();
     donors.push({id:Date.now(),name:name,blood:blood,city:city,phone:phone,available:available,status:'pending',date:new Date().toISOString()});
     localStorage.setItem('blp_dc',JSON.stringify(donors));
