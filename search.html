@@ -147,25 +147,52 @@ async function performSearch(){
   const blood=document.getElementById('filter-blood').value;
   const city=(document.getElementById('filter-city').value||'').trim().toLowerCase();
   results.innerHTML='<div class="loading-state"><div class="spinner"></div><p>Searching donors...</p></div>';
-  const donors=await _getDonors4();
+  const allDonors=await _getDonors4();
+  // Only show approved donors to public, all to admin
+  const admin = (typeof isAdmin==='function') && isAdmin();
+  const donors=allDonors.filter(function(d){return admin || d.status!=='pending';});
   const found=donors.filter(function(d){return(!blood||d.blood===blood)&&(!city||d.city.toLowerCase().includes(city));});
   const ce=document.getElementById('results-count');if(ce)ce.textContent=found.length+' donor(s) found';
   if(!found.length){results.innerHTML='<div class="empty-state"><div class="icon">🩸</div><h3>No donors found</h3><p>Try different filters or <a href="donor.html" style="color:#e63946;font-weight:600;">register as a donor</a>.</p></div>';return;}
   results.innerHTML='<div class="results-grid">'+found.map(function(d){
     var avail=d.available!=='no';
     var initials=d.name?d.name.charAt(0).toUpperCase():'?';
+    var pendingBadge=d.status==='pending'?'<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:8px;font-size:0.7rem;font-weight:700;margin-left:6px;">⏳ Pending</span>':'';
+    var adminBtn=admin?'<button onclick="adminDeleteFromSearch('+d.id+')" style="margin-top:8px;background:#fee2e2;color:#e63946;border:1.5px solid #fca5a5;padding:4px 10px;border-radius:7px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit;width:100%;">🗑️ Delete Donor</button>':'';
+    var approveBtn=(admin&&d.status==='pending')?'<button onclick="adminApproveFromSearch('+d.id+')" style="margin-top:4px;background:#dcfce7;color:#15803d;border:1.5px solid #86efac;padding:4px 10px;border-radius:7px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit;width:100%;">✅ Approve</button>':'';
     return '<div class="donor-card">'
       +'<div class="donor-top">'
       +'<div class="donor-avatar">'+initials+'</div>'
-      +'<div><div class="donor-name">'+d.name+'</div><div class="donor-city">📍 '+d.city+'</div></div>'
+      +'<div><div class="donor-name">'+d.name+pendingBadge+'</div><div class="donor-city">📍 '+d.city+'</div></div>'
       +'<span class="blood-group-tag">'+d.blood+'</span>'
       +'</div>'
       +'<div class="donor-details">'
       +'<div class="donor-detail">📞 <a href="tel:'+d.phone+'" style="color:#e63946;font-weight:600;">'+d.phone+'</a></div>'
       +'<div class="donor-detail"><span class="avail-tag '+(avail?'yes':'no')+'">'+(avail?'✅ Available':'⏸️ Unavailable')+'</span></div>'
       +'</div>'
+      +approveBtn+adminBtn
       +'</div>';
   }).join('')+'</div>';
+}
+
+async function adminDeleteFromSearch(id) {
+  if (!confirm('Is donor ko delete karna chahte ho?')) return;
+  const donors = await _getDonors4();
+  const filtered = donors.filter(function(x){return x.id!=id;});
+  localStorage.setItem('blp_dc', JSON.stringify(filtered));
+  try{await fetch(_BB4+'/'+_BD4,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK4},body:JSON.stringify({donors:filtered})});}catch(e){}
+  if(typeof showToast==='function') showToast('🗑️ Donor deleted','error');
+  performSearch();
+}
+
+async function adminApproveFromSearch(id) {
+  const donors = await _getDonors4();
+  const d = donors.find(function(x){return x.id==id;});
+  if(d) d.status='approved';
+  localStorage.setItem('blp_dc', JSON.stringify(donors));
+  try{await fetch(_BB4+'/'+_BD4,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK4},body:JSON.stringify({donors:donors})});}catch(e){}
+  if(typeof showToast==='function') showToast('✅ Donor approved!','success');
+  performSearch();
 }
 document.getElementById('search-form').addEventListener('submit',function(e){e.preventDefault();performSearch();});
 </script>

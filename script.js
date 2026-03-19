@@ -1,9 +1,17 @@
-// BloodLink Pro — script.js v2 (HackForce / Satish Kumar Nishad)
+// BloodLink Pro — script.js v3 (HackForce / Satish Kumar Nishad)
 const API_KEY    = '$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW';
 const BIN_USERS  = '69bc2150aa77b81da9fcb1e3';
 const BIN_DONORS = '69bc22a2b7ec241ddc82de74';
 const BIN_MARKET = '69bc22a2b7ec241ddc82de79';
 const BASE_URL   = 'https://api.jsonbin.io/v3/b';
+
+// ── ADMIN CONFIG ──────────────────────────────────────────
+const ADMIN_EMAIL = 'sn0863110@gmail.com';
+const ADMIN_PHONE = '9335857482';
+function isAdmin() {
+  var u = currentUser();
+  return u && (u.email === ADMIN_EMAIL || u.phone === ADMIN_PHONE || u.role === 'admin');
+}
 
 async function jbGet(id) {
   try {
@@ -30,6 +38,12 @@ async function getDonors() {
   const c = await jbGet(BIN_DONORS);
   if (c && Array.isArray(c.donors)) { localStorage.setItem('blp_dc', JSON.stringify(c.donors)); return c.donors; }
   const l = localStorage.getItem('blp_dc'); return l ? JSON.parse(l) : [];
+}
+// Returns only approved donors for public, all for admin
+async function getApprovedDonors() {
+  var all = await getDonors();
+  if (isAdmin()) return all;
+  return all.filter(function(d){ return d.status !== 'pending'; });
 }
 async function saveDonors(arr) { localStorage.setItem('blp_dc', JSON.stringify(arr)); return await jbPut(BIN_DONORS, {donors:arr}); }
 
@@ -75,10 +89,11 @@ function setupHamburger() {
 }
 
 function updateNavAuth() {
-  const user = currentUser();
-  const nu=document.getElementById('nav-user'), nl=document.getElementById('nav-login'), nr=document.getElementById('nav-register'), nd=document.getElementById('nav-dashboard'), no=document.getElementById('nav-logout');
+  var user = currentUser();
+  var nu=document.getElementById('nav-user'), nl=document.getElementById('nav-login'), nr=document.getElementById('nav-register'), nd=document.getElementById('nav-dashboard'), no=document.getElementById('nav-logout');
   if (user) {
-    if (nu) { nu.textContent='👤 '+user.name; nu.style.display='inline-block'; }
+    var adminBadge = isAdmin() ? ' <span style="background:#e63946;color:#fff;font-size:0.65rem;padding:2px 7px;border-radius:10px;font-weight:800;vertical-align:middle;">ADMIN</span>' : '';
+    if (nu) { nu.innerHTML='👤 '+user.name+adminBadge; nu.style.display='inline-block'; }
     if (nl) nl.style.display='none';
     if (nr) nr.style.display='none';
     if (nd) nd.style.display='inline-flex';
@@ -215,15 +230,19 @@ async function initDashboard() {
   var ne=document.getElementById('user-name'); if(ne) ne.textContent=user?user.name:'Guest';
   var lu=document.getElementById('last-updated'); if(lu) lu.textContent='Loading...';
   var donors=await getDonors();
+  var approved=donors.filter(function(d){return d.status!=='pending';});
+  var pending=donors.filter(function(d){return d.status==='pending';});
   var mkt=await cloudGetMarket();
   var market=mkt.transactions||[];
-  var td=document.getElementById('total-donors');       if(td) td.textContent=donors.length;
+  var td=document.getElementById('total-donors');       if(td) td.textContent=approved.length;
   var tt=document.getElementById('total-transactions'); if(tt) tt.textContent=market.length;
   var tu=document.getElementById('total-units');        if(tu) tu.textContent=market.reduce(function(s,t){return s+(parseInt(t.qty)||1);},0);
-  var av=document.getElementById('stat-available');     if(av) av.textContent=donors.filter(function(d){return d.available!=='no';}).length;
+  var av=document.getElementById('stat-available');     if(av) av.textContent=approved.filter(function(d){return d.available!=='no';}).length;
   if(lu) lu.textContent='Updated: '+new Date().toLocaleTimeString();
-  renderDashCharts(donors);
-  renderRecentActivity(donors, market);
+  renderDashCharts(approved);
+  renderRecentActivity(approved, market);
+  // Admin panel
+  if (isAdmin()) renderAdminPanel(pending, donors, market);
 }
 
 function renderDashCharts(donors) {
@@ -255,4 +274,70 @@ function renderRecentActivity(donors, market) {
   market.slice(-5).forEach(function(t){acts.push({t:new Date(t.ts||t.date||Date.now()),h:'<div style="padding:8px 0;border-bottom:1px solid #f0f0f0"><span style="background:#f0fdf4;color:#27ae60;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:700">'+t.type.toUpperCase()+'</span> '+(t.qty||1)+' unit(s) <b>'+t.blood+'</b></div>'});});
   acts.sort(function(a,b){return b.t-a.t;});
   el.innerHTML=acts.length?acts.slice(0,8).map(function(a){return a.h;}).join(''):'<p style="text-align:center;color:#999;padding:2rem">No recent activity yet.</p>';
+}
+
+// ── ADMIN PANEL ───────────────────────────────────────────
+function renderAdminPanel(pending, allDonors, market) {
+  var dash = document.querySelector('.dash-body');
+  if (!dash) return;
+  var existing = document.getElementById('admin-panel');
+  if (existing) existing.remove();
+
+  var panel = document.createElement('div');
+  panel.id = 'admin-panel';
+  panel.style.cssText = 'background:#fff;border-radius:14px;padding:1.5rem;box-shadow:0 4px 24px rgba(230,57,70,0.08);border:2px solid #e63946;margin-bottom:2rem;';
+
+  var pendingHTML = pending.length ? pending.map(function(d){
+    return '<div style="display:flex;align-items:center;gap:12px;padding:10px;background:#fff5f5;border-radius:10px;margin-bottom:8px;flex-wrap:wrap;">'
+      +'<div style="flex:1;min-width:180px;"><b>'+d.name+'</b> &nbsp;<span style="background:#e63946;color:#fff;padding:2px 8px;border-radius:8px;font-size:0.72rem;font-weight:700;">'+d.blood+'</span><br>'
+      +'<span style="font-size:0.78rem;color:#6b7280;">📍 '+d.city+' &nbsp;📞 '+d.phone+'</span></div>'
+      +'<button onclick="adminApproveDonor('+d.id+')" style="background:#16a34a;color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;">✅ Approve</button>'
+      +'<button onclick="adminDeleteDonor('+d.id+')" style="background:#e63946;color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;">🗑️ Delete</button>'
+      +'</div>';
+  }).join('') : '<p style="color:#9ca3af;font-size:0.88rem;text-align:center;padding:1rem;">No pending donors</p>';
+
+  var approvedHTML = allDonors.filter(function(d){return d.status!=='pending';}).map(function(d){
+    return '<div style="display:flex;align-items:center;gap:12px;padding:8px 10px;background:#f9fafb;border-radius:8px;margin-bottom:6px;flex-wrap:wrap;">'
+      +'<div style="flex:1;min-width:180px;"><b>'+d.name+'</b> &nbsp;<span style="background:#e63946;color:#fff;padding:2px 8px;border-radius:8px;font-size:0.72rem;font-weight:700;">'+d.blood+'</span><br>'
+      +'<span style="font-size:0.78rem;color:#6b7280;">📍 '+d.city+' &nbsp;📞 '+d.phone+'</span></div>'
+      +'<button onclick="adminDeleteDonor('+d.id+')" style="background:#fee2e2;color:#e63946;border:1.5px solid #fca5a5;padding:5px 12px;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;">🗑️ Delete</button>'
+      +'</div>';
+  }).join('') || '<p style="color:#9ca3af;font-size:0.88rem;text-align:center;padding:1rem;">No approved donors</p>';
+
+  panel.innerHTML = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;">'
+    +'<span style="font-size:1.4rem;">🔐</span>'
+    +'<h3 style="font-size:1.1rem;font-weight:800;color:#e63946;margin:0;">Admin Control Panel</h3>'
+    +'<span style="background:#e63946;color:#fff;padding:3px 10px;border-radius:10px;font-size:0.72rem;font-weight:800;margin-left:auto;">ADMIN ONLY</span>'
+    +'</div>'
+    // Pending section
+    +'<div style="margin-bottom:1.2rem;">'
+    +'<h4 style="font-size:0.9rem;font-weight:700;margin-bottom:0.6rem;color:#92400e;">⏳ Pending Approval ('+pending.length+')</h4>'
+    +pendingHTML
+    +'</div>'
+    // All donors section
+    +'<div>'
+    +'<h4 style="font-size:0.9rem;font-weight:700;margin-bottom:0.6rem;color:#15803d;">✅ Approved Donors ('+allDonors.filter(function(d){return d.status!=='pending';}).length+')</h4>'
+    +'<div style="max-height:300px;overflow-y:auto;">'+approvedHTML+'</div>'
+    +'</div>';
+
+  dash.insertBefore(panel, dash.firstChild);
+}
+
+async function adminApproveDonor(id) {
+  var donors = await getDonors();
+  var d = donors.find(function(x){return x.id==id;});
+  if (!d) return;
+  d.status = 'approved';
+  await saveDonors(donors);
+  showToast('✅ Donor approved!', 'success');
+  initDashboard();
+}
+
+async function adminDeleteDonor(id) {
+  if (!confirm('Is donor ko delete karna chahte ho?')) return;
+  var donors = await getDonors();
+  var filtered = donors.filter(function(x){return x.id!=id;});
+  await saveDonors(filtered);
+  showToast('🗑️ Donor deleted', 'error');
+  initDashboard();
 }

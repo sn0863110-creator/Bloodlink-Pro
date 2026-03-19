@@ -123,10 +123,10 @@ window.addEventListener('DOMContentLoaded', function() {
     const available = document.getElementById('d-available').value || 'yes';
     if(!name||!blood||!city||!phone){_toast3('Please fill all required fields.','error');btn.disabled=false;btn.textContent='Register as Donor';return;}
     const donors = await _getDonors3();
-    donors.push({id:Date.now(),name:name,blood:blood,city:city,phone:phone,available:available,date:new Date().toISOString()});
+    donors.push({id:Date.now(),name:name,blood:blood,city:city,phone:phone,available:available,status:'pending',date:new Date().toISOString()});
     localStorage.setItem('blp_dc',JSON.stringify(donors));
     try{await fetch(_BB3+'/'+_BD3,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK3},body:JSON.stringify({donors:donors})});}catch(e){}
-    _toast3('Donor registered successfully!','success');
+    _toast3('Donor registered! Awaiting admin approval.','success');
     setTimeout(function(){fresh.reset();btn.disabled=false;btn.textContent='🩸 Register as Donor';},1200);
   });
 });
