@@ -83,9 +83,8 @@ body {
 /* ===== HERO ===== */
 .hero {
   background: linear-gradient(135deg, #fff5f5 0%, #fff 60%, #ffe4e4 100%);
-  padding: 5rem 2rem 4rem;
+  padding: 3.5rem 2rem 3rem;
   display: flex; align-items: center; justify-content: center;
-  min-height: calc(100vh - 64px);
   position: relative; overflow: hidden;
 }
 .hero::before {
@@ -94,7 +93,7 @@ body {
   background: radial-gradient(circle, rgba(230,57,70,0.08) 0%, transparent 70%);
   border-radius: 50%;
 }
-.hero-content { max-width: 1100px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+.hero-content { max-width: 1100px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
 .hero-badge {
   display: inline-flex; align-items: center; gap: 6px;
   background: rgba(230,57,70,0.1); color: var(--primary);
@@ -428,8 +427,8 @@ body {
   #nav-user { width: 100%; text-align: center; }
 
   /* Hero */
-  .hero { padding: 3rem 1.2rem 2.5rem; min-height: auto; }
-  .hero-content { grid-template-columns: 1fr; gap: 2rem; text-align: center; }
+  .hero { padding: 2rem 1.2rem; }
+  .hero-content { grid-template-columns: 1fr; gap: 1.5rem; text-align: center; }
   .hero h1 { font-size: 2rem; }
   .hero p { font-size: 0.95rem; }
   .hero-visual { display: none; }
@@ -453,7 +452,7 @@ body {
   .form-card { padding: 1.5rem; }
 
   /* General */
-  .navbar { padding: 0 1rem; position: relative; }
+  .navbar { padding: 0 1rem; position: sticky; }
   .section { padding: 2.5rem 1.2rem; }
   .section-title { font-size: 1.6rem; }
   .container { padding: 0 0.5rem; }
@@ -465,8 +464,13 @@ body {
   .results-grid { grid-template-columns: 1fr; }
   .banks-grid { grid-template-columns: 1fr; }
   .hero h1 { font-size: 1.7rem; }
+  .hero p { font-size: 0.88rem; margin-bottom: 1.4rem; }
   .how-grid { grid-template-columns: 1fr; }
   .hero-stats { flex-wrap: wrap; gap: 1rem; }
+  .hero-stat .num { font-size: 1.5rem; }
   .toast { min-width: unset; max-width: 90vw; right: 5vw; }
   .toast-container { right: 5vw; bottom: 16px; }
+  .btn-lg { padding: 0.6rem 1.2rem; font-size: 0.9rem; }
+  .section { padding: 2rem 1rem; }
+  .section-title { font-size: 1.4rem; }
 }
