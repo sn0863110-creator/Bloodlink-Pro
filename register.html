@@ -85,6 +85,13 @@
             <input type="tel" id="r-contact" name="phone" placeholder="10-digit mobile" maxlength="10" />
           </div>
         </div>
+        <div class="form-group">
+          <label for="r-available">Availability Status</label>
+          <select id="r-available" name="available">
+            <option value="yes">✅ Available to Donate</option>
+            <option value="no">⏸️ Not Available Right Now</option>
+          </select>
+        </div>
       </div>
 
       <button type="submit" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:0.5rem;">
@@ -133,6 +140,7 @@ window.addEventListener('DOMContentLoaded', function() {
     const blood = (document.getElementById('r-blood')||{value:''}).value;
     const phone = (document.getElementById('r-contact')||{value:''}).value.trim();
     const role  = (document.getElementById('r-role')||{value:'user'}).value;
+    const available = (document.getElementById('r-available')||{value:'yes'}).value || 'yes';
     const btn   = fresh.querySelector('button[type=submit]');
     if(!name||!email||!pass){_toast2('Please fill all fields.','error');return;}
     btn.disabled=true;btn.textContent='Registering...';
@@ -146,7 +154,7 @@ window.addEventListener('DOMContentLoaded', function() {
     if(role==='donor'&&blood&&phone){
       const dc=await _jbGet2(_BD2);
       const donors=(dc&&Array.isArray(dc.donors))?dc.donors:(JSON.parse(localStorage.getItem('blp_dc')||'[]'));
-      donors.push({id:Date.now()+1,name:name,blood:blood,city:city,phone:phone,date:new Date().toISOString()});
+      donors.push({id:Date.now()+1,name:name,blood:blood,city:city,phone:phone,available:available,date:new Date().toISOString()});
       await _jbPut2(_BD2,{donors:donors});
       localStorage.setItem('blp_dc',JSON.stringify(donors));
     }

@@ -142,15 +142,26 @@ async function performSearch(){
   const results=document.getElementById('search-results');
   const blood=document.getElementById('filter-blood').value;
   const city=(document.getElementById('filter-city').value||'').trim().toLowerCase();
-  results.innerHTML='<p style="text-align:center;padding:2rem;">Searching...</p>';
+  results.innerHTML='<div class="loading-state"><div class="spinner"></div><p>Searching donors...</p></div>';
   const donors=await _getDonors4();
   const found=donors.filter(function(d){return(!blood||d.blood===blood)&&(!city||d.city.toLowerCase().includes(city));});
   const ce=document.getElementById('results-count');if(ce)ce.textContent=found.length+' donor(s) found';
-  if(!found.length){results.innerHTML='<div class="empty-state"><div class="icon">🩸</div><h3>No donors found</h3><p>Try different filters.</p></div>';return;}
-  results.innerHTML=found.map(function(d){
-    var avail = d.available !== 'no';
-    return '<div class="donor-card"><div class="donor-blood">'+d.blood+'</div><div class="donor-info"><h3>'+d.name+'</h3><p>📍 '+d.city+'</p><p>📞 <a href="tel:'+d.phone+'">'+d.phone+'</a></p><p style="margin-top:4px;"><span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:0.72rem;font-weight:700;background:'+(avail?'#dcfce7':'#fef2f2')+';color:'+(avail?'#15803d':'#e74c3c')+'">'+(avail?'✅ Available':'⏸️ Unavailable')+'</span></p></div></div>';
-  }).join('');
+  if(!found.length){results.innerHTML='<div class="empty-state"><div class="icon">🩸</div><h3>No donors found</h3><p>Try different filters or <a href="donor.html" style="color:#e63946;font-weight:600;">register as a donor</a>.</p></div>';return;}
+  results.innerHTML='<div class="results-grid">'+found.map(function(d){
+    var avail=d.available!=='no';
+    var initials=d.name?d.name.charAt(0).toUpperCase():'?';
+    return '<div class="donor-card">'
+      +'<div class="donor-top">'
+      +'<div class="donor-avatar">'+initials+'</div>'
+      +'<div><div class="donor-name">'+d.name+'</div><div class="donor-city">📍 '+d.city+'</div></div>'
+      +'<span class="blood-group-tag">'+d.blood+'</span>'
+      +'</div>'
+      +'<div class="donor-details">'
+      +'<div class="donor-detail">📞 <a href="tel:'+d.phone+'" style="color:#e63946;font-weight:600;">'+d.phone+'</a></div>'
+      +'<div class="donor-detail"><span class="avail-tag '+(avail?'yes':'no')+'">'+(avail?'✅ Available':'⏸️ Unavailable')+'</span></div>'
+      +'</div>'
+      +'</div>';
+  }).join('')+'</div>';
 }
 document.getElementById('search-form').addEventListener('submit',function(e){e.preventDefault();performSearch();});
 </script>
