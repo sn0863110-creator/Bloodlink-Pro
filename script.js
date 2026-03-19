@@ -349,7 +349,7 @@ async function adminApproveDonor(id) {
 }
 
 async function adminDeleteDonor(id) {
-  if (!confirm('Is donor ko delete karna chahte ho?')) return;
+  if (!confirm('Delete this donor?')) return;
   var donors = await getDonors();
   var filtered = donors.filter(function(x){return x.id!=id;});
   await saveDonors(filtered);

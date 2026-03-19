@@ -87,8 +87,14 @@
 </nav>
 
 <div class="pricing-hero">
+  <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.15);padding:5px 14px;border-radius:20px;font-size:0.75rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:0.8rem;">💉 Transparent Pricing</div>
   <h1>🩸 Blood Units Market</h1>
-  <p>Transparent pricing — donors get paid, patients get blood, platform earns commission</p>
+  <p>Transparent pricing — donors get paid, patients get blood, platform earns 5% commission</p>
+  <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
+    <span style="background:rgba(255,255,255,0.15);padding:5px 14px;border-radius:20px;font-size:0.78rem;font-weight:600;">✅ Verified transactions</span>
+    <span style="background:rgba(255,255,255,0.15);padding:5px 14px;border-radius:20px;font-size:0.78rem;font-weight:600;">💰 5% platform fee</span>
+    <span style="background:rgba(255,255,255,0.15);padding:5px 14px;border-radius:20px;font-size:0.78rem;font-weight:600;">🔒 Secure marketplace</span>
+  </div>
 </div>
 
 <div class="market-wrap">
@@ -123,7 +129,7 @@
       <span style="font-size:0.75rem;color:#9ca3af;font-weight:600;">Live marketplace listings</span>
     </div>
     <div class="tx-list" id="seller-listings">
-      <div style="text-align:center;padding:1.5rem;color:#9ca3af;font-size:0.88rem;">Koi active listing nahi hai</div>
+      <div style="text-align:center;padding:1.5rem;color:#9ca3af;font-size:0.88rem;">No active listings</div>
     </div>
   </div>
 
@@ -149,7 +155,40 @@
   </div>
 </div>
 
-<footer class="footer"><p>© 2025 <strong>BloodLink Pro</strong> — Built with ❤️ by <strong style="color:#e63946;">Satish Kumar Nishad · Team HackForce</strong></p></footer>
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div style="font-size:1.4rem;font-weight:900;color:#fff;margin-bottom:0.3rem;">🩸 BloodLink<span style="color:#e63946;">Pro</span></div>
+      <div style="font-size:0.8rem;color:#9ca3af;max-width:260px;line-height:1.6;">India's smart blood donation network. Connecting donors to those in need, 24/7.</div>
+    </div>
+    <div class="footer-links">
+      <div class="fl-col">
+        <div class="fl-head">Platform</div>
+        <a href="search.html">Find Donors</a>
+        <a href="donor.html">Become a Donor</a>
+        <a href="banks.html">Blood Banks</a>
+        <a href="pricing.html">Market</a>
+      </div>
+      <div class="fl-col">
+        <div class="fl-head">Account</div>
+        <a href="login.html">Login</a>
+        <a href="register.html">Register</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="about.html">About Us</a>
+      </div>
+      <div class="fl-col">
+        <div class="fl-head">Contact</div>
+        <a href="mailto:sn0863110@gmail.com">sn0863110@gmail.com</a>
+        <a href="tel:+919335857482">+91 93358 57482</a>
+        <span style="color:#6b7280;font-size:0.82rem;">Unnao, Uttar Pradesh</span>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 BloodLink Pro — Built with ❤️ by <strong style="color:#e63946;">Satish Kumar Nishad · Team HackForce</strong></span>
+    <span style="color:#4b5563;font-size:0.78rem;">Allenhouse Business School · UP State Hackathon 2025</span>
+  </div>
+</footer>
 
 <script src="script.js"></script>
 <script>
@@ -395,13 +434,13 @@ async function confirmTransaction(type, idx) {
   const name    = document.getElementById('modal-name')?.value.trim();
   const contact = document.getElementById('modal-contact')?.value.trim();
   if (!name || !contact) { showToast('Please fill all fields', 'error'); return; }
-  if (!/^[6-9]\d{9}$/.test(contact)) { showToast('Valid 10-digit mobile number chahiye', 'error'); return; }
+  if (!/^[6-9]\d{9}$/.test(contact)) { showToast('Enter a valid 10-digit mobile number', 'error'); return; }
   const b = BLOOD_MARKET[idx];
   if (type === 'buy') {
     const listing = await getCheapestListing(b.type);
-    if (!listing) { showToast('Stock available nahi hai!', 'error'); return; }
+    if (!listing) { showToast('No stock available!', 'error'); return; }
     const qty = parseInt(document.getElementById('modal-qty')?.value) || 1;
-    if (listing.remaining < qty) { showToast(`Sirf ${listing.remaining} units available hain!`, 'error'); return; }
+    if (listing.remaining < qty) { showToast(`Only ${listing.remaining} unit(s) available!`, 'error'); return; }
     const { sub, fee, total } = calcBuyTotal(listing.unitPrice, qty);
     const listings = await getListings();
     const li = listings.find(l => l.id === listing.id);
@@ -409,20 +448,20 @@ async function confirmTransaction(type, idx) {
     await saveListings(listings);
     await saveTransaction({ type:'buy', blood:b.type, name, contact, qty, unitPrice:listing.unitPrice, amount:total, commission:fee, sellerName:listing.sellerName, ts:Date.now() });
     closeModal();
-    showToast(`✅ ${qty} unit${qty>1?'s':''} kharida! ₹${total.toLocaleString()} paid`, 'success');
+    showToast(`✅ Purchased ${qty} unit${qty>1?'s':''}! ₹${total.toLocaleString()} paid`, 'success');
   } else {
     const qty       = parseInt(document.getElementById('sell-qty')?.value)   || 1;
     const sellPrice = parseInt(document.getElementById('sell-price')?.value) || 0;
     const bloodType = document.getElementById('sell-blood')?.value || b.type;
-    if (sellPrice < 100) { showToast('Minimum price ₹100 honi chahiye', 'error'); return; }
-    if (sellPrice > b.buyPrice * 1.5) { showToast(`Maximum price ₹${Math.round(b.buyPrice*1.5).toLocaleString()} ho sakti hai`, 'error'); return; }
+    if (sellPrice < 100) { showToast('Minimum price is ₹100', 'error'); return; }
+    if (sellPrice > b.buyPrice * 1.5) { showToast(`Maximum price is ₹${Math.round(b.buyPrice*1.5).toLocaleString()}`, 'error'); return; }
     const { gross, fee, net } = calcSellPayout(sellPrice, qty);
     const listings = await getListings();
     listings.push({ id:Date.now(), blood:bloodType, sellerName:name, contact, qty, remaining:qty, unitPrice:sellPrice, net, ts:Date.now() });
     await saveListings(listings);
     await saveTransaction({ type:'sell', blood:bloodType, name, contact, qty, unitPrice:sellPrice, amount:net, commission:fee, ts:Date.now() });
     closeModal();
-    showToast(`✅ ${qty} unit${qty>1?'s':''} listed at ₹${sellPrice.toLocaleString()}/unit! Aapko milega ₹${net.toLocaleString()}`, 'success');
+    showToast(`✅ ${qty} unit${qty>1?'s':''} listed at ₹${sellPrice.toLocaleString()}/unit! You receive ₹${net.toLocaleString()}`, 'success');
   }
   await renderMarket();
 }
@@ -462,7 +501,7 @@ async function renderSellerListings() {
   const now = Date.now(), EXPIRY = 24*60*60*1000;
   const listings = await getListings();
   const active = listings.filter(l => l.remaining > 0 && (now - l.ts) < EXPIRY);
-  if (!active.length) { el.innerHTML = '<div style="text-align:center;padding:1.5rem;color:#9ca3af;font-size:0.88rem;">Koi active listing nahi hai</div>'; return; }
+  if (!active.length) { el.innerHTML = '<div style="text-align:center;padding:1.5rem;color:#9ca3af;font-size:0.88rem;">No active listings</div>'; return; }
   el.innerHTML = active.map(l => {
     const expiresIn = Math.max(0, Math.round((EXPIRY-(now-l.ts))/3600000));
     return `<div class="tx-item">
@@ -480,7 +519,7 @@ async function renderSellerListings() {
 document.getElementById('modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
 
 async function clearAllTransactions() {
-  if (!confirm('Saari transactions aur listings clear karein?')) return;
+  if (!confirm('Clear all transactions and listings?')) return;
   await cloudSaveMarket([], []);
   await renderMarket();
   showToast('✅ All cleared', 'success');

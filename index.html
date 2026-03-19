@@ -4,181 +4,31 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BloodLink Pro — Blood Donation Network | Find Blood Donors India</title>
-  <meta name="description" content="BloodLink Pro — India's smart blood donation network. Find verified blood donors instantly in Unnao, Kanpur, Lucknow and across UP. Emergency SOS, blood bank locator, real-time availability. Built by Satish Kumar Nishad, Team HackForce." />
-  <meta name="keywords" content="blood donation, blood donors, find blood, BloodLink Pro, blood bank Unnao, blood bank Kanpur, emergency blood, O positive donor, B positive donor, blood donation UP, Satish Kumar Nishad, HackForce, Allenhouse hackathon" />
+  <meta name="description" content="BloodLink Pro — India's smart blood donation network. Find verified blood donors instantly in Unnao, Kanpur, Lucknow and across UP. Emergency SOS, blood bank locator, real-time availability." />
+  <meta name="keywords" content="blood donation, blood donors, find blood, BloodLink Pro, blood bank Unnao, blood bank Kanpur, emergency blood, O positive donor, B positive donor, blood donation UP, Satish Kumar Nishad, HackForce" />
   <meta name="author" content="Satish Kumar Nishad — Team HackForce" />
   <meta name="robots" content="index, follow" />
   <meta name="google-site-verification" content="Ka1gwvkHG1djKHvKgyUE3MJYepWFXcLV_8UYiYk6sC4" />
   <link rel="canonical" href="https://sn0863110-creator.github.io/BloodLink-Pro/" />
-  <!-- Open Graph -->
   <meta property="og:title" content="BloodLink Pro — Find Blood Donors Instantly" />
-  <meta property="og:description" content="India's smart blood donation network. Find verified donors, locate blood banks, send emergency SOS. Built by Team HackForce." />
+  <meta property="og:description" content="India's smart blood donation network. Find verified donors, locate blood banks, send emergency SOS." />
   <meta property="og:url" content="https://sn0863110-creator.github.io/BloodLink-Pro/" />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="https://sn0863110-creator.github.io/BloodLink-Pro/satish.jpg" />
-  <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="BloodLink Pro — Blood Donation Network" />
-  <meta name="twitter:description" content="Find verified blood donors instantly across India. Emergency SOS, blood bank locator." />
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <style>
-    /* ══ WELCOME SCREEN ══ */
-    #welcome-screen {
-      position: fixed; inset: 0; z-index: 99999;
-      background: #fff;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      text-align: center; padding: 2rem;
-      transition: opacity 0.6s ease, transform 0.6s ease;
-    }
-    #welcome-screen.hide { opacity: 0; transform: scale(1.03); pointer-events: none; }
-
-    .wc-bg-blob {
-      position: absolute; top: -100px; right: -100px;
-      width: 420px; height: 420px; border-radius: 50%;
-      background: radial-gradient(circle, rgba(230,57,70,0.08) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .wc-bg-blob2 {
-      position: absolute; bottom: -80px; left: -80px;
-      width: 320px; height: 320px; border-radius: 50%;
-      background: radial-gradient(circle, rgba(230,57,70,0.06) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .wc-inner { position: relative; z-index: 1; max-width: 400px; width: 100%; }
-
-    .wc-drop {
-      font-size: 3.8rem; margin-bottom: 0.4rem;
-      display: inline-block;
-      animation: wc-pulse 1.6s ease-in-out infinite;
-    }
-    @keyframes wc-pulse {
-      0%,100% { transform: scale(1) rotate(-5deg); }
-      50%      { transform: scale(1.15) rotate(5deg); }
-    }
-    .wc-brand {
-      font-size: 2.4rem; font-weight: 900; color: #1a1a2e;
-      letter-spacing: -1.5px; margin-bottom: 0.2rem; line-height: 1;
-    }
-    .wc-brand span { color: #e63946; }
-    .wc-tagline {
-      font-size: 0.82rem; color: #9ca3af; font-weight: 500;
-      margin-bottom: 2rem; letter-spacing: 0.3px;
-    }
-
-    .wc-card {
-      background: #fff; border: 1.5px solid #f0d0d0;
-      border-radius: 20px; padding: 1.8rem 2rem;
-      box-shadow: 0 8px 40px rgba(230,57,70,0.1);
-      margin-bottom: 1.5rem;
-    }
-    .wc-hello {
-      font-size: 0.72rem; font-weight: 800; letter-spacing: 2px;
-      text-transform: uppercase; color: #e63946;
-      background: #fff5f5; padding: 4px 14px; border-radius: 20px;
-      display: inline-block; margin-bottom: 0.8rem;
-    }
-    .wc-welcome-text {
-      font-size: 1.6rem; font-weight: 900; color: #1a1a2e;
-      line-height: 1.2; margin-bottom: 0.6rem; letter-spacing: -0.5px;
-    }
-    .wc-welcome-text span { color: #e63946; }
-    .wc-sub {
-      font-size: 0.83rem; color: #6b7280;
-      line-height: 1.65; margin-bottom: 1.4rem;
-    }
-    .wc-divider { height: 1px; background: #f0d0d0; margin-bottom: 1.2rem; }
-    .wc-stats {
-      display: grid; grid-template-columns: repeat(3,1fr); gap: 0;
-    }
-    .wc-stat .n { font-size: 1.3rem; font-weight: 900; color: #e63946; }
-    .wc-stat .l { font-size: 0.62rem; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 2px; }
-    .wc-stat + .wc-stat { border-left: 1px solid #f0d0d0; }
-
-    .wc-enter-btn {
-      background: linear-gradient(135deg, #e63946, #c1121f);
-      color: #fff; border: none; padding: 14px 36px;
-      border-radius: 50px; font-size: 1rem; font-weight: 800;
-      cursor: pointer; font-family: inherit; width: 100%;
-      box-shadow: 0 6px 28px rgba(230,57,70,0.35);
-      transition: 0.2s; letter-spacing: 0.2px;
-      animation: wc-glow 2.2s ease-in-out infinite;
-    }
-    @keyframes wc-glow {
-      0%,100% { box-shadow: 0 6px 28px rgba(230,57,70,0.35); }
-      50%      { box-shadow: 0 6px 44px rgba(230,57,70,0.6); }
-    }
-    .wc-enter-btn:hover { transform: translateY(-2px); }
-    .wc-skip {
-      font-size: 0.75rem; color: #d1d5db; cursor: pointer;
-      margin-top: 0.8rem; background: none; border: none;
-      font-family: inherit; transition: 0.2s; display: block; width: 100%;
-    }
-    .wc-skip:hover { color: #9ca3af; }
-    .wc-built {
-      position: absolute; bottom: 1rem; left: 0; right: 0;
-      font-size: 0.68rem; color: #d1d5db; font-weight: 600;
-    }
-    .wc-built span { color: #e63946; }
-  </style>
 </head>
 <body data-page="home">
-
-<!-- ══ WELCOME SCREEN ══ -->
-<div id="welcome-screen">
-  <div class="wc-bg-blob"></div>
-  <div class="wc-bg-blob2"></div>
-  <div class="wc-inner">
-    <div class="wc-drop">🩸</div>
-    <div class="wc-brand">BloodLink<span>Pro</span></div>
-    <div class="wc-tagline">India's Smart Blood Donation Network</div>
-
-    <div class="wc-card">
-      <div class="wc-hello">👋 Welcome</div>
-      <div class="wc-welcome-text">Glad you're here.<br>Let's <span>save lives</span> together.</div>
-      <div class="wc-sub">Connect with verified blood donors instantly. Every second counts — every drop matters.</div>
-      <div class="wc-divider"></div>
-      <div class="wc-stats">
-        <div class="wc-stat"><div class="n">24/7</div><div class="l">Available</div></div>
-        <div class="wc-stat"><div class="n">8+</div><div class="l">Blood Types</div></div>
-        <div class="wc-stat"><div class="n">∞</div><div class="l">Lives Saved</div></div>
-      </div>
-    </div>
-
-    <button class="wc-enter-btn" onclick="enterSite()">🩸 Enter BloodLink Pro</button>
-    <button class="wc-skip" onclick="enterSite()">Skip →</button>
-  </div>
-  <div class="wc-built">Built with ❤️ by <span>Satish Kumar Nishad · Team HackForce</span></div>
-</div>
-
-<script>
-  // Show welcome only once per session (not on every page reload)
-  function enterSite() {
-    const ws = document.getElementById('welcome-screen');
-    ws.classList.add('hide');
-    sessionStorage.setItem('blp_welcomed', '1');
-    setTimeout(() => ws.remove(), 750);
-  }
-  // If already welcomed this session, skip instantly
-  if (sessionStorage.getItem('blp_welcomed')) {
-    document.getElementById('welcome-screen').remove();
-  }
-  // Auto-dismiss after 6 seconds if user doesn't click
-  setTimeout(() => {
-    const ws = document.getElementById('welcome-screen');
-    if (ws) enterSite();
-  }, 6000);
-</script>
 
 <!-- Emergency Ticker -->
 <div class="emergency-ticker">
   <span class="ticker-inner">
     🚨 URGENT: O- blood needed at GSVM Medical College, Kanpur — CRITICAL &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
     🩸 A+ donors needed in Lucknow — Please register &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
-    ✅ BloodLink Pro — Connecting donors to those in need, 24/7 &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
-    📞 Emergency Helpline: 1800-XXX-XXXX &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+    ✅ BloodLink Pro — Connecting donors 24/7 &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+    📞 Emergency Helpline: 108 &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
     🆘 B+ blood required urgently at Regency Hospital, Kanpur
   </span>
 </div>
@@ -207,53 +57,167 @@
 <section class="hero">
   <div class="hero-content">
     <div class="hero-text">
-      <div class="hero-badge">🏥 India's Smart Blood Network</div>
-      <h1>Every Drop<br><span>Counts.</span><br>Every Second<br>Matters.</h1>
-      <p>Connect with verified blood donors instantly. BloodLink Pro bridges the gap between donors and those in critical need — fast, reliable, and real.</p>
+      <div class="hero-badge">🏥 India's #1 Blood Donation Network</div>
+      <h1>Every Drop<br><span>Saves a Life.</span></h1>
+      <p>Connect with verified blood donors instantly across India. BloodLink Pro bridges the gap between donors and patients in critical need — fast, reliable, and free.</p>
       <div class="hero-actions">
         <a href="donor.html" class="btn btn-primary btn-lg">🩸 Become a Donor</a>
         <a href="search.html" class="btn btn-outline btn-lg">🔍 Find Blood Now</a>
       </div>
+      <div class="hero-trust">
+        <span class="trust-item">✅ Free to use</span>
+        <span class="trust-item">🔒 Verified donors</span>
+        <span class="trust-item">⚡ Instant results</span>
+      </div>
       <div class="hero-stats">
-        <div class="hero-stat"><div class="num" id="home-total">0</div><div class="lbl">Registered Donors</div></div>
-        <div class="hero-stat"><div class="num" id="home-available">0</div><div class="lbl">Available Now</div></div>
-        <div class="hero-stat"><div class="num" id="home-cities">0</div><div class="lbl">Cities Covered</div></div>
+        <div class="hero-stat">
+          <div class="num" id="home-total">0</div>
+          <div class="lbl">Registered Donors</div>
+        </div>
+        <div class="hero-stat">
+          <div class="num" id="home-available">0</div>
+          <div class="lbl">Available Now</div>
+        </div>
+        <div class="hero-stat">
+          <div class="num" id="home-cities">0</div>
+          <div class="lbl">Cities Covered</div>
+        </div>
       </div>
     </div>
     <div class="hero-visual">
-      <div class="blood-drop-anim">
-        <svg viewBox="0 0 60 80" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(180deg);width:52px;height:52px;opacity:0.35;" fill="white">
-          <path d="M30 5 C30 5 5 35 5 52 C5 67 16 75 30 75 C44 75 55 67 55 52 C55 35 30 5 30 5Z"/>
-        </svg>
+      <div class="hero-card-float">
+        <div class="hcf-top">
+          <div class="hcf-drop">🩸</div>
+          <div>
+            <div style="font-weight:800;font-size:1rem;color:#1a1a2e;">Find Blood Instantly</div>
+            <div style="font-size:0.78rem;color:#6b7280;">Search by blood group & city</div>
+          </div>
+        </div>
+        <div class="blood-types-grid" style="margin-top:1rem;">
+          <span class="blood-badge">A+</span><span class="blood-badge">A-</span>
+          <span class="blood-badge">B+</span><span class="blood-badge">B-</span>
+          <span class="blood-badge">AB+</span><span class="blood-badge">AB-</span>
+          <span class="blood-badge">O+</span><span class="blood-badge">O-</span>
+        </div>
+        <a href="search.html" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:1rem;">Search Donors →</a>
       </div>
-      <div class="blood-types-grid">
-        <span class="blood-badge">A+</span><span class="blood-badge">A-</span>
-        <span class="blood-badge">B+</span><span class="blood-badge">B-</span>
-        <span class="blood-badge">AB+</span><span class="blood-badge">AB-</span>
-        <span class="blood-badge">O+</span><span class="blood-badge">O-</span>
+      <!-- Floating notification -->
+      <div class="hero-notif">
+        <span style="font-size:1.2rem;">🔔</span>
+        <div>
+          <div style="font-size:0.78rem;font-weight:700;color:#1a1a2e;">New donor registered!</div>
+          <div style="font-size:0.7rem;color:#6b7280;">O+ · Kanpur · Available now</div>
+        </div>
+        <span style="font-size:0.65rem;color:#16a34a;font-weight:700;margin-left:auto;">Just now</span>
       </div>
-      <p style="font-size:0.8rem;color:var(--text-muted);text-align:center;">All blood types covered</p>
+    </div>
+  </div>
+</section>
+
+<!-- Stats Bar -->
+<div class="stats-bar-section">
+  <div class="stats-bar-inner">
+    <div class="sbs-item"><span class="sbs-num">8+</span><span class="sbs-lbl">Blood Types</span></div>
+    <div class="sbs-div"></div>
+    <div class="sbs-item"><span class="sbs-num">24/7</span><span class="sbs-lbl">Available</span></div>
+    <div class="sbs-div"></div>
+    <div class="sbs-item"><span class="sbs-num">100%</span><span class="sbs-lbl">Free Service</span></div>
+    <div class="sbs-div"></div>
+    <div class="sbs-item"><span class="sbs-num">⚡</span><span class="sbs-lbl">Instant Match</span></div>
+  </div>
+</div>
+
+<!-- Emergency SOS Section -->
+<section class="section" style="background:#fff5f5;padding:2.5rem 2rem;">
+  <div class="container">
+    <div class="emergency-panel" style="margin:0;">
+      <div style="display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:0.5rem;">
+        <span style="font-size:2rem;">🚨</span>
+        <h2 style="margin:0;">Emergency Blood Needed?</h2>
+      </div>
+      <p>Send an instant SOS alert to all available donors in your area. Every second counts.</p>
+      <button class="sos-btn" id="sos-btn">🆘 Send Emergency SOS Alert</button>
+      <div id="sos-alert"></div>
     </div>
   </div>
 </section>
 
 <!-- How It Works -->
-<section class="section" style="background:var(--bg-soft);">
+<section class="section" style="background:#fff;">
   <div class="container section-center">
-    <div class="section-title">How It Works</div>
+    <div class="section-label">Simple Process</div>
+    <div class="section-title">How BloodLink Pro Works</div>
     <div class="section-divider"></div>
     <div class="how-grid">
-      <div class="how-card"><div class="how-icon">📝</div><h3>Register</h3><p>Sign up as a donor with your blood group and location details.</p></div>
-      <div class="how-card"><div class="how-icon">🔔</div><h3>Get Notified</h3><p>Receive instant alerts when someone nearby needs your blood type.</p></div>
-      <div class="how-card"><div class="how-icon">🏥</div><h3>Donate</h3><p>Head to the hospital or blood bank and save a life.</p></div>
-      <div class="how-card"><div class="how-icon">❤️</div><h3>Track Impact</h3><p>See your donation history and the lives you've helped save.</p></div>
+      <div class="how-card">
+        <div class="how-step">01</div>
+        <div class="how-icon">📝</div>
+        <h3>Register</h3>
+        <p>Sign up as a donor with your blood group, city, and contact details. Takes under 2 minutes.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-step">02</div>
+        <div class="how-icon">🔍</div>
+        <h3>Search</h3>
+        <p>Patients or hospitals search for donors by blood group and city. Results are instant.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-step">03</div>
+        <div class="how-icon">📞</div>
+        <h3>Connect</h3>
+        <p>Contact the donor directly via phone. No middleman, no delay.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-step">04</div>
+        <div class="how-icon">❤️</div>
+        <h3>Save a Life</h3>
+        <p>Donate blood and make a real difference. One donation can save up to 3 lives.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="section" style="background:var(--bg-soft);">
+  <div class="container">
+    <div class="features-grid">
+      <div class="features-text">
+        <div class="section-label">Why BloodLink Pro</div>
+        <h2 style="font-size:2rem;font-weight:900;line-height:1.2;margin-bottom:1rem;">Built for real emergencies.<br>Designed for real people.</h2>
+        <p style="color:var(--text-muted);margin-bottom:1.5rem;line-height:1.7;">BloodLink Pro is not just an app — it's a lifeline. We connect blood donors with patients in critical need, instantly and reliably, across Uttar Pradesh and India.</p>
+        <div class="feature-list">
+          <div class="feature-item"><span class="fi-icon">🗺️</span><div><strong>Blood Bank Locator</strong><p>Find verified blood banks near you with maps and directions.</p></div></div>
+          <div class="feature-item"><span class="fi-icon">🚨</span><div><strong>Emergency SOS</strong><p>One-tap alert to all nearby available donors.</p></div></div>
+          <div class="feature-item"><span class="fi-icon">✅</span><div><strong>Verified Donors</strong><p>All donors are admin-verified before appearing in search.</p></div></div>
+          <div class="feature-item"><span class="fi-icon">📊</span><div><strong>Live Dashboard</strong><p>Real-time stats, charts, and donor activity tracking.</p></div></div>
+        </div>
+      </div>
+      <div class="features-visual">
+        <div class="fv-card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">
+            <div style="width:40px;height:40px;background:#e63946;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">🩸</div>
+            <div><div style="font-weight:800;font-size:0.95rem;">Donor Found!</div><div style="font-size:0.75rem;color:#6b7280;">Match in your city</div></div>
+            <span style="margin-left:auto;background:#dcfce7;color:#16a34a;padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;">Available</span>
+          </div>
+          <div style="background:#f9fafb;border-radius:10px;padding:1rem;margin-bottom:0.8rem;">
+            <div style="font-weight:700;margin-bottom:4px;">Rahul Sharma</div>
+            <div style="font-size:0.8rem;color:#6b7280;">📍 Kanpur &nbsp;|&nbsp; 🩸 O+ &nbsp;|&nbsp; 📞 98XXXXXXXX</div>
+          </div>
+          <div style="background:#f9fafb;border-radius:10px;padding:1rem;margin-bottom:0.8rem;">
+            <div style="font-weight:700;margin-bottom:4px;">Priya Singh</div>
+            <div style="font-size:0.8rem;color:#6b7280;">📍 Unnao &nbsp;|&nbsp; 🩸 O+ &nbsp;|&nbsp; 📞 97XXXXXXXX</div>
+          </div>
+          <a href="search.html" class="btn btn-primary" style="width:100%;justify-content:center;font-size:0.85rem;">View All Donors →</a>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- Blood Compatibility Chart -->
-<section class="section">
+<section class="section" style="background:#fff;">
   <div class="container section-center">
+    <div class="section-label">Medical Reference</div>
     <div class="section-title">Blood Compatibility Chart</div>
     <div class="section-divider"></div>
     <div class="compat-table-wrap">
@@ -275,20 +239,53 @@
 </section>
 
 <!-- CTA -->
-<section class="section" style="background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;text-align:center;">
-  <div class="container">
-    <h2 style="font-size:2rem;font-weight:900;margin-bottom:0.8rem;">Ready to Save a Life?</h2>
-    <p style="opacity:0.85;margin-bottom:2rem;font-size:1rem;">Join thousands of donors across India. Your blood can be someone's second chance.</p>
-    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+<section class="cta-section">
+  <div class="container cta-inner">
+    <div>
+      <h2>Ready to save a life today?</h2>
+      <p>Join thousands of donors across India. Your blood can be someone's second chance at life.</p>
+    </div>
+    <div class="cta-btns">
       <a href="donor.html" class="btn btn-lg" style="background:#fff;color:var(--primary);font-weight:800;">🩸 Register as Donor</a>
-      <a href="search.html" class="btn btn-lg" style="background:rgba(255,255,255,0.15);color:#fff;border:2px solid rgba(255,255,255,0.4);">🔍 Find Donors</a>
+      <a href="search.html" class="btn btn-lg" style="background:rgba(255,255,255,0.15);color:#fff;border:2px solid rgba(255,255,255,0.5);">🔍 Find Donors</a>
     </div>
   </div>
 </section>
 
 <!-- Footer -->
 <footer class="footer">
-  <p>© 2025 <strong>BloodLink Pro</strong> — Built with ❤️ by <strong style="color:#e63946;">Satish Kumar Nishad · Team HackForce</strong></p>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div style="font-size:1.4rem;font-weight:900;color:#fff;margin-bottom:0.3rem;">🩸 BloodLink<span style="color:#e63946;">Pro</span></div>
+      <div style="font-size:0.8rem;color:#9ca3af;max-width:260px;line-height:1.6;">India's smart blood donation network. Connecting donors to those in need, 24/7.</div>
+    </div>
+    <div class="footer-links">
+      <div class="fl-col">
+        <div class="fl-head">Platform</div>
+        <a href="search.html">Find Donors</a>
+        <a href="donor.html">Become a Donor</a>
+        <a href="banks.html">Blood Banks</a>
+        <a href="pricing.html">Market</a>
+      </div>
+      <div class="fl-col">
+        <div class="fl-head">Account</div>
+        <a href="login.html">Login</a>
+        <a href="register.html">Register</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="about.html">About Us</a>
+      </div>
+      <div class="fl-col">
+        <div class="fl-head">Contact</div>
+        <a href="mailto:sn0863110@gmail.com">sn0863110@gmail.com</a>
+        <a href="tel:+919335857482">+91 93358 57482</a>
+        <span style="color:#6b7280;font-size:0.82rem;">Unnao, Uttar Pradesh</span>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 BloodLink Pro — Built with ❤️ by <strong style="color:#e63946;">Satish Kumar Nishad · Team HackForce</strong></span>
+    <span style="color:#4b5563;font-size:0.78rem;">Allenhouse Business School · UP State Hackathon 2025</span>
+  </div>
 </footer>
 
 <script src="script.js"></script>
@@ -298,17 +295,8 @@
   "@type": "WebSite",
   "name": "BloodLink Pro",
   "url": "https://sn0863110-creator.github.io/BloodLink-Pro/",
-  "description": "India's smart blood donation network — find verified blood donors instantly across Uttar Pradesh",
-  "author": {
-    "@type": "Person",
-    "name": "Satish Kumar Nishad",
-    "address": { "@type": "PostalAddress", "addressLocality": "Unnao", "addressRegion": "Uttar Pradesh", "addressCountry": "IN" }
-  },
-  "potentialAction": {
-    "@type": "SearchAction",
-    "target": "https://sn0863110-creator.github.io/BloodLink-Pro/search.html?blood={blood_type}",
-    "query-input": "required name=blood_type"
-  }
+  "description": "India's smart blood donation network",
+  "author": { "@type": "Person", "name": "Satish Kumar Nishad" }
 }
 </script>
 </body>

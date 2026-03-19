@@ -29,15 +29,16 @@
 </nav>
 
 <div class="dashboard">
-  <div class="dash-header">
+  <div class="dash-header" style="background:linear-gradient(135deg,#1a1a2e,#0f172a);color:#fff;border-bottom:none;">
     <div>
-      <h1>📊 Dashboard</h1>
-      <p>Welcome, <span id="user-name" style="color:#e63946;font-weight:700;">Guest</span></p>
-      <p id="last-updated" style="font-size:0.8rem;color:#9ca3af;">Loading...</p>
+      <div style="font-size:0.7rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:4px;">BloodLink Pro</div>
+      <h1 style="color:#fff;">📊 Dashboard</h1>
+      <p style="color:rgba(255,255,255,0.6);">Welcome back, <span id="user-name" style="color:#e63946;font-weight:700;">Guest</span></p>
+      <p id="last-updated" style="font-size:0.78rem;color:rgba(255,255,255,0.35);">Loading...</p>
     </div>
-    <div style="display:flex;gap:0.8rem;align-items:center;">
+    <div style="display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;">
       <a href="donor.html" class="btn btn-primary btn-sm">+ Register Donor</a>
-      <a href="search.html" class="btn btn-outline btn-sm">🔍 Search</a>
+      <a href="search.html" class="btn btn-sm" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);">🔍 Search</a>
     </div>
   </div>
 
@@ -71,7 +72,7 @@
     <div class="emergency-panel" style="margin-bottom:2rem;">
       <h2>🚨 Emergency Blood Request</h2>
       <p>Critical situation? Send an instant SOS to all available donors in your network.</p>
-      <button class="sos-btn" id="sos-btn" onclick="triggerSOS()">🆘 Send Emergency SOS</button>
+      <button class="sos-btn" id="sos-btn">🆘 Send Emergency SOS</button>
       <div class="sos-alert" id="sos-alert"></div>
     </div>
 
@@ -116,7 +117,40 @@
   </div>
 </div>
 
-<footer class="footer"><p>© 2025 <strong>BloodLink Pro</strong> — Built with ❤️ by <strong style="color:#e63946;">Satish Kumar Nishad · Team HackForce</strong></p></footer>
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div style="font-size:1.4rem;font-weight:900;color:#fff;margin-bottom:0.3rem;">🩸 BloodLink<span style="color:#e63946;">Pro</span></div>
+      <div style="font-size:0.8rem;color:#9ca3af;max-width:260px;line-height:1.6;">India's smart blood donation network. Connecting donors to those in need, 24/7.</div>
+    </div>
+    <div class="footer-links">
+      <div class="fl-col">
+        <div class="fl-head">Platform</div>
+        <a href="search.html">Find Donors</a>
+        <a href="donor.html">Become a Donor</a>
+        <a href="banks.html">Blood Banks</a>
+        <a href="pricing.html">Market</a>
+      </div>
+      <div class="fl-col">
+        <div class="fl-head">Account</div>
+        <a href="login.html">Login</a>
+        <a href="register.html">Register</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="about.html">About Us</a>
+      </div>
+      <div class="fl-col">
+        <div class="fl-head">Contact</div>
+        <a href="mailto:sn0863110@gmail.com">sn0863110@gmail.com</a>
+        <a href="tel:+919335857482">+91 93358 57482</a>
+        <span style="color:#6b7280;font-size:0.82rem;">Unnao, Uttar Pradesh</span>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 BloodLink Pro — Built with ❤️ by <strong style="color:#e63946;">Satish Kumar Nishad · Team HackForce</strong></span>
+    <span style="color:#4b5563;font-size:0.78rem;">Allenhouse Business School · UP State Hackathon 2025</span>
+  </div>
+</footer>
 
 <script src="script.js"></script>
 <script>
