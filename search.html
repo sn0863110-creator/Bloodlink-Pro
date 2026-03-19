@@ -133,5 +133,23 @@
 
   document.getElementById('last-updated').textContent = 'Updated: ' + new Date().toLocaleTimeString();
 </script>
+<script>
+const _AK4='$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW';
+const _BD4='69bc22a2b7ec241ddc82de74';
+const _BB4='https://api.jsonbin.io/v3/b';
+async function _getDonors4(){try{const r=await fetch(_BB4+'/'+_BD4+'/latest',{headers:{'X-Master-Key':_AK4}});if(!r.ok)throw 0;const d=await r.json();const arr=(d.record&&d.record.donors)||[];localStorage.setItem('blp_dc',JSON.stringify(arr));return arr;}catch(e){const c=localStorage.getItem('blp_dc');return c?JSON.parse(c):[];}}
+async function performSearch(){
+  const results=document.getElementById('search-results');
+  const blood=document.getElementById('filter-blood').value;
+  const city=(document.getElementById('filter-city').value||'').trim().toLowerCase();
+  results.innerHTML='<p style="text-align:center;padding:2rem;">Searching...</p>';
+  const donors=await _getDonors4();
+  const found=donors.filter(function(d){return(!blood||d.blood===blood)&&(!city||d.city.toLowerCase().includes(city));});
+  const ce=document.getElementById('results-count');if(ce)ce.textContent=found.length+' donor(s) found';
+  if(!found.length){results.innerHTML='<div class="empty-state"><div class="icon">🩸</div><h3>No donors found</h3><p>Try different filters.</p></div>';return;}
+  results.innerHTML=found.map(function(d){return '<div class="donor-card"><div class="donor-blood">'+d.blood+'</div><div class="donor-info"><h3>'+d.name+'</h3><p>📍 '+d.city+'</p><p>📞 <a href="tel:'+d.phone+'">'+d.phone+'</a></p></div></div>';}).join('');
+}
+document.getElementById('search-form').addEventListener('submit',function(e){e.preventDefault();performSearch();});
+</script>
 </body>
 </html>

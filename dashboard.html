@@ -118,5 +118,64 @@
 <footer class="footer"><p>© 2025 <strong>BloodLink Pro</strong> — Built with ❤️ by <strong style="color:#e63946;">Satish Kumar Nishad · Team HackForce</strong></p></footer>
 
 <script src="script.js"></script>
+<script>
+const _AK5='$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW';
+const _BD5='69bc22a2b7ec241ddc82de74';
+const _BM5='69bc22a2b7ec241ddc82de79';
+const _BB5='https://api.jsonbin.io/v3/b';
+async function _get5(id){try{const r=await fetch(_BB5+'/'+id+'/latest',{headers:{'X-Master-Key':_AK5}});if(!r.ok)return null;const d=await r.json();return d.record||null;}catch(e){return null;}}
+(async function(){
+  // User name
+  const u=localStorage.getItem('blp_user');
+  const user=u?JSON.parse(u):null;
+  const ne=document.getElementById('user-name');if(ne)ne.textContent=user?user.name:'Guest';
+  // Logout
+  const lb=document.getElementById('nav-logout');if(lb)lb.addEventListener('click',function(){localStorage.removeItem('blp_user');window.location.href='login.html';});
+  // Visitor
+  const fp=(function(){const s=[navigator.userAgent,navigator.language,screen.width+'x'+screen.height,screen.colorDepth,new Date().getTimezoneOffset(),navigator.hardwareConcurrency||0].join('|');let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return Math.abs(h).toString(36);})();
+  const seen=JSON.parse(localStorage.getItem('blp_seen_fps')||'[]');
+  let vc=parseInt(localStorage.getItem('blp_vc')||'0');
+  if(!seen.includes(fp)){seen.push(fp);vc++;localStorage.setItem('blp_seen_fps',JSON.stringify(seen));localStorage.setItem('blp_vc',vc);}
+  const ve=document.getElementById('visitor-count');if(ve)ve.textContent=vc;
+  // Load data
+  const dc=await _get5(_BD5);
+  const mc=await _get5(_BM5);
+  const donors=(dc&&dc.donors)||JSON.parse(localStorage.getItem('blp_dc')||'[]');
+  const market=(mc&&mc.market)||JSON.parse(localStorage.getItem('blp_mc')||'[]');
+  // Stats
+  const td=document.getElementById('total-donors');if(td)td.textContent=donors.length;
+  const tt=document.getElementById('total-transactions');if(tt)tt.textContent=market.length;
+  const tu=document.getElementById('total-units');if(tu)tu.textContent=market.reduce(function(s,t){return s+(parseInt(t.qty)||1);},0);
+  const av=document.getElementById('stat-available');if(av)av.textContent=donors.filter(function(d){return d.available!=='no';}).length;
+  // Recent activity
+  const ra=document.getElementById('recent-activity')||document.getElementById('recent-list');
+  if(ra){
+    const acts=[];
+    donors.slice(-5).forEach(function(d){acts.push({t:new Date(d.date||Date.now()),h:'<div style="padding:8px 0;border-bottom:1px solid #f0f0f0"><span style="background:#fef2f2;color:#e74c3c;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:700">DONOR</span> <b>'+d.name+'</b> ('+d.blood+') from '+d.city+'</div>'});});
+    market.slice(-5).forEach(function(t){acts.push({t:new Date(t.date||Date.now()),h:'<div style="padding:8px 0;border-bottom:1px solid #f0f0f0"><span style="background:#f0fdf4;color:#27ae60;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:700">'+t.type.toUpperCase()+'</span> '+(t.qty||1)+' unit(s) <b>'+t.blood+'</b> Rs.'+t.price+'</div>'});});
+    acts.sort(function(a,b){return b.t-a.t;});
+    ra.innerHTML=acts.length?acts.slice(0,8).map(function(a){return a.h;}).join(''):'<p style="text-align:center;color:#999;padding:2rem">No recent activity yet.</p>';
+  }
+  // Charts
+  if(window.Chart){
+    const bc=document.getElementById('bloodTypeChart');
+    if(bc){
+      const types=['A+','A-','B+','B-','AB+','AB-','O+','O-'];
+      const counts=types.map(function(t){return donors.filter(function(d){return d.blood===t;}).length;});
+      const mx=Math.max.apply(null,counts.concat([1]));
+      new Chart(bc,{type:'bar',data:{labels:types,datasets:[{label:'Donors',data:counts,backgroundColor:counts.map(function(c){const i=Math.round(80+(c/mx)*175);return 'rgb('+i+',30,30)';}),borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+    }
+    const dc2=document.getElementById('marketChart');
+    if(dc2){
+      const avail=donors.filter(function(d){return d.available!=='no';}).length;
+      const unavail=donors.length-avail;
+      const pct=donors.length?Math.round((avail/donors.length)*100):0;
+      const pe=document.getElementById('donut-pct');if(pe)pe.textContent=pct+'%';
+      new Chart(dc2,{type:'doughnut',data:{labels:['Available','Unavailable'],datasets:[{data:[avail||1,unavail],backgroundColor:['#27ae60','#e74c3c'],borderWidth:0}]},options:{responsive:true,cutout:'70%',plugins:{legend:{display:false}}}});
+    }
+  }
+  const lu=document.getElementById('last-updated');if(lu)lu.textContent='Updated: '+new Date().toLocaleTimeString();
+})();
+</script>
 </body>
 </html>

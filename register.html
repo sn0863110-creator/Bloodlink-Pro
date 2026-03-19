@@ -99,5 +99,56 @@
 </div>
 
 <script src="script.js"></script>
+<script>
+const _AK2='$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW';
+const _BU2='69bc2150aa77b81da9fcb1e3';
+const _BD2='69bc22a2b7ec241ddc82de74';
+const _BB2='https://api.jsonbin.io/v3/b';
+async function _jbGet2(id){try{const r=await fetch(_BB2+'/'+id+'/latest',{headers:{'X-Master-Key':_AK2}});if(!r.ok)return null;const d=await r.json();return d.record||null;}catch(e){return null;}}
+async function _jbPut2(id,data){try{const r=await fetch(_BB2+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK2},body:JSON.stringify(data)});return r.ok;}catch(e){return false;}}
+async function _getUsers2(){const cloud=await _jbGet2(_BU2);if(cloud&&Array.isArray(cloud.users)){localStorage.setItem('blp_uc',JSON.stringify(cloud.users));return cloud.users;}const c=localStorage.getItem('blp_uc');return c?JSON.parse(c):[];}
+function _toast2(msg,type){let t=document.getElementById('blp-toast');if(!t){t=document.createElement('div');t.id='blp-toast';t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:8px;color:#fff;font-weight:600;z-index:9999;font-size:14px;transition:opacity .4s';document.body.appendChild(t);}t.textContent=msg;t.style.background=type==='success'?'#27ae60':type==='error'?'#e74c3c':'#2980b9';t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(function(){t.style.opacity='0';},3000);}
+// Role tabs
+document.querySelectorAll('.role-tab').forEach(function(tab){
+  tab.addEventListener('click',function(){
+    document.querySelectorAll('.role-tab').forEach(function(t){t.classList.remove('active');});
+    tab.classList.add('active');
+    const role=tab.getAttribute('data-role');
+    const ri=document.getElementById('r-role');if(ri)ri.value=role;
+    const de=document.getElementById('donor-extra-fields');if(de)de.style.display=role==='donor'?'block':'none';
+  });
+});
+document.getElementById('register-form').addEventListener('submit',async function(e){
+  e.preventDefault();
+  const name=document.getElementById('r-name').value.trim();
+  const email=document.getElementById('r-email').value.trim().toLowerCase();
+  const pass=document.getElementById('r-password').value;
+  const city=(document.getElementById('r-city')||{value:''}).value.trim();
+  const blood=(document.getElementById('r-blood')||{value:''}).value;
+  const phone=(document.getElementById('r-contact')||{value:''}).value.trim();
+  const role=(document.getElementById('r-role')||{value:'user'}).value;
+  const btn=this.querySelector('button[type=submit]');
+  if(!name||!email||!pass){_toast2('Please fill all fields.','error');return;}
+  btn.disabled=true;btn.textContent='Registering...';
+  const users=await _getUsers2();
+  if(users.find(function(u){return u.email.toLowerCase()===email;})){
+    _toast2('Email already registered. Please login.','error');
+    btn.disabled=false;btn.textContent='Create Account \u2192';return;
+  }
+  const newUser={id:Date.now(),name:name,email:email,password:pass,blood:blood,city:city,phone:phone,role:role,joined:new Date().toISOString()};
+  users.push(newUser);
+  if(role==='donor'&&blood&&phone){
+    const dc=await _jbGet2(_BD2);
+    const donors=(dc&&Array.isArray(dc.donors))?dc.donors:(JSON.parse(localStorage.getItem('blp_dc')||'[]'));
+    donors.push({id:Date.now()+1,name:name,blood:blood,city:city,phone:phone,date:new Date().toISOString()});
+    await _jbPut2(_BD2,{donors:donors});
+    localStorage.setItem('blp_dc',JSON.stringify(donors));
+  }
+  const ok=await _jbPut2(_BU2,{users:users});
+  localStorage.setItem('blp_uc',JSON.stringify(users));
+  _toast2(ok?'Registration successful! Please login.':'Registered! Login on this device.',ok?'success':'info');
+  setTimeout(function(){window.location.href='login.html';},1200);
+});
+</script>
 </body>
 </html>
