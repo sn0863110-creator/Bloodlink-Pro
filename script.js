@@ -310,5 +310,3 @@ document.addEventListener('DOMContentLoaded', function() {
     if (overlay) setTimeout(function(){ overlay.style.opacity='0'; overlay.style.pointerEvents='none'; }, 3000);
   }
 });
-
-Write-Host 'script.js written successfully. Size: ' + ([System.IO.File]::ReadAllText(C:\code2\script.js).Length) + ' bytes'
