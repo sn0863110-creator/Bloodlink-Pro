@@ -30,21 +30,22 @@ function timeAgo(ts) {
 
 // ── Seed sample donors ────────────────────────────
 function initSampleDonors() {
-  if (store.get(KEYS.donors).length > 0) return;
-  store.set(KEYS.donors, [
-    { id:'s1',  name:'Rahul Sharma',  blood:'O+',  city:'Kanpur',  contact:'9876543210', available:true,  ts:Date.now()-3600000   },
-    { id:'s2',  name:'Priya Singh',   blood:'A+',  city:'Lucknow', contact:'9812345678', available:true,  ts:Date.now()-7200000   },
-    { id:'s3',  name:'Amit Verma',    blood:'B+',  city:'Kanpur',  contact:'9898989898', available:false, ts:Date.now()-86400000  },
-    { id:'s4',  name:'Sneha Gupta',   blood:'AB+', city:'Delhi',   contact:'9911223344', available:true,  ts:Date.now()-1800000   },
-    { id:'s5',  name:'Vikram Yadav',  blood:'O-',  city:'Kanpur',  contact:'9955667788', available:true,  ts:Date.now()-5400000   },
-    { id:'s6',  name:'Neha Patel',    blood:'A-',  city:'Unnao',   contact:'9933445566', available:true,  ts:Date.now()-10800000  },
-    { id:'s7',  name:'Rohit Kumar',   blood:'B-',  city:'Lucknow', contact:'9977889900', available:false, ts:Date.now()-172800000 },
-    { id:'s8',  name:'Anjali Mishra', blood:'AB-', city:'Delhi',   contact:'9944556677', available:true,  ts:Date.now()-900000    },
-    { id:'s9',  name:'Suresh Tiwari', blood:'O+',  city:'Kanpur',  contact:'9900112233', available:true,  ts:Date.now()-2700000   },
-    { id:'s10', name:'Kavita Rao',    blood:'A+',  city:'Unnao',   contact:'9866778899', available:true,  ts:Date.now()-14400000  },
-    { id:'s11', name:'Deepak Joshi',  blood:'B+',  city:'Kanpur',  contact:'9822334455', available:true,  ts:Date.now()-600000    },
-    { id:'s12', name:'Pooja Agarwal', blood:'O-',  city:'Delhi',   contact:'9811223344', available:false, ts:Date.now()-259200000 }
-  ]);
+  // Always refresh seed donors timestamps so they appear as today's donors
+  const existing = store.get(KEYS.donors);
+  const realDonors = existing.filter(d => !d.id.startsWith('s')); // keep user-registered only
+  const now = Date.now();
+  const seedDonors = [
+    { id:'s1',  name:'Rahul Sharma',  blood:'O+',  city:'Kanpur',  contact:'9876543210', available:true,  ts:now - 1800000  },
+    { id:'s2',  name:'Priya Singh',   blood:'A+',  city:'Lucknow', contact:'9812345678', available:true,  ts:now - 3600000  },
+    { id:'s4',  name:'Sneha Gupta',   blood:'AB+', city:'Delhi',   contact:'9911223344', available:true,  ts:now - 900000   },
+    { id:'s5',  name:'Vikram Yadav',  blood:'O-',  city:'Kanpur',  contact:'9955667788', available:true,  ts:now - 5400000  },
+    { id:'s6',  name:'Neha Patel',    blood:'A-',  city:'Unnao',   contact:'9933445566', available:true,  ts:now - 7200000  },
+    { id:'s8',  name:'Anjali Mishra', blood:'AB-', city:'Delhi',   contact:'9944556677', available:true,  ts:now - 600000   },
+    { id:'s9',  name:'Suresh Tiwari', blood:'O+',  city:'Kanpur',  contact:'9900112233', available:true,  ts:now - 2700000  },
+    { id:'s10', name:'Kavita Rao',    blood:'A+',  city:'Unnao',   contact:'9866778899', available:true,  ts:now - 10800000 },
+    { id:'s11', name:'Deepak Joshi',  blood:'B+',  city:'Kanpur',  contact:'9822334455', available:true,  ts:now - 300000   },
+  ];
+  store.set(KEYS.donors, [...seedDonors, ...realDonors]);
 }
 
 // ── Toast ─────────────────────────────────────────
@@ -234,6 +235,10 @@ function initDonorForm() {
       showToast('Enter a valid 10-digit mobile number', 'error'); return;
     }
     const donors = store.get(KEYS.donors);
+    // Duplicate check — same contact number already registered
+    if (donors.find(d => d.contact === contact)) {
+      showToast('Yeh number pehle se registered hai!', 'error'); return;
+    }
     donors.push({ id:'d_'+Date.now(), name, blood, city, contact, available, ts:Date.now() });
     store.set(KEYS.donors, donors);
 
@@ -453,21 +458,66 @@ function renderDashStats() {
   if (el('stat-available')) el('stat-available').textContent = donors.filter(d => d.available).length;
   if (el('stat-emergency')) el('stat-emergency').textContent = store.get(KEYS.emergencies).length;
   if (el('stat-cities'))    el('stat-cities').textContent    = new Set(donors.map(d => d.city)).size;
+  if (el('stat-visitors')) el('stat-visitors').textContent = getVisitorCount();
 }
 
 function renderRecentDonors() {
   const list = document.getElementById('recent-list');
   if (!list) return;
-  const recent = [...store.get(KEYS.donors)].sort((a,b) => b.ts - a.ts).slice(0, 6);
-  list.innerHTML = recent.map(d => `
-    <div class="recent-item">
-      <div class="recent-avatar">${d.name.charAt(0)}</div>
-      <div class="recent-info">
-        <div class="name">${d.name}</div>
-        <div class="meta">${d.blood} · ${d.city} · ${timeAgo(d.ts)}</div>
-      </div>
-      <div class="avail-dot ${d.available ? 'yes' : 'no'}" title="${d.available ? 'Available' : 'Unavailable'}"></div>
-    </div>`).join('');
+
+  // Merge donors + market transactions into one live activity feed
+  const donors = store.get(KEYS.donors).map(d => ({
+    type: 'donor', name: d.name, blood: d.blood,
+    city: d.city, available: d.available, ts: d.ts
+  }));
+
+  const txRaw = JSON.parse(localStorage.getItem('blp_transactions') || '[]');
+  const txActivity = txRaw.map(t => ({
+    type: t.type === 'buy' ? 'buy' : 'sell',
+    name: t.name, blood: t.blood,
+    qty: t.qty || 1, unitPrice: t.unitPrice || 0, ts: t.ts
+  }));
+
+  const feed = [...donors, ...txActivity].sort((a, b) => b.ts - a.ts).slice(0, 8);
+
+  if (!feed.length) {
+    list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);">No activity yet</div>';
+    return;
+  }
+
+  list.innerHTML = feed.map(item => {
+    if (item.type === 'donor') {
+      return `
+        <div class="recent-item">
+          <div class="recent-avatar" style="background:linear-gradient(135deg,#e63946,#c1121f);color:#fff;">${item.name.charAt(0)}</div>
+          <div class="recent-info">
+            <div class="name">${item.name} <span style="font-size:0.75rem;font-weight:700;background:#fff5f5;color:#e63946;padding:2px 7px;border-radius:6px;margin-left:4px;">${item.blood}</span></div>
+            <div class="meta">🩸 Registered as donor · ${item.city} · ${timeAgo(item.ts)}</div>
+          </div>
+          <div class="avail-dot ${item.available ? 'yes' : 'no'}" title="${item.available ? 'Available' : 'Unavailable'}"></div>
+        </div>`;
+    } else if (item.type === 'buy') {
+      return `
+        <div class="recent-item">
+          <div class="recent-avatar" style="background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;font-size:1rem;">🛒</div>
+          <div class="recent-info">
+            <div class="name">${item.name} <span style="font-size:0.75rem;font-weight:700;background:#f0fdf4;color:#16a34a;padding:2px 7px;border-radius:6px;margin-left:4px;">Bought</span></div>
+            <div class="meta">💉 ${item.qty} unit${item.qty>1?'s':''} ${item.blood} · ₹${item.unitPrice.toLocaleString()}/unit · ${timeAgo(item.ts)}</div>
+          </div>
+          <div style="font-size:0.8rem;font-weight:800;color:#16a34a;">+${item.qty}u</div>
+        </div>`;
+    } else {
+      return `
+        <div class="recent-item">
+          <div class="recent-avatar" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:1rem;">💉</div>
+          <div class="recent-info">
+            <div class="name">${item.name} <span style="font-size:0.75rem;font-weight:700;background:#fff7ed;color:#f59e0b;padding:2px 7px;border-radius:6px;margin-left:4px;">Listed</span></div>
+            <div class="meta">🏷️ ${item.qty} unit${item.qty>1?'s':''} ${item.blood} at ₹${item.unitPrice.toLocaleString()}/unit · ${timeAgo(item.ts)}</div>
+          </div>
+          <div style="font-size:0.8rem;font-weight:800;color:#f59e0b;">₹${item.unitPrice.toLocaleString()}</div>
+        </div>`;
+    }
+  }).join('');
 }
 
 function renderCharts() {
@@ -550,8 +600,48 @@ function renderCharts() {
   }
 }
 
+// ── Visitor Counter ───────────────────────────────
+function getDeviceFingerprint() {
+  // Combine stable device properties — same device = same fingerprint
+  const raw = [
+    navigator.language,
+    navigator.platform,
+    screen.width + 'x' + screen.height,
+    screen.colorDepth,
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+    navigator.hardwareConcurrency || '',
+    navigator.maxTouchPoints || ''
+  ].join('|');
+  // Simple hash
+  let hash = 0;
+  for (let i = 0; i < raw.length; i++) {
+    hash = ((hash << 5) - hash) + raw.charCodeAt(i);
+    hash |= 0;
+  }
+  return 'fp_' + Math.abs(hash).toString(36);
+}
+
+function trackVisitor() {
+  const VISIT_KEY    = 'blp_total_visits';
+  const SEEN_KEY     = 'blp_seen_fps';
+  const fp           = getDeviceFingerprint();
+  // Store list of seen fingerprints
+  const seen = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]');
+  if (!seen.includes(fp)) {
+    seen.push(fp);
+    localStorage.setItem(SEEN_KEY, JSON.stringify(seen));
+    const count = parseInt(localStorage.getItem(VISIT_KEY) || '0') + 1;
+    localStorage.setItem(VISIT_KEY, count);
+  }
+}
+
+function getVisitorCount() {
+  return parseInt(localStorage.getItem('blp_total_visits') || '0');
+}
+
 // ── PAGE ROUTER ───────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  trackVisitor();
   setupHamburger();
   const page = document.body.dataset.page;
   if      (page === 'home')      initHome();

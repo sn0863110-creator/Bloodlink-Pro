@@ -42,9 +42,9 @@
     .btn-sell { flex:1; background:#fff5f5; color:#e63946; border:1.5px solid #e63946; padding:8px; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer; transition:0.18s; font-family:inherit; }
     .btn-sell:hover { background:#e63946; color:#fff; }
     /* Transaction modal */
-    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9000; display:none; align-items:center; justify-content:center; padding:1rem; }
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9000; display:none; align-items:center; justify-content:center; padding:1rem; overflow-y:auto; }
     .modal-overlay.open { display:flex; }
-    .modal-box { background:#fff; border-radius:20px; padding:2rem; width:100%; max-width:420px; box-shadow:0 16px 60px rgba(0,0,0,0.2); }
+    .modal-box { background:#fff; border-radius:20px; padding:2rem; width:100%; max-width:440px; box-shadow:0 16px 60px rgba(0,0,0,0.2); max-height:90vh; overflow-y:auto; }
     .modal-box h3 { font-size:1.2rem; font-weight:800; margin-bottom:1.2rem; }
     .modal-close { float:right; background:none; border:none; font-size:1.3rem; cursor:pointer; color:#6b7280; }
     /* Profit summary */
@@ -112,6 +112,17 @@
   <!-- Blood Unit Cards -->
   <div class="market-grid" id="market-grid"></div>
 
+  <!-- Active Seller Listings -->
+  <div style="background:#fff;border-radius:16px;padding:1.5rem;border:1px solid #fed7aa;box-shadow:0 2px 12px rgba(245,158,11,0.08);margin-bottom:1.5rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <h3 style="font-size:1rem;font-weight:800;margin:0;">🏷️ Active Seller Listings</h3>
+      <span style="font-size:0.75rem;color:#9ca3af;font-weight:600;">Live marketplace listings</span>
+    </div>
+    <div class="tx-list" id="seller-listings">
+      <div style="text-align:center;padding:1.5rem;color:#9ca3af;font-size:0.88rem;">Koi active listing nahi hai</div>
+    </div>
+  </div>
+
   <!-- Transaction History -->
   <div style="background:#fff;border-radius:16px;padding:1.5rem;border:1px solid #f0d0d0;box-shadow:0 2px 12px rgba(230,57,70,0.05);">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
@@ -138,18 +149,20 @@
 
 <script src="script.js"></script>
 <script>
+// ── Default platform prices ───────────────────────
 const BLOOD_MARKET = [
-  { type:'O+',  buyPrice:1200, sellPrice:900,  stock:8,  maxStock:10 },
-  { type:'O-',  buyPrice:2500, sellPrice:1800, stock:3,  maxStock:10 },
-  { type:'A+',  buyPrice:1100, sellPrice:800,  stock:6,  maxStock:10 },
-  { type:'A-',  buyPrice:2000, sellPrice:1500, stock:4,  maxStock:10 },
-  { type:'B+',  buyPrice:1100, sellPrice:800,  stock:7,  maxStock:10 },
-  { type:'B-',  buyPrice:2000, sellPrice:1500, stock:2,  maxStock:10 },
-  { type:'AB+', buyPrice:1300, sellPrice:1000, stock:5,  maxStock:10 },
-  { type:'AB-', buyPrice:2800, sellPrice:2000, stock:1,  maxStock:10 }
+  { type:'O+',  buyPrice:1200, maxStock:10 },
+  { type:'O-',  buyPrice:2500, maxStock:10 },
+  { type:'A+',  buyPrice:1100, maxStock:10 },
+  { type:'A-',  buyPrice:2000, maxStock:10 },
+  { type:'B+',  buyPrice:1100, maxStock:10 },
+  { type:'B-',  buyPrice:2000, maxStock:10 },
+  { type:'AB+', buyPrice:1300, maxStock:10 },
+  { type:'AB-', buyPrice:2800, maxStock:10 }
 ];
 
-const TX_KEY = 'blp_transactions';
+const TX_KEY       = 'blp_transactions';
+const LISTINGS_KEY = 'blp_listings'; // active seller listings
 
 function getTransactions() { return JSON.parse(localStorage.getItem(TX_KEY) || '[]'); }
 function saveTransaction(tx) {
@@ -158,13 +171,32 @@ function saveTransaction(tx) {
   localStorage.setItem(TX_KEY, JSON.stringify(list.slice(0, 50)));
 }
 
+// ── Seller listings store ─────────────────────────
+function getListings() { return JSON.parse(localStorage.getItem(LISTINGS_KEY) || '[]'); }
+function saveListings(l) { localStorage.setItem(LISTINGS_KEY, JSON.stringify(l)); }
+
+// Get cheapest active seller listing for a blood type (or null)
+function getCheapestListing(bloodType) {
+  const now = Date.now();
+  const EXPIRY = 24 * 60 * 60 * 1000; // listings expire after 24 hours
+  const active = getListings().filter(l => l.blood === bloodType && l.remaining > 0 && (now - l.ts) < EXPIRY);
+  if (!active.length) return null;
+  return active.sort((a, b) => a.unitPrice - b.unitPrice)[0];
+}
+
+// ── Render market cards ───────────────────────────
 function renderMarket() {
   const grid = document.getElementById('market-grid');
   grid.innerHTML = BLOOD_MARKET.map((b, i) => {
-    const pct = Math.round((b.stock / b.maxStock) * 100);
-    const stockColor = pct > 50 ? '#16a34a' : pct > 20 ? '#f59e0b' : '#e63946';
-    const commission = Math.round(b.buyPrice * 0.05);
-    const donorPay   = b.buyPrice - commission;
+    const listing     = getCheapestListing(b.type);
+    const hasListing  = !!listing;
+    // Show seller price if listing exists, else platform price
+    const displayPrice = hasListing ? listing.unitPrice : b.buyPrice;
+    const commission   = Math.round(displayPrice * 0.05);
+    const totalStock   = hasListing ? listing.remaining : 0;
+    const pct          = Math.round((totalStock / b.maxStock) * 100);
+    const stockColor   = totalStock === 0 ? '#9ca3af' : pct > 50 ? '#16a34a' : pct > 20 ? '#f59e0b' : '#e63946';
+
     return `
     <div class="blood-unit-card">
       <div class="bg-tag">${b.type}</div>
@@ -175,72 +207,202 @@ function renderMarket() {
           <div class="unit-sub">1 Unit = 450ml · Whole Blood</div>
         </div>
       </div>
+
+      ${hasListing ? `
+        <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:0.78rem;color:#92400e;font-weight:600;">
+          🏷️ Seller: <strong>${listing.sellerName}</strong> · Listed at ₹${listing.unitPrice.toLocaleString()}/unit
+        </div>` : `
+        <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:0.78rem;color:#0369a1;font-weight:600;">
+          🏥 Platform Stock · Official Price
+        </div>`}
+
       <div class="price-row">
-        <span class="price-label">Patient Pays</span>
-        <span class="price-val">₹${b.buyPrice.toLocaleString()}</span>
+        <span class="price-label">Buy Price (per unit)</span>
+        <span class="price-val">₹${displayPrice.toLocaleString()}</span>
       </div>
       <div class="price-row">
-        <span class="price-label">Donor Receives</span>
-        <span class="price-val buy">₹${donorPay.toLocaleString()}</span>
-      </div>
-      <div class="price-row">
-        <span class="price-label">Platform Commission (5%)</span>
+        <span class="price-label">Platform Fee (5%)</span>
         <span style="font-size:0.85rem;font-weight:700;color:#6b7280;">₹${commission}</span>
       </div>
+      <div class="price-row">
+        <span class="price-label">Total Payable</span>
+        <span class="price-val" style="color:#e63946;">₹${(displayPrice + commission).toLocaleString()}</span>
+      </div>
+
       <div class="stock-bar-wrap">
         <div class="stock-label">
-          <span>Stock Available</span>
-          <span style="color:${stockColor};font-weight:700;">${b.stock} units</span>
+          <span>${hasListing ? 'Seller Stock' : 'Stock'}</span>
+          <span style="color:${stockColor};font-weight:700;">${totalStock > 0 ? totalStock + ' units' : 'Out of Stock'}</span>
         </div>
         <div class="stock-bar"><div class="stock-fill" style="width:${pct}%;background:${stockColor};"></div></div>
       </div>
+
       <div class="unit-actions">
-        <button class="btn-buy" onclick="openModal('buy',${i})">🛒 Buy Unit</button>
+        <button class="btn-buy" onclick="openModal('buy',${i})" ${totalStock === 0 ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>
+          🛒 ${totalStock === 0 ? 'Out of Stock' : 'Buy Unit'}
+        </button>
         <button class="btn-sell" onclick="openModal('sell',${i})">💉 Sell Unit</button>
       </div>
     </div>`;
   }).join('');
   updateSummary();
   renderTransactions();
+  renderSellerListings();
 }
+
+// ── helpers ──────────────────────────────────────
+function calcBuyTotal(unitPrice, qty) {
+  const sub = unitPrice * qty;
+  const fee = Math.round(sub * 0.05);
+  return { sub, fee, total: sub + fee };
+}
+function calcSellPayout(customPrice, qty) {
+  const gross = customPrice * qty;
+  const fee   = Math.round(gross * 0.05);
+  return { gross, fee, net: gross - fee };
+}
+
+function updateBuySummary(unitPrice) {
+  const qty = parseInt(document.getElementById('modal-qty')?.value) || 1;
+  const { sub, fee, total } = calcBuyTotal(unitPrice, qty);
+  const el = id => document.getElementById(id);
+  if (el('buy-sub'))   el('buy-sub').textContent   = '₹' + sub.toLocaleString();
+  if (el('buy-fee'))   el('buy-fee').textContent   = '₹' + fee.toLocaleString();
+  if (el('buy-total')) el('buy-total').textContent = '₹' + total.toLocaleString();
+}
+
+function updateSellSummary() {
+  const qty   = parseInt(document.getElementById('sell-qty')?.value)   || 1;
+  const price = parseInt(document.getElementById('sell-price')?.value) || 0;
+  const { gross, fee, net } = calcSellPayout(price, qty);
+  const el = id => document.getElementById(id);
+  if (el('sell-gross')) el('sell-gross').textContent = '₹' + gross.toLocaleString();
+  if (el('sell-fee'))   el('sell-fee').textContent   = '₹' + fee.toLocaleString();
+  if (el('sell-net'))   el('sell-net').textContent   = '₹' + net.toLocaleString();
+}
+
+const INP = 'width:100%;padding:0.65rem 1rem;border:1.5px solid #f0d0d0;border-radius:8px;font-size:0.9rem;font-family:inherit;outline:none;';
+const LBL = 'font-size:0.85rem;font-weight:600;display:block;margin-bottom:6px;';
 
 function openModal(type, idx) {
   const b = BLOOD_MARKET[idx];
-  const commission = Math.round(b.buyPrice * 0.05);
-  const donorPay   = b.buyPrice - commission;
+  const listing = getCheapestListing(b.type);
+  // For buy: use seller price if listing exists, else platform price
+  const unitPrice = listing ? listing.unitPrice : b.buyPrice;
+  const maxQty    = listing ? listing.remaining : 0;
   const isBuy = type === 'buy';
-  document.getElementById('modal-title').textContent = isBuy ? `🛒 Buy ${b.type} Blood Unit` : `💉 Sell ${b.type} Blood Unit`;
-  document.getElementById('modal-body').innerHTML = `
-    <div style="background:#f9fafb;border-radius:10px;padding:1rem;margin-bottom:1rem;">
-      ${isBuy ? `
+
+  document.getElementById('modal-title').textContent = isBuy
+    ? `🛒 Buy ${b.type} Blood Unit`
+    : `💉 Sell Blood Unit`;
+
+  if (isBuy) {
+    const { sub, fee, total } = calcBuyTotal(unitPrice, 1);
+    const priceSource = listing
+      ? `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:8px 12px;margin-bottom:1rem;font-size:0.78rem;color:#92400e;font-weight:600;">🏷️ Buying from seller: <strong>${listing.sellerName}</strong> at ₹${unitPrice.toLocaleString()}/unit</div>`
+      : `<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:8px 12px;margin-bottom:1rem;font-size:0.78rem;color:#0369a1;font-weight:600;">🏥 Platform official price</div>`;
+
+    document.getElementById('modal-body').innerHTML = `
+      ${priceSource}
+      <div style="margin-bottom:1rem;">
+        <label style="${LBL}">Quantity (Units)</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button type="button" onclick="stepQty('modal-qty',-1,1,${maxQty})" style="width:36px;height:36px;border-radius:8px;border:1.5px solid #f0d0d0;background:#fff;font-size:1.2rem;cursor:pointer;font-weight:700;">−</button>
+          <input type="number" id="modal-qty" value="1" min="1" max="${maxQty}"
+            style="${INP}text-align:center;width:80px;flex-shrink:0;"
+            oninput="updateBuySummary(${unitPrice})" />
+          <button type="button" onclick="stepQty('modal-qty',1,1,${maxQty})" style="width:36px;height:36px;border-radius:8px;border:1.5px solid #f0d0d0;background:#fff;font-size:1.2rem;cursor:pointer;font-weight:700;">+</button>
+          <span style="font-size:0.78rem;color:#9ca3af;">Max: ${maxQty}</span>
+        </div>
+      </div>
+      <div style="background:#f9fafb;border-radius:10px;padding:1rem;margin-bottom:1rem;">
         <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:0.88rem;">
-          <span style="color:#6b7280;">Unit Price</span><span style="font-weight:700;">₹${b.buyPrice.toLocaleString()}</span>
+          <span style="color:#6b7280;">Unit Price</span><span style="font-weight:700;">₹${unitPrice.toLocaleString()}</span>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:0.88rem;">
-          <span style="color:#6b7280;">Platform Fee (5%)</span><span style="font-weight:700;color:#e63946;">₹${commission}</span>
+          <span style="color:#6b7280;">Subtotal</span><span id="buy-sub" style="font-weight:700;">₹${sub.toLocaleString()}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:0.88rem;">
+          <span style="color:#6b7280;">Platform Fee (5%)</span><span id="buy-fee" style="font-weight:700;color:#e63946;">₹${fee.toLocaleString()}</span>
         </div>
         <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:800;border-top:1px solid #f0d0d0;padding-top:8px;margin-top:8px;">
-          <span>Total Payable</span><span style="color:#e63946;">₹${b.buyPrice.toLocaleString()}</span>
-        </div>` : `
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:0.88rem;">
-          <span style="color:#6b7280;">You Receive</span><span style="font-weight:700;color:#16a34a;">₹${donorPay.toLocaleString()}</span>
+          <span>Total Payable</span><span id="buy-total" style="color:#e63946;">₹${total.toLocaleString()}</span>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:0.82rem;">
-          <span style="color:#6b7280;">Platform Commission</span><span style="color:#e63946;">₹${commission}</span>
-        </div>`}
-    </div>
-    <div class="form-group">
-      <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:6px;">${isBuy ? 'Patient Name' : 'Donor Name'}</label>
-      <input type="text" id="modal-name" placeholder="Full name" style="width:100%;padding:0.65rem 1rem;border:1.5px solid #f0d0d0;border-radius:8px;font-size:0.9rem;font-family:inherit;outline:none;" />
-    </div>
-    <div class="form-group" style="margin-top:0.8rem;">
-      <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:6px;">Contact Number</label>
-      <input type="tel" id="modal-contact" placeholder="10-digit mobile" maxlength="10" style="width:100%;padding:0.65rem 1rem;border:1.5px solid #f0d0d0;border-radius:8px;font-size:0.9rem;font-family:inherit;outline:none;" />
-    </div>
-    <button onclick="confirmTransaction('${type}',${idx})" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:1rem;">
-      ${isBuy ? '✅ Confirm Purchase' : '✅ Confirm Sale'}
-    </button>`;
+      </div>
+      <div style="margin-bottom:0.8rem;">
+        <label style="${LBL}">Patient Name</label>
+        <input type="text" id="modal-name" placeholder="Full name" style="${INP}" />
+      </div>
+      <div style="margin-bottom:1rem;">
+        <label style="${LBL}">Contact Number</label>
+        <input type="tel" id="modal-contact" placeholder="10-digit mobile" maxlength="10" style="${INP}" />
+      </div>
+      <button onclick="confirmTransaction('buy',${idx})" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;">
+        ✅ Confirm Purchase
+      </button>`;
+  } else {
+    document.getElementById('modal-body').innerHTML = `
+      <div style="margin-bottom:0.8rem;">
+        <label style="${LBL}">Blood Type You're Selling</label>
+        <select id="sell-blood" style="${INP}">
+          ${['O+','O-','A+','A-','B+','B-','AB+','AB-'].map(t =>
+            `<option value="${t}" ${t===b.type?'selected':''}>${t}</option>`).join('')}
+        </select>
+      </div>
+      <div style="margin-bottom:0.8rem;">
+        <label style="${LBL}">Quantity (Units)</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button type="button" onclick="stepQty('sell-qty',-1,1,10)" style="width:36px;height:36px;border-radius:8px;border:1.5px solid #f0d0d0;background:#fff;font-size:1.2rem;cursor:pointer;font-weight:700;">−</button>
+          <input type="number" id="sell-qty" value="1" min="1" max="10"
+            style="${INP}text-align:center;width:80px;flex-shrink:0;"
+            oninput="updateSellSummary()" />
+          <button type="button" onclick="stepQty('sell-qty',1,1,10)" style="width:36px;height:36px;border-radius:8px;border:1.5px solid #f0d0d0;background:#fff;font-size:1.2rem;cursor:pointer;font-weight:700;">+</button>
+        </div>
+      </div>
+      <div style="margin-bottom:0.8rem;">
+        <label style="${LBL}">Your Asking Price per Unit (₹)</label>
+        <div style="position:relative;">
+          <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-weight:700;color:#6b7280;">₹</span>
+          <input type="number" id="sell-price" placeholder="e.g. 900" min="100" max="5000"
+            style="${INP}padding-left:28px;" oninput="updateSellSummary()" />
+        </div>
+        <div style="font-size:0.72rem;color:#9ca3af;margin-top:4px;">
+          Market rate: ₹${b.buyPrice.toLocaleString()} · Suggested: ₹${Math.round(b.buyPrice*0.65).toLocaleString()} – ₹${b.buyPrice.toLocaleString()}
+        </div>
+      </div>
+      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:1rem;margin-bottom:1rem;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:0.88rem;">
+          <span style="color:#6b7280;">Gross Amount</span><span id="sell-gross" style="font-weight:700;">₹0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:0.88rem;">
+          <span style="color:#6b7280;">Platform Fee (5%)</span><span id="sell-fee" style="font-weight:700;color:#e63946;">₹0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:800;border-top:1px solid #bbf7d0;padding-top:8px;margin-top:8px;">
+          <span>You Receive</span><span id="sell-net" style="color:#16a34a;">₹0</span>
+        </div>
+      </div>
+      <div style="margin-bottom:0.8rem;">
+        <label style="${LBL}">Your Name</label>
+        <input type="text" id="modal-name" placeholder="Full name" style="${INP}" />
+      </div>
+      <div style="margin-bottom:1rem;">
+        <label style="${LBL}">Contact Number</label>
+        <input type="tel" id="modal-contact" placeholder="10-digit mobile" maxlength="10" style="${INP}" />
+      </div>
+      <button onclick="confirmTransaction('sell',${idx})" class="btn btn-primary btn-lg"
+        style="width:100%;justify-content:center;background:#16a34a;">
+        ✅ List for Sale
+      </button>`;
+  }
   document.getElementById('modal').classList.add('open');
+}
+
+function stepQty(inputId, delta, min, max) {
+  const el = document.getElementById(inputId);
+  if (!el) return;
+  const newVal = Math.min(max, Math.max(min, (parseInt(el.value) || 1) + delta));
+  el.value = newVal;
+  el.dispatchEvent(new Event('input'));
 }
 
 function closeModal() { document.getElementById('modal').classList.remove('open'); }
@@ -249,34 +411,52 @@ function confirmTransaction(type, idx) {
   const name    = document.getElementById('modal-name')?.value.trim();
   const contact = document.getElementById('modal-contact')?.value.trim();
   if (!name || !contact) { showToast('Please fill all fields', 'error'); return; }
+  if (!/^[6-9]\d{9}$/.test(contact)) { showToast('Valid 10-digit mobile number chahiye', 'error'); return; }
 
   const b = BLOOD_MARKET[idx];
-  const commission = Math.round(b.buyPrice * 0.05);
-  const isBuy = type === 'buy';
 
-  if (isBuy && b.stock <= 0) { showToast('No stock available!', 'error'); return; }
-  if (!isBuy) b.stock = Math.min(b.stock + 1, b.maxStock);
-  else b.stock--;
+  if (type === 'buy') {
+    const listing = getCheapestListing(b.type);
+    if (!listing) { showToast('Stock available nahi hai!', 'error'); return; }
+    const qty = parseInt(document.getElementById('modal-qty')?.value) || 1;
+    if (listing.remaining < qty) { showToast(`Sirf ${listing.remaining} units available hain!`, 'error'); return; }
+    const { sub, fee, total } = calcBuyTotal(listing.unitPrice, qty);
+    // Deduct from seller listing
+    const listings = getListings();
+    const li = listings.find(l => l.id === listing.id);
+    if (li) { li.remaining -= qty; if (li.remaining <= 0) li.remaining = 0; }
+    saveListings(listings);
+    saveTransaction({ type:'buy', blood:b.type, name, contact, qty, unitPrice:listing.unitPrice, amount:total, commission:fee, sellerName:listing.sellerName, ts:Date.now() });
+    closeModal();
+    showToast(`✅ ${qty} unit${qty>1?'s':''} kharida! ₹${total.toLocaleString()} paid`, 'success');
 
-  saveTransaction({
-    type, blood: b.type, name, contact,
-    amount: isBuy ? b.buyPrice : b.buyPrice - commission,
-    commission: isBuy ? commission : 0,
-    ts: Date.now()
-  });
-
-  closeModal();
-  showToast(isBuy ? `✅ Purchase confirmed! ₹${b.buyPrice.toLocaleString()} paid` : `✅ Sale confirmed! ₹${b.buyPrice - commission} credited`, 'success');
+  } else {
+    const qty       = parseInt(document.getElementById('sell-qty')?.value)   || 1;
+    const sellPrice = parseInt(document.getElementById('sell-price')?.value) || 0;
+    const bloodType = document.getElementById('sell-blood')?.value || b.type;
+    if (sellPrice < 100) { showToast('Minimum price ₹100 honi chahiye', 'error'); return; }
+    if (sellPrice > b.buyPrice * 1.5) { showToast(`Maximum price ₹${Math.round(b.buyPrice*1.5).toLocaleString()} ho sakti hai (1.5x market rate)`, 'error'); return; }
+    const { gross, fee, net } = calcSellPayout(sellPrice, qty);
+    // Save as active listing
+    const listings = getListings();
+    listings.push({ id: Date.now(), blood:bloodType, sellerName:name, contact, qty, remaining:qty, unitPrice:sellPrice, net, ts:Date.now() });
+    saveListings(listings);
+    saveTransaction({ type:'sell', blood:bloodType, name, contact, qty, unitPrice:sellPrice, amount:net, commission:fee, ts:Date.now() });
+    closeModal();
+    showToast(`✅ ${qty} unit${qty>1?'s':''} listed at ₹${sellPrice.toLocaleString()}/unit! Aapko milega ₹${net.toLocaleString()}`, 'success');
+  }
   renderMarket();
 }
 
 function updateSummary() {
-  const txs = getTransactions();
-  const buys = txs.filter(t => t.type === 'buy');
+  const txs   = getTransactions();
+  const buys  = txs.filter(t => t.type === 'buy');
+  const sells = txs.filter(t => t.type === 'sell');
   const revenue    = buys.reduce((s,t) => s + t.amount, 0);
-  const commission = buys.reduce((s,t) => s + t.commission, 0);
+  const commission = [...buys,...sells].reduce((s,t) => s + (t.commission||0), 0);
+  const totalUnits = txs.reduce((s,t) => s + (t.qty||1), 0);
   document.getElementById('total-revenue').textContent    = '₹' + revenue.toLocaleString();
-  document.getElementById('total-units').textContent      = txs.length;
+  document.getElementById('total-units').textContent      = totalUnits;
   document.getElementById('total-commission').textContent = '₹' + commission.toLocaleString();
 }
 
@@ -284,13 +464,14 @@ function renderTransactions() {
   const list = getTransactions();
   const el = document.getElementById('tx-list');
   if (!list.length) { el.innerHTML = '<div style="text-align:center;padding:1.5rem;color:#9ca3af;font-size:0.88rem;">No transactions yet</div>'; return; }
-  el.innerHTML = list.slice(0, 10).map(t => {
+  el.innerHTML = list.slice(0, 15).map(t => {
     const isBuy = t.type === 'buy';
+    const qty = t.qty || 1;
     return `<div class="tx-item">
       <div class="tx-dot" style="background:${isBuy ? '#e63946' : '#16a34a'};"></div>
       <div class="tx-info">
-        <div class="tn">${isBuy ? '🛒 Purchased' : '💉 Sold'} — ${t.blood} · ${t.name}</div>
-        <div class="tm">${new Date(t.ts).toLocaleString()} · ${t.contact}</div>
+        <div class="tn">${isBuy ? '🛒 Bought' : '💉 Sold'} ${qty} unit${qty>1?'s':''} — ${t.blood} · ${t.name}${isBuy && t.sellerName ? ` (from ${t.sellerName})` : ''}</div>
+        <div class="tm">${new Date(t.ts).toLocaleString()} · ₹${(t.unitPrice||0).toLocaleString()}/unit</div>
       </div>
       <div class="tx-amt" style="color:${isBuy ? '#e63946' : '#16a34a'};">
         ${isBuy ? '-' : '+'}₹${t.amount.toLocaleString()}
@@ -299,14 +480,39 @@ function renderTransactions() {
   }).join('');
 }
 
+function renderSellerListings() {
+  const el = document.getElementById('seller-listings');
+  if (!el) return;
+  const now = Date.now();
+  const EXPIRY = 24 * 60 * 60 * 1000;
+  const active = getListings().filter(l => l.remaining > 0 && (now - l.ts) < EXPIRY);
+  if (!active.length) {
+    el.innerHTML = '<div style="text-align:center;padding:1.5rem;color:#9ca3af;font-size:0.88rem;">Koi active listing nahi hai</div>';
+    return;
+  }
+  el.innerHTML = active.map(l => {
+    const expiresIn = Math.max(0, Math.round((EXPIRY - (now - l.ts)) / 3600000));
+    return `
+    <div class="tx-item">
+      <div class="tx-dot" style="background:#f59e0b;"></div>
+      <div class="tx-info">
+        <div class="tn">🏷️ ${l.blood} · ${l.sellerName} · ${l.remaining}/${l.qty} units left</div>
+        <div class="tm">${new Date(l.ts).toLocaleString()} · ${l.contact} · ⏳ Expires in ~${expiresIn}h</div>
+      </div>
+      <div class="tx-amt" style="color:#f59e0b;">₹${l.unitPrice.toLocaleString()}/unit</div>
+    </div>`;
+  }).join('');
+}
+
 // Close modal on overlay click
 document.getElementById('modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
 
 function clearAllTransactions() {
-  if (!confirm('Saari transactions clear karein?')) return;
+  if (!confirm('Saari transactions aur listings clear karein?')) return;
   localStorage.removeItem(TX_KEY);
+  localStorage.removeItem(LISTINGS_KEY);
   renderMarket();
-  showToast('✅ All transactions cleared', 'success');
+  showToast('✅ All cleared', 'success');
 }
 
 renderMarket();
