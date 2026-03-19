@@ -51,7 +51,7 @@
         <div class="search-filters">
           <div class="form-group" style="margin:0;">
             <label for="filter-blood" style="font-size:0.85rem;font-weight:600;margin-bottom:6px;display:block;">Blood Group</label>
-            <select id="filter-blood">
+            <select id="filter-blood" name="blood">
               <option value="">All Blood Groups</option>
               <option>A+</option><option>A-</option>
               <option>B+</option><option>B-</option>
@@ -61,7 +61,7 @@
           </div>
           <div class="form-group" style="margin:0;">
             <label for="filter-city" style="font-size:0.85rem;font-weight:600;margin-bottom:6px;display:block;">City</label>
-            <input type="text" id="filter-city" placeholder="e.g. Kanpur, Delhi..." />
+            <input type="text" id="filter-city" name="city" placeholder="e.g. Kanpur, Delhi..." />
           </div>
           <button type="submit" class="btn btn-primary btn-lg" style="align-self:flex-end;">Search</button>
         </div>
@@ -83,7 +83,7 @@
       <span id="results-count" style="font-size:0.9rem;color:var(--text-muted);"></span>
       <span id="last-updated" style="font-size:0.78rem;color:var(--text-muted);"></span>
     </div>
-    <div id="results-wrap">
+    <div id="search-results">
       <div class="empty-state">
         <div class="icon">🩸</div>
         <h3>Search for Donors</h3>

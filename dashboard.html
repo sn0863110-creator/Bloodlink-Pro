@@ -46,7 +46,7 @@
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon red">🩸</div>
-        <div class="stat-info"><div class="num" id="stat-total">—</div><div class="lbl">Total Donors</div></div>
+        <div class="stat-info"><div class="num" id="total-donors">—</div><div class="lbl">Total Donors</div></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon green">✅</div>
@@ -54,15 +54,15 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon orange">🚨</div>
-        <div class="stat-info"><div class="num" id="stat-emergency">—</div><div class="lbl">Emergency Requests</div></div>
+        <div class="stat-info"><div class="num" id="total-transactions">—</div><div class="lbl">Transactions</div></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon blue">🏙️</div>
-        <div class="stat-info"><div class="num" id="stat-cities">—</div><div class="lbl">Cities Covered</div></div>
+        <div class="stat-info"><div class="num" id="total-units">—</div><div class="lbl">Units Traded</div></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon" style="background:rgba(139,92,246,0.1);">👥</div>
-        <div class="stat-info"><div class="num" id="stat-visitors">—</div><div class="lbl">Total Visitors</div></div>
+        <div class="stat-info"><div class="num" id="visitor-count">—</div><div class="lbl">Total Visitors</div></div>
       </div>
     </div>
 
@@ -78,13 +78,13 @@
     <div class="dash-grid">
       <div class="dash-card">
         <h3>🩸 Blood Group Distribution</h3>
-        <div class="chart-wrap"><canvas id="chart-bloodgroup"></canvas></div>
+        <div class="chart-wrap"><canvas id="bloodTypeChart"></canvas></div>
       </div>
       <div class="dash-card">
         <h3>📊 Donor Availability</h3>
         <div id="chart-total-badge" style="font-size:0.78rem;color:#9ca3af;font-weight:600;margin-bottom:6px;"></div>
         <div class="chart-wrap" style="position:relative;">
-          <canvas id="chart-availability"></canvas>
+          <canvas id="marketChart"></canvas>
           <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;">
             <div id="donut-pct" style="font-size:1.6rem;font-weight:900;color:#16a34a;line-height:1;">0%</div>
             <div style="font-size:0.65rem;color:#9ca3af;font-weight:600;">Available</div>
@@ -100,7 +100,7 @@
         <h3 style="margin:0;">🕐 Recent Activity</h3>
         <a href="search.html" class="btn btn-ghost btn-sm">View All →</a>
       </div>
-      <div class="recent-list" id="recent-list">
+      <div class="recent-list" id="recent-activity">
         <div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading...</div>
       </div>
     </div>
