@@ -1,467 +1,314 @@
-﻿function hashPass(pass) {
-  let h = 0;
-  for (let i = 0; i < pass.length; i++) { h = Math.imul(31, h) + pass.charCodeAt(i) | 0; }
-  return 'h_' + Math.abs(h).toString(36) + '_' + pass.length;
-}
-async function jbGetUsers() {
-  const data = await jbGet(JB_USERS);
-  return Array.isArray(data.users) ? data.users : [];
-}
-async function jbSaveUsers(users) { await jbSet(JB_USERS, { users }); }
+﻿// BloodLink Pro - script.js (HackForce / Satish Kumar Nishad)
+const API_KEY = '$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW';
+const BIN_USERS = '69bc2150aa77b81da9fcb1e3';
+const BIN_DONORS = '69bc22a2b7ec241ddc82de74';
+const BIN_MARKET = '69bc22a2b7ec241ddc82de79';
+const BASE_URL = 'https://api.jsonbin.io/v3/b';
 
-async function jbRegister({ name, email, password, city, role }) {
-  const users = await jbGetUsers();
-  if (users.find(u => u.email === email)) return { error: 'EMAIL_EXISTS' };
-  const newUser = { id:'u_'+Date.now(), name, email, passHash:hashPass(password), city, role, ts:Date.now() };
-  users.push(newUser);
-  await jbSaveUsers(users);
-  return { user: { id:newUser.id, name, email, city, role, ts:newUser.ts } };
-}
-async function jbSignIn(email, password) {
-  const users = await jbGetUsers();
-  const user  = users.find(u => u.email === email);
-  if (!user) return { error: 'NOT_FOUND' };
-  if (user.passHash !== hashPass(password)) return { error: 'WRONG_PASS' };
-  return { user: { id:user.id, name:user.name, email:user.email, city:user.city, role:user.role, ts:user.ts } };
+async function jbGet(binId) {
+  try {
+    const r = await fetch(BASE_URL + '/' + binId + '/latest', { headers: { 'X-Master-Key': API_KEY } });
+    if (!r.ok) return null;
+    const d = await r.json();
+    return d.record || null;
+  } catch(e) { return null; }
 }
 
-const SEED_DONORS = [
-  { id:'s1',  name:'Rahul Sharma',  blood:'O+',  city:'Kanpur',  contact:'9876543210', available:true },
-  { id:'s2',  name:'Priya Singh',   blood:'A+',  city:'Lucknow', contact:'9812345678', available:true },
-  { id:'s4',  name:'Sneha Gupta',   blood:'AB+', city:'Delhi',   contact:'9911223344', available:true },
-  { id:'s5',  name:'Vikram Yadav',  blood:'O-',  city:'Kanpur',  contact:'9955667788', available:true },
-  { id:'s6',  name:'Neha Patel',    blood:'A-',  city:'Unnao',   contact:'9933445566', available:true },
-  { id:'s8',  name:'Anjali Mishra', blood:'AB-', city:'Delhi',   contact:'9944556677', available:true },
-  { id:'s9',  name:'Suresh Tiwari', blood:'O+',  city:'Kanpur',  contact:'9900112233', available:true },
-  { id:'s10', name:'Kavita Rao',    blood:'A+',  city:'Unnao',   contact:'9866778899', available:true },
-  { id:'s11', name:'Deepak Joshi',  blood:'B+',  city:'Kanpur',  contact:'9822334455', available:true },
-];
-
-async function initSampleDonors() {
-  const existing = await cloudGetDonors();
-  if (existing.length > 0) return;
-  const now = Date.now();
-  await cloudSaveDonors(SEED_DONORS.map((d,i) => ({ ...d, ts: now - (i+1)*600000 })));
+async function jbPut(binId, data) {
+  try {
+    const r = await fetch(BASE_URL + '/' + binId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+      body: JSON.stringify(data)
+    });
+    return r.ok;
+  } catch(e) { return false; }
 }
 
-function timeAgo(ts) {
-  const diff = Date.now() - ts;
-  const m = Math.floor(diff / 60000);
-  if (m < 1)  return 'Just now';
-  if (m < 60) return m + 'm ago';
-  const h = Math.floor(m / 60);
-  if (h < 24) return h + 'h ago';
-  const d = Math.floor(h / 24);
-  if (d < 30) return d + 'd ago';
-  return new Date(ts).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+async function getUsers() {
+  const cloud = await jbGet(BIN_USERS);
+  if (cloud && Array.isArray(cloud.users)) { localStorage.setItem('blp_uc', JSON.stringify(cloud.users)); return cloud.users; }
+  const c = localStorage.getItem('blp_uc'); return c ? JSON.parse(c) : [];
 }
+async function saveUsers(arr) { localStorage.setItem('blp_uc', JSON.stringify(arr)); return await jbPut(BIN_USERS, { users: arr }); }
 
-function showToast(msg, type, duration) {
-  type = type || 'success'; duration = duration || 3500;
-  let wrap = document.getElementById('toast-container');
-  if (!wrap) {
-    wrap = document.createElement('div');
-    wrap.id = 'toast-container'; wrap.className = 'toast-container';
-    document.body.appendChild(wrap);
-  }
-  const icons = { success:'âœ…', error:'âŒ', info:'â„¹ï¸', warning:'âš ï¸' };
-  const t = document.createElement('div');
-  t.className = 'toast ' + type;
-  t.innerHTML = '<span>'+(icons[type]||'ðŸ””')+'</span><span>'+msg+'</span>';
-  wrap.appendChild(t);
-  setTimeout(() => {
-    t.style.cssText += 'opacity:0;transform:translateY(10px);transition:0.3s;';
-    setTimeout(() => t.remove(), 320);
-  }, duration);
+async function getDonors() {
+  const cloud = await jbGet(BIN_DONORS);
+  if (cloud && Array.isArray(cloud.donors)) { localStorage.setItem('blp_dc', JSON.stringify(cloud.donors)); return cloud.donors; }
+  const c = localStorage.getItem('blp_dc'); return c ? JSON.parse(c) : [];
 }
+async function saveDonors(arr) { localStorage.setItem('blp_dc', JSON.stringify(arr)); return await jbPut(BIN_DONORS, { donors: arr }); }
 
-function getSession()   { return store.getObj(KEYS.session); }
-function setSession(u)  { store.setObj(KEYS.session, u); }
-function clearSession() { store.remove(KEYS.session); }
-function logout() {
-  clearSession();
-  showToast('Logged out successfully', 'info');
-  setTimeout(() => window.location.href = 'index.html', 800);
+async function getMarket() {
+  const cloud = await jbGet(BIN_MARKET);
+  if (cloud && Array.isArray(cloud.market)) { localStorage.setItem('blp_mc', JSON.stringify(cloud.market)); return cloud.market; }
+  const c = localStorage.getItem('blp_mc'); return c ? JSON.parse(c) : [];
 }
+async function saveMarket(arr) { localStorage.setItem('blp_mc', JSON.stringify(arr)); return await jbPut(BIN_MARKET, { market: arr }); }
 
-function updateNav() {
-  const s = getSession();
-  const el = id => document.getElementById(id);
-  const vis = (id, show) => { const e = el(id); if (e) e.style.display = show ? 'inline-flex' : 'none'; };
-  if (s) {
-    vis('nav-login', false); vis('nav-register', false); vis('nav-logout', true);
-    const u = el('nav-user');
-    if (u) { u.style.display = 'inline-flex'; u.textContent = 'ðŸ‘¤ ' + s.name; }
-    const nd = el('nav-dashboard'); if (nd) nd.style.display = 'inline-flex';
-  } else {
-    vis('nav-login', true); vis('nav-register', true); vis('nav-logout', false);
-    const u = el('nav-user'); if (u) u.style.display = 'none';
-    const nd = el('nav-dashboard'); if (nd) nd.style.display = 'none';
-  }
-  el('nav-logout')?.addEventListener('click', logout);
+function currentUser() { const u = localStorage.getItem('blp_user'); return u ? JSON.parse(u) : null; }
+function setCurrentUser(u) { localStorage.setItem('blp_user', JSON.stringify(u)); }
+function logout() { localStorage.removeItem('blp_user'); window.location.href = 'login.html'; }
+
+function showToast(msg, type) {
+  let t = document.getElementById('blp-toast');
+  if (!t) { t = document.createElement('div'); t.id = 'blp-toast'; t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:8px;color:#fff;font-weight:600;z-index:9999;font-size:14px;transition:opacity .4s'; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.style.background = type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : '#2980b9';
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 3000);
 }
 
 function setupHamburger() {
-  const toggle = document.getElementById('nav-toggle');
-  const links  = document.getElementById('nav-links');
-  if (!toggle || !links) return;
-  toggle.addEventListener('click', e => {
-    e.stopPropagation();
-    const isOpen = links.classList.contains('open');
-    toggle.classList.toggle('open', !isOpen);
-    links.classList.toggle('open', !isOpen);
-  });
-  links.querySelectorAll('a, button').forEach(item => {
-    item.addEventListener('click', () => {
-      toggle.classList.remove('open'); links.classList.remove('open');
-    });
-  });
-  document.addEventListener('click', e => {
-    if (!toggle.contains(e.target) && !links.contains(e.target)) {
-      toggle.classList.remove('open'); links.classList.remove('open');
-    }
-  });
+  const btn = document.getElementById('hamburger');
+  const menu = document.getElementById('nav-menu');
+  if (!btn || !menu) return;
+  btn.addEventListener('click', function(e){ e.stopPropagation(); menu.classList.toggle('open'); });
+  document.addEventListener('click', function(e){ if (!menu.contains(e.target) && e.target !== btn) menu.classList.remove('open'); });
 }
 
-async function initHome() {
-  updateNav();
-  const el = id => document.getElementById(id);
-  if (el('home-total'))     el('home-total').textContent     = '...';
-  if (el('home-available')) el('home-available').textContent = '...';
-  if (el('home-cities'))    el('home-cities').textContent    = '...';
-  const donors = await cloudGetDonors();
-  if (el('home-total'))     el('home-total').textContent     = donors.length;
-  if (el('home-available')) el('home-available').textContent = donors.filter(d => d.available).length;
-  if (el('home-cities'))    el('home-cities').textContent    = new Set(donors.map(d => d.city)).size;
+function getDeviceFingerprint() {
+  const sig = [navigator.userAgent, navigator.language, screen.width+'x'+screen.height, screen.colorDepth, new Date().getTimezoneOffset(), navigator.hardwareConcurrency||0, navigator.platform||'', navigator.vendor||'', navigator.plugins ? navigator.plugins.length : 0].join('|');
+  let h = 0; for (let i = 0; i < sig.length; i++) { h = ((h << 5) - h) + sig.charCodeAt(i); h |= 0; }
+  return Math.abs(h).toString(36);
 }
 
-function initLoginForm() {
-  updateNav();
-  document.getElementById('login-form')?.addEventListener('submit', async e => {
+function trackVisitor() {
+  const fp = getDeviceFingerprint();
+  const seen = JSON.parse(localStorage.getItem('blp_seen_fps') || '[]');
+  let count = parseInt(localStorage.getItem('blp_vc') || '0');
+  if (!seen.includes(fp)) { seen.push(fp); count++; localStorage.setItem('blp_seen_fps', JSON.stringify(seen)); localStorage.setItem('blp_vc', count); }
+  const el = document.getElementById('visitor-count'); if (el) el.textContent = count;
+}
+async function initLogin() {
+  const form = document.getElementById('login-form');
+  if (!form) return;
+  form.addEventListener('submit', async function(e) {
     e.preventDefault();
-    const email = document.getElementById('l-email').value.trim().toLowerCase();
-    const pass  = document.getElementById('l-password').value;
-    const errEl = document.getElementById('login-error');
-    const btn   = e.target.querySelector('button[type=submit]');
-    if (errEl) { errEl.textContent = ''; errEl.classList.remove('show'); }
-    if (btn)   { btn.disabled = true; btn.textContent = 'Signing in...'; }
-    try {
-      const result = await jbSignIn(email, pass);
-      if (result.error) {
-        const msg = result.error === 'NOT_FOUND' ? 'Email registered nahi hai.' :
-                    result.error === 'WRONG_PASS' ? 'Password galat hai.' : 'Login failed.';
-        if (errEl) { errEl.textContent = msg; errEl.classList.add('show'); }
-        showToast(msg, 'error');
-        if (btn) { btn.disabled = false; btn.textContent = 'Sign In â†’'; }
-        return;
-      }
-      setSession(result.user);
-      showToast('Welcome back, ' + result.user.name + '!', 'success');
-      setTimeout(() => window.location.href = 'dashboard.html', 800);
-    } catch {
-      showToast('Network error. Internet check karo.', 'error');
-      if (btn) { btn.disabled = false; btn.textContent = 'Sign In â†’'; }
-    }
+    const email = form.querySelector('[name=email]').value.trim().toLowerCase();
+    const pass = form.querySelector('[name=password]').value;
+    const btn = form.querySelector('button[type=submit]');
+    btn.disabled = true; btn.textContent = 'Logging in...';
+    const users = await getUsers();
+    const user = users.find(u => u.email.toLowerCase() === email);
+    if (!user) { showToast('Email not found. Please register first.', 'error'); btn.disabled = false; btn.textContent = 'Login'; return; }
+    if (user.password !== pass) { showToast('Wrong password.', 'error'); btn.disabled = false; btn.textContent = 'Login'; return; }
+    setCurrentUser(user);
+    showToast('Login successful!', 'success');
+    setTimeout(function(){ window.location.href = 'dashboard.html'; }, 800);
   });
 }
 
-function initRegisterForm() {
-  updateNav();
-  document.querySelectorAll('.role-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      const role  = tab.dataset.role;
-      const extra = document.getElementById('donor-extra-fields');
-      if (extra) extra.style.display = role === 'donor' ? 'block' : 'none';
-      const ri = document.getElementById('r-role'); if (ri) ri.value = role;
-    });
-  });
-  document.getElementById('register-form')?.addEventListener('submit', async e => {
+async function initRegister() {
+  const form = document.getElementById('register-form');
+  if (!form) return;
+  form.addEventListener('submit', async function(e) {
     e.preventDefault();
-    const name  = document.getElementById('r-name').value.trim();
-    const email = document.getElementById('r-email').value.trim().toLowerCase();
-    const pass  = document.getElementById('r-password').value;
-    const city  = document.getElementById('r-city').value.trim();
-    const role  = document.getElementById('r-role').value || 'user';
-    const errEl = document.getElementById('register-error');
-    const btn   = e.target.querySelector('button[type=submit]');
-    if (errEl) { errEl.textContent = ''; errEl.classList.remove('show'); }
-    if (!name || !email || !pass || !city) {
-      if (errEl) { errEl.textContent = 'Please fill all required fields.'; errEl.classList.add('show'); } return;
+    const name = form.querySelector('[name=name]').value.trim();
+    const email = form.querySelector('[name=email]').value.trim().toLowerCase();
+    const pass = form.querySelector('[name=password]').value;
+    const bloodEl = form.querySelector('[name=blood]');
+    const blood = bloodEl ? bloodEl.value : 'Unknown';
+    const btn = form.querySelector('button[type=submit]');
+    if (!name || !email || !pass) { showToast('Please fill all fields.', 'error'); return; }
+    btn.disabled = true; btn.textContent = 'Registering...';
+    const users = await getUsers();
+    if (users.find(u => u.email.toLowerCase() === email)) {
+      showToast('Email already registered. Please login.', 'error');
+      btn.disabled = false; btn.textContent = 'Register'; return;
     }
-    if (pass.length < 6) {
-      if (errEl) { errEl.textContent = 'Password min 6 characters hona chahiye.'; errEl.classList.add('show'); } return;
-    }
-    if (btn) { btn.disabled = true; btn.textContent = 'Creating account...'; }
-    try {
-      const result = await jbRegister({ name, email, password:pass, city, role });
-      if (result.error) {
-        const msg = result.error === 'EMAIL_EXISTS' ? 'Email already registered hai.' : 'Registration failed.';
-        if (errEl) { errEl.textContent = msg; errEl.classList.add('show'); }
-        showToast(msg, 'error');
-        if (btn) { btn.disabled = false; btn.textContent = 'Create Account â†’'; } return;
-      }
-      if (role === 'donor') {
-        const blood   = document.getElementById('r-blood')?.value;
-        const contact = document.getElementById('r-contact')?.value.trim();
-        if (blood && contact) {
-          const donors = await cloudGetDonors();
-          donors.unshift({ id:'d_'+Date.now(), name, blood, city, contact, available:true, ts:Date.now() });
-          await cloudSaveDonors(donors);
-        }
-      }
-      setSession(result.user);
-      showToast('Account bana! Welcome, ' + name + '!', 'success');
-      setTimeout(() => window.location.href = 'dashboard.html', 900);
-    } catch {
-      showToast('Network error. Internet check karo.', 'error');
-      if (btn) { btn.disabled = false; btn.textContent = 'Create Account â†’'; }
-    }
+    const newUser = { id: Date.now(), name, email, password: pass, blood, joined: new Date().toISOString() };
+    users.push(newUser);
+    const ok = await saveUsers(users);
+    showToast(ok ? 'Registration successful! Please login.' : 'Registered (offline). Login on this device.', ok ? 'success' : 'info');
+    setTimeout(function(){ window.location.href = 'login.html'; }, 1200);
   });
 }
 
-function initDonorForm() {
-  updateNav();
-  document.getElementById('donor-form')?.addEventListener('submit', async e => {
+async function initDonor() {
+  const form = document.getElementById('donor-form');
+  if (!form) return;
+  form.addEventListener('submit', async function(e) {
     e.preventDefault();
-    const name      = document.getElementById('d-name').value.trim();
-    const blood     = document.getElementById('d-blood').value;
-    const city      = document.getElementById('d-city').value.trim();
-    const contact   = document.getElementById('d-contact').value.trim();
-    const available = document.getElementById('d-available').value === 'yes';
-    if (!name || !blood || !city || !contact) { showToast('Please fill all required fields', 'error'); return; }
-    if (!/^[6-9]\d{9}$/.test(contact)) { showToast('Valid 10-digit mobile number enter karo', 'error'); return; }
-    const donors = await cloudGetDonors();
-    if (donors.find(d => d.contact === contact)) { showToast('Yeh number pehle se registered hai!', 'error'); return; }
-    donors.unshift({ id:'d_'+Date.now(), name, blood, city, contact, available, ts:Date.now() });
-    await cloudSaveDonors(donors);
-    showToast(name + ' registered as ' + blood + ' donor!', 'success');
-    const banner = document.getElementById('donor-success');
-    if (banner) {
-      banner.textContent = 'Thank you, ' + name + '! You are now registered as a ' + blood + ' donor in ' + city + '.';
-      banner.classList.add('show');
-      setTimeout(() => banner.classList.remove('show'), 5000);
+    const btn = form.querySelector('button[type=submit]');
+    btn.disabled = true; btn.textContent = 'Submitting...';
+    const donor = {
+      id: Date.now(),
+      name: form.querySelector('[name=name]').value.trim(),
+      blood: form.querySelector('[name=blood]').value,
+      city: form.querySelector('[name=city]').value.trim(),
+      phone: form.querySelector('[name=phone]').value.trim(),
+      age: form.querySelector('[name=age]') ? form.querySelector('[name=age]').value : '',
+      date: new Date().toISOString()
+    };
+    if (!donor.name || !donor.blood || !donor.city || !donor.phone) {
+      showToast('Please fill all required fields.', 'error');
+      btn.disabled = false; btn.textContent = 'Register as Donor'; return;
     }
-    document.getElementById('donor-form').reset();
+    const donors = await getDonors();
+    donors.push(donor);
+    const ok = await saveDonors(donors);
+    showToast(ok ? 'Donor registered successfully!' : 'Saved locally (cloud sync pending).', ok ? 'success' : 'info');
+    setTimeout(function(){ form.reset(); btn.disabled = false; btn.textContent = 'Register as Donor'; }, 1200);
   });
 }
 
 async function initSearch() {
-  updateNav();
-  await initSampleDonors();
-  document.getElementById('search-form')?.addEventListener('submit', e => {
-    e.preventDefault(); performSearch();
+  const form = document.getElementById('search-form');
+  const results = document.getElementById('search-results');
+  if (!form || !results) return;
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const blood = form.querySelector('[name=blood]').value;
+    const city = (form.querySelector('[name=city]').value || '').trim().toLowerCase();
+    results.innerHTML = '<p style=text-align:center>Searching...</p>';
+    const donors = await getDonors();
+    const found = donors.filter(d => (!blood || d.blood === blood) && (!city || d.city.toLowerCase().includes(city)));
+    if (!found.length) { results.innerHTML = '<p style=color:#e74c3c;text-align:center>No donors found.</p>'; return; }
+    results.innerHTML = found.map(d => '<div class=donor-card><div class=donor-blood>' + d.blood + '</div><div class=donor-info><h3>' + d.name + '</h3><p>City: ' + d.city + '</p><p>Phone: ' + d.phone + '</p></div></div>').join('');
   });
-  const p = new URLSearchParams(window.location.search);
-  if (p.get('blood') || p.get('city')) {
-    const bEl = document.getElementById('filter-blood');
-    const cEl = document.getElementById('filter-city');
-    if (bEl && p.get('blood')) bEl.value = p.get('blood');
-    if (cEl && p.get('city'))  cEl.value = p.get('city');
-    performSearch();
+}
+async function initDashboard() {
+  const user = currentUser();
+  const nameEl = document.getElementById('user-name');
+  if (nameEl) nameEl.textContent = user ? user.name : 'Guest';
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) logoutBtn.addEventListener('click', logout);
+  trackVisitor();
+  const [donors, market] = await Promise.all([getDonors(), getMarket()]);
+  const td = document.getElementById('total-donors'); if (td) td.textContent = donors.length;
+  const tt = document.getElementById('total-transactions'); if (tt) tt.textContent = market.length;
+  const tu = document.getElementById('total-units'); if (tu) tu.textContent = market.reduce((s,t) => s + (parseInt(t.qty)||1), 0);
+  renderCharts(donors, market);
+  renderRecentActivity(donors, market);
+}
+
+function renderCharts(donors, market) {
+  const barCtx = document.getElementById('bloodTypeChart');
+  if (barCtx) {
+    const types = ['A+','A-','B+','B-','AB+','AB-','O+','O-'];
+    const counts = types.map(t => donors.filter(d => d.blood === t).length);
+    const max = Math.max(...counts, 1);
+    const colors = counts.map(c => { const i = Math.round(80 + (c/max)*175); return 'rgb('+i+',30,30)'; });
+    if (window._barChart) window._barChart.destroy();
+    window._barChart = new Chart(barCtx, { type:'bar', data:{ labels:types, datasets:[{ label:'Donors', data:counts, backgroundColor:colors, borderRadius:6 }] }, options:{ responsive:true, animation:{ duration:1000, easing:'easeOutQuart' }, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } } });
+  }
+  const donutCtx = document.getElementById('marketChart');
+  if (donutCtx) {
+    const buys = market.filter(t => t.type==='buy').length;
+    const sells = market.filter(t => t.type==='sell').length;
+    const total = buys + sells || 1;
+    const pct = Math.round((buys/total)*100);
+    if (window._donutChart) window._donutChart.destroy();
+    window._donutChart = new Chart(donutCtx, { type:'doughnut', data:{ labels:['Buys','Sells'], datasets:[{ data:[buys,sells], backgroundColor:['#e74c3c','#27ae60'], borderWidth:0 }] }, options:{ responsive:true, cutout:'70%', animation:{ duration:1000, easing:'easeOutQuart' }, plugins:{ legend:{ position:'bottom' } } }, plugins:[{ id:'centerText', afterDraw(chart){ const {ctx,chartArea:{left,right,top,bottom}}=chart; const cx=(left+right)/2,cy=(top+bottom)/2; ctx.save(); ctx.font='bold 22px Arial'; ctx.fillStyle='#e74c3c'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(pct+'%',cx,cy); ctx.restore(); } }] });
   }
 }
 
-async function performSearch() {
-  const blood = document.getElementById('filter-blood')?.value || '';
-  const city  = document.getElementById('filter-city')?.value.trim().toLowerCase() || '';
-  const wrap  = document.getElementById('results-wrap');
-  if (!wrap) return;
-  wrap.innerHTML = '<div class="loading-state"><div class="spinner"></div><p style="color:var(--text-muted);margin-top:0.5rem;">Finding donors...</p></div>';
-  let list = await cloudGetDonors();
-  if (blood) list = list.filter(d => d.blood === blood);
-  if (city)  list = list.filter(d => d.city.toLowerCase().includes(city));
-  const countEl = document.getElementById('results-count');
-  if (countEl) countEl.textContent = list.length + ' donor' + (list.length !== 1 ? 's' : '') + ' found';
-  if (!list.length) {
-    wrap.innerHTML = '<div class="empty-state"><div class="icon">ðŸ”</div><h3>No donors found</h3><p>Try a different blood group or city.</p></div>';
-    return;
-  }
-  list.sort((a,b) => (b.available - a.available) || (b.ts - a.ts));
-  const bestIdx = list.findIndex(d => d.available && city && d.city.toLowerCase().includes(city));
-  wrap.innerHTML = '<div class="results-grid">' + list.map((d,i) => donorCard(d, i === bestIdx && bestIdx !== -1)).join('') + '</div>';
+function renderRecentActivity(donors, market) {
+  const el = document.getElementById('recent-activity');
+  if (!el) return;
+  const acts = [];
+  donors.slice(-5).forEach(d => acts.push({ time: new Date(d.date||Date.now()), html: '<div class=activity-item><span class=badge>DONOR</span> <b>'+d.name+'</b> ('+d.blood+') from '+d.city+'</div>' }));
+  market.slice(-5).forEach(t => acts.push({ time: new Date(t.date||Date.now()), html: '<div class=activity-item><span class=badge>'+t.type.toUpperCase()+'</span> '+(t.qty||1)+' unit(s) of <b>'+t.blood+'</b> - Rs.'+t.price+'</div>' }));
+  acts.sort((a,b) => b.time - a.time);
+  el.innerHTML = acts.length ? acts.slice(0,8).map(a=>a.html).join('') : '<p style=text-align:center;color:#999>No recent activity yet.</p>';
 }
 
-function donorCard(d, isBest) {
-  return '<div class="donor-card ' + (isBest ? 'best-match' : '') + '">' +
-    (isBest ? '<div class="best-badge">Best Match</div>' : '') +
-    '<div class="donor-top">' +
-      '<div class="donor-avatar">' + d.name.charAt(0) + '</div>' +
-      '<div><div class="donor-name">' + d.name + '</div><div class="donor-city">ðŸ“ ' + d.city + '</div></div>' +
-      '<div class="blood-group-tag">' + d.blood + '</div>' +
-    '</div>' +
-    '<div class="donor-details">' +
-      '<div class="donor-detail">ðŸ• ' + timeAgo(d.ts) + '</div>' +
-      '<div class="donor-detail"><span class="avail-tag ' + (d.available ? 'yes' : 'no') + '">' + (d.available ? 'ðŸŸ¢ Available' : 'âš« Unavailable') + '</span></div>' +
-    '</div>' +
-    (d.available
-      ? '<a href="tel:' + d.contact + '" class="btn btn-primary btn-sm" style="width:100%;justify-content:center;margin-top:0.8rem;text-decoration:none;">ðŸ“ž Call Donor â€” ' + d.contact + '</a>'
-      : '<div style="margin-top:0.8rem;padding:8px 12px;background:#f3f4f6;border-radius:8px;text-align:center;font-size:0.8rem;color:#9ca3af;">Currently unavailable</div>'
-    ) + '</div>';
+function renderBloodCards() {
+  const container = document.getElementById('blood-cards');
+  if (!container) return;
+  const types = [{t:'A+',p:1200},{t:'A-',p:1400},{t:'B+',p:1100},{t:'B-',p:1500},{t:'AB+',p:1300},{t:'AB-',p:1800},{t:'O+',p:1000},{t:'O-',p:2000}];
+  container.innerHTML = types.map(b => '<div class=blood-card><div class=blood-type-badge>'+b.t+'</div><div class=blood-price>Rs.'+b.p+'/unit</div><button class=btn-buy onclick=openBuyModal('+JSON.stringify(b.t)+','+b.p+')>Buy Now</button></div>').join('');
+}
+
+async function openBuyModal(blood, price) {
+  const user = currentUser();
+  if (!user) { showToast('Please login to buy.', 'error'); return; }
+  const qty = parseInt(prompt('How many units of ' + blood + '?', '1')) || 1;
+  const total = price * qty;
+  const commission = +(total * 0.05).toFixed(2);
+  const payable = +(total + commission).toFixed(2);
+  if (!confirm(qty + ' unit(s) of ' + blood + '\nBase: Rs.' + total + '\n5% fee: Rs.' + commission + '\nTotal: Rs.' + payable + '\n\nConfirm?')) return;
+  const market = await getMarket();
+  market.push({ id: Date.now(), type: 'buy', blood, qty, price, commission, total: payable, buyer: user.name, date: new Date().toISOString() });
+  await saveMarket(market);
+  showToast('Purchase recorded! Total: Rs.' + payable, 'success');
+  await loadMarketListings();
+}
+
+async function loadMarketListings() {
+  const market = await getMarket();
+  const histEl = document.getElementById('transaction-history');
+  if (histEl) {
+    histEl.innerHTML = market.length ? market.slice().reverse().map(t => '<div class=tx-item><span class=tx-badge>'+t.type.toUpperCase()+'</span> <b>'+t.blood+'</b> x'+(t.qty||1)+' @ Rs.'+t.price+' | '+(t.type==='sell'?'Net: Rs.'+t.net:'Total: Rs.'+t.total)+' | '+(t.buyer||t.seller||'')+' | '+new Date(t.date).toLocaleDateString()+'</div>').join('') : '<p style=text-align:center;color:#999>No transactions yet.</p>';
+  }
+  const listEl = document.getElementById('seller-listings');
+  if (listEl) {
+    const sells = market.filter(t => t.type==='sell');
+    listEl.innerHTML = sells.length ? sells.slice().reverse().map(t => '<div class=listing-item><span class=blood-badge>'+t.blood+'</span> '+(t.qty||1)+' unit(s) @ Rs.'+t.price+' | Seller: '+t.seller+' <button class=btn-small onclick=openBuyModal('+JSON.stringify(t.blood)+','+t.price+')>Buy</button></div>').join('') : '<p style=text-align:center;color:#999>No listings yet.</p>';
+  }
+}
+
+async function initPricing() {
+  renderBloodCards();
+  await loadMarketListings();
+  const clearBtn = document.getElementById('clear-history');
+  if (clearBtn) clearBtn.addEventListener('click', async function(){ if (!confirm('Clear all transaction history?')) return; await saveMarket([]); await loadMarketListings(); showToast('History cleared.', 'info'); });
+  const sellForm = document.getElementById('sell-form');
+  if (sellForm) {
+    sellForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const user = currentUser();
+      if (!user) { showToast('Please login to sell.', 'error'); return; }
+      const blood = sellForm.querySelector('[name=blood]').value;
+      const qty = parseInt(sellForm.querySelector('[name=qty]').value) || 1;
+      const price = parseFloat(sellForm.querySelector('[name=price]').value);
+      if (!blood || !price || price <= 0) { showToast('Fill all fields.', 'error'); return; }
+      const commission = +(price * qty * 0.05).toFixed(2);
+      const net = +(price * qty - commission).toFixed(2);
+      const market = await getMarket();
+      market.push({ id: Date.now(), type: 'sell', blood, qty, price, commission, net, seller: user.name, date: new Date().toISOString() });
+      await saveMarket(market);
+      showToast('Listed! Net after 5% commission: Rs.' + net, 'success');
+      sellForm.reset();
+      await loadMarketListings();
+    });
+  }
 }
 
 function playEmergencyHorn() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const totalDuration = 6, cycleTime = 0.9, hiFreq = 960, loFreq = 640;
-    const osc = ctx.createOscillator(), gain = ctx.createGain();
-    const distortion = ctx.createWaveShaper();
-    function makeDistortionCurve(amount) {
-      const n = 256, curve = new Float32Array(n);
-      for (let i = 0; i < n; i++) { const x = (i*2)/n-1; curve[i] = ((Math.PI+amount)*x)/(Math.PI+amount*Math.abs(x)); }
-      return curve;
-    }
-    distortion.curve = makeDistortionCurve(30); distortion.oversample = '2x';
-    osc.connect(distortion); distortion.connect(gain); gain.connect(ctx.destination);
-    osc.type = 'sine'; gain.gain.setValueAtTime(0.0, ctx.currentTime);
-    const now = ctx.currentTime; let t = now;
-    while (t < now + totalDuration) {
-      gain.gain.linearRampToValueAtTime(0.7, t+0.05);
-      osc.frequency.setValueAtTime(loFreq, t);
-      osc.frequency.linearRampToValueAtTime(hiFreq, t+cycleTime*0.5);
-      osc.frequency.linearRampToValueAtTime(loFreq, t+cycleTime);
-      t += cycleTime;
-    }
-    gain.gain.setValueAtTime(0.7, now+totalDuration-0.2);
-    gain.gain.linearRampToValueAtTime(0.0, now+totalDuration);
-    osc.start(now); osc.stop(now+totalDuration);
-    osc.onended = () => ctx.close();
-  } catch(e) { console.warn('Audio not supported:', e); }
-}
-
-function triggerSOS() {
-  const btn   = document.getElementById('sos-btn');
-  const alert = document.getElementById('sos-alert');
-  playEmergencyHorn();
-  const list = store.get(KEYS.emergencies);
-  list.push({ ts: Date.now(), city: getSession()?.city || 'Unknown' });
-  store.set(KEYS.emergencies, list);
-  if (btn) { btn.disabled=true; btn.innerHTML='ðŸš¨ SOS Sent!'; btn.style.background='#7f1d1d'; }
-  if (alert) {
-    alert.innerHTML = 'ðŸš¨ <strong>Emergency request initiated!</strong><br>Please contact available donors immediately.<br><small>Request logged at ' + new Date().toLocaleTimeString() + '</small>';
-    alert.classList.add('show');
-  }
-  showToast('ðŸš¨ Emergency SOS sent! Contact donors now.', 'warning', 6000);
-  const statEl = document.getElementById('stat-emergency');
-  if (statEl) statEl.textContent = list.length;
-  setTimeout(() => {
-    if (btn) { btn.disabled=false; btn.innerHTML='ðŸ†˜ Send Emergency SOS'; btn.style.background=''; }
-  }, 10000);
-}
-
-async function initDashboard() {
-  updateNav();
-  await initSampleDonors();
-  await renderDashStats();
-  await renderRecentActivity();
-  renderCharts();
-  const el = document.getElementById('last-updated');
-  if (el) el.textContent = 'Last updated: ' + new Date().toLocaleTimeString();
-}
-
-async function renderDashStats() {
-  const donors = await cloudGetDonors();
-  const el = id => document.getElementById(id);
-  if (el('stat-total'))     el('stat-total').textContent     = donors.length;
-  if (el('stat-available')) el('stat-available').textContent = donors.filter(d => d.available).length;
-  if (el('stat-emergency')) el('stat-emergency').textContent = store.get(KEYS.emergencies).length;
-  if (el('stat-cities'))    el('stat-cities').textContent    = new Set(donors.map(d => d.city)).size;
-  if (el('stat-visitors'))  el('stat-visitors').textContent  = getVisitorCount();
-}
-
-async function renderRecentActivity() {
-  const list = document.getElementById('recent-list');
-  if (!list) return;
-  list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading...</div>';
-  const donors = await cloudGetDonors();
-  const { transactions } = await cloudGetMarket();
-  const feed = [];
-  donors.forEach(d => feed.push({ type:'donor', name:d.name, blood:d.blood, city:d.city, available:d.available, ts:d.ts }));
-  transactions.forEach(t => feed.push({ type:t.type==='buy'?'buy':'sell', name:t.name, blood:t.blood, qty:t.qty||1, unitPrice:t.unitPrice||0, ts:t.ts }));
-  feed.sort((a,b) => b.ts - a.ts);
-  const recent = feed.slice(0, 10);
-  if (!recent.length) { list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);">No activity yet</div>'; return; }
-  list.innerHTML = recent.map(item => {
-    if (item.type === 'donor') return '<div class="recent-item"><div class="recent-avatar" style="background:linear-gradient(135deg,#e63946,#c1121f);color:#fff;">' + item.name.charAt(0) + '</div><div class="recent-info"><div class="name">' + item.name + ' <span style="font-size:0.75rem;font-weight:700;background:#fff5f5;color:#e63946;padding:2px 7px;border-radius:6px;margin-left:4px;">' + item.blood + '</span></div><div class="meta">ðŸ©¸ Registered as donor Â· ' + item.city + ' Â· ' + timeAgo(item.ts) + '</div></div><div class="avail-dot ' + (item.available?'yes':'no') + '"></div></div>';
-    if (item.type === 'buy') return '<div class="recent-item"><div class="recent-avatar" style="background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;font-size:1rem;">ðŸ›’</div><div class="recent-info"><div class="name">' + item.name + ' <span style="font-size:0.75rem;font-weight:700;background:#f0fdf4;color:#16a34a;padding:2px 7px;border-radius:6px;margin-left:4px;">Bought</span></div><div class="meta">ðŸ’‰ ' + item.qty + ' unit' + (item.qty>1?'s':'') + ' ' + item.blood + ' Â· Rs.' + item.unitPrice.toLocaleString() + '/unit Â· ' + timeAgo(item.ts) + '</div></div><div style="font-size:0.8rem;font-weight:800;color:#16a34a;">+' + item.qty + 'u</div></div>';
-    return '<div class="recent-item"><div class="recent-avatar" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:1rem;">ðŸ’‰</div><div class="recent-info"><div class="name">' + item.name + ' <span style="font-size:0.75rem;font-weight:700;background:#fff7ed;color:#f59e0b;padding:2px 7px;border-radius:6px;margin-left:4px;">Listed</span></div><div class="meta">ðŸ·ï¸ ' + item.qty + ' unit' + (item.qty>1?'s':'') + ' ' + item.blood + ' at Rs.' + item.unitPrice.toLocaleString() + '/unit Â· ' + timeAgo(item.ts) + '</div></div><div style="font-size:0.8rem;font-weight:800;color:#f59e0b;">Rs.' + item.unitPrice.toLocaleString() + '</div></div>';
-  }).join('');
-}
-
-async function renderCharts() {
-  if (typeof Chart === 'undefined') return;
-  const donors     = await cloudGetDonors();
-  const groups     = ['A+','A-','B+','B-','AB+','AB-','O+','O-'];
-  const counts     = groups.map(g => donors.filter(d => d.blood === g).length);
-  const availCount = donors.filter(d => d.available).length;
-  const unavail    = donors.length - availCount;
-  const pct        = donors.length ? Math.round(availCount / donors.length * 100) : 0;
-  const maxVal     = Math.max(...counts, 1);
-  const pctEl = document.getElementById('donut-pct'); if (pctEl) pctEl.textContent = pct + '%';
-  const badgeEl = document.getElementById('chart-total-badge'); if (badgeEl) badgeEl.textContent = donors.length + ' donors';
-  const legendEl = document.getElementById('donut-legend');
-  if (legendEl) legendEl.innerHTML = '<div class="legend-item"><span class="legend-dot" style="background:#16a34a;"></span>Available (' + availCount + ')</div><div class="legend-item"><span class="legend-dot" style="background:#e5e7eb;border:1px solid #d1d5db;"></span>Unavailable (' + unavail + ')</div>';
-  const bgCtx = document.getElementById('chart-bloodgroup');
-  if (bgCtx) new Chart(bgCtx, { type:'bar', data:{ labels:groups, datasets:[{ data:counts,
-    backgroundColor:counts.map(v => 'rgba(230,57,70,' + (0.3+0.7*(v/maxVal)).toFixed(2) + ')'),
-    borderRadius:10, borderSkipped:false, borderWidth:0, hoverBackgroundColor:'#c1121f' }] },
-    options:{ responsive:true, maintainAspectRatio:false, animation:{duration:900,easing:'easeOutQuart'},
-      plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#1a1a2e', titleColor:'#fff', bodyColor:'#ff6b6b',
-        padding:12, cornerRadius:10, displayColors:false, callbacks:{label:ctx => ' ' + ctx.parsed.y + ' donor' + (ctx.parsed.y!==1?'s':'')} } },
-      scales:{ y:{beginAtZero:true,ticks:{stepSize:1,color:'#9ca3af',font:{size:11,weight:'600'}},grid:{color:'rgba(240,208,208,0.7)'}},
-        x:{ticks:{color:'#1a1a2e',font:{size:12,weight:'800'}},grid:{display:false}} } } });
-  const avCtx = document.getElementById('chart-availability');
-  if (avCtx) new Chart(avCtx, { type:'doughnut', data:{ labels:['Available','Unavailable'],
-    datasets:[{ data:[availCount||0,unavail||1], backgroundColor:['#16a34a','#f3f4f6'],
-    borderWidth:0, hoverOffset:10, hoverBackgroundColor:['#15803d','#e5e7eb'] }] },
-    options:{ responsive:true, maintainAspectRatio:false, animation:{animateRotate:true,duration:1000,easing:'easeOutQuart'},
-      plugins:{ legend:{display:false}, tooltip:{backgroundColor:'#1a1a2e',titleColor:'#fff',bodyColor:'#fff',padding:12,cornerRadius:10} },
-      cutout:'72%' } });
-}
-
-function getDeviceFingerprint() {
-  const raw = [
-    navigator.language || '',
-    navigator.platform || '',
-    screen.width + 'x' + screen.height,
-    screen.colorDepth || '',
-    Intl.DateTimeFormat().resolvedOptions().timeZone || '',
-    navigator.hardwareConcurrency || '',
-    navigator.maxTouchPoints || '',
-    screen.pixelDepth || '',
-    navigator.vendor || ''
-  ].join('|');
-  let hash = 0;
-  for (let i = 0; i < raw.length; i++) { hash = ((hash << 5) - hash) + raw.charCodeAt(i); hash |= 0; }
-  return 'fp_' + Math.abs(hash).toString(36);
-}
-
-function trackVisitor() {
-  const VISIT_KEY = 'blp_total_visits', SEEN_KEY = 'blp_seen_fps';
-  const fp   = getDeviceFingerprint();
-  const seen = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]');
-  if (seen.indexOf(fp) === -1) {
-    seen.push(fp);
-    localStorage.setItem(SEEN_KEY, JSON.stringify(seen));
-    const count = parseInt(localStorage.getItem(VISIT_KEY) || '0') + 1;
-    localStorage.setItem(VISIT_KEY, String(count));
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  let time = ctx.currentTime;
+  for (let i = 0; i < 4; i++) {
+    const o1 = ctx.createOscillator(), g1 = ctx.createGain();
+    o1.connect(g1); g1.connect(ctx.destination);
+    o1.frequency.setValueAtTime(960, time); g1.gain.setValueAtTime(0.6, time); g1.gain.exponentialRampToValueAtTime(0.001, time+0.6);
+    o1.start(time); o1.stop(time+0.6);
+    const o2 = ctx.createOscillator(), g2 = ctx.createGain();
+    o2.connect(g2); g2.connect(ctx.destination);
+    o2.frequency.setValueAtTime(760, time+0.6); g2.gain.setValueAtTime(0.6, time+0.6); g2.gain.exponentialRampToValueAtTime(0.001, time+1.2);
+    o2.start(time+0.6); o2.stop(time+1.2);
+    time += 1.2;
   }
 }
 
-function getVisitorCount() {
-  return parseInt(localStorage.getItem('blp_total_visits') || '0');
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  trackVisitor();
+document.addEventListener('DOMContentLoaded', function() {
   setupHamburger();
-  const page = document.body.dataset.page;
-  if      (page === 'home')      initHome();
-  else if (page === 'login')     initLoginForm();
-  else if (page === 'register')  initRegisterForm();
-  else if (page === 'donor')     initDonorForm();
-  else if (page === 'search')    initSearch();
-  else if (page === 'dashboard') initDashboard();
-  else { updateNav(); }
+  const page = location.pathname.split('/').pop() || 'index.html';
+  if (page === 'login.html') initLogin();
+  if (page === 'register.html') initRegister();
+  if (page === 'donor.html') initDonor();
+  if (page === 'search.html') initSearch();
+  if (page === 'dashboard.html') initDashboard();
+  if (page === 'pricing.html') initPricing();
+  if (page === 'index.html' || page === '') {
+    trackVisitor();
+    const sosBtn = document.getElementById('sos-btn') || document.getElementById('emergency-btn');
+    if (sosBtn) sosBtn.addEventListener('click', playEmergencyHorn);
+    const overlay = document.getElementById('welcome-overlay');
+    if (overlay) setTimeout(function(){ overlay.style.opacity='0'; overlay.style.pointerEvents='none'; }, 3000);
+  }
 });
+
+Write-Host 'script.js written successfully. Size: ' + ([System.IO.File]::ReadAllText(C:\code2\script.js).Length) + ' bytes'
