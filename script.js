@@ -100,15 +100,71 @@ function trackVisitor() {
 
 function playEmergencyHorn() {
   try {
-    var AC=window.AudioContext||window.webkitAudioContext; if (!AC) return;
-    var ctx=new AC(), time=ctx.currentTime;
-    for (var i=0; i<4; i++) {
-      var o1=ctx.createOscillator(), g1=ctx.createGain(); o1.connect(g1); g1.connect(ctx.destination);
-      o1.frequency.setValueAtTime(960,time); g1.gain.setValueAtTime(0.6,time); g1.gain.exponentialRampToValueAtTime(0.001,time+0.6); o1.start(time); o1.stop(time+0.6);
-      var o2=ctx.createOscillator(), g2=ctx.createGain(); o2.connect(g2); g2.connect(ctx.destination);
-      o2.frequency.setValueAtTime(760,time+0.6); g2.gain.setValueAtTime(0.6,time+0.6); g2.gain.exponentialRampToValueAtTime(0.001,time+1.2); o2.start(time+0.6); o2.stop(time+1.2);
-      time+=1.2;
+    var AC = window.AudioContext || (window['webkitAudioContext']); if (!AC) return;
+    var ctx = new AC();
+    var master = ctx.createGain();
+    var t = ctx.currentTime;
+
+    // Compressor for loudness
+    var comp = ctx.createDynamicsCompressor();
+    comp.threshold.setValueAtTime(-6, t);
+    comp.ratio.setValueAtTime(4, t);
+    comp.connect(ctx.destination);
+    master.connect(comp);
+
+    master.gain.setValueAtTime(0.0, t);
+    master.gain.linearRampToValueAtTime(1.0, t + 0.04);
+
+    // === LAYER 1: Indian ambulance HI-LO wail (sawtooth, 700→1100Hz) ===
+    var wail = ctx.createOscillator();
+    var wailG = ctx.createGain();
+    wail.type = 'sawtooth';
+    wailG.gain.setValueAtTime(0.6, t);
+    wail.connect(wailG); wailG.connect(master);
+
+    // === LAYER 2: Yelp — fast 960/720 Hz square pulses ===
+    var yelp = ctx.createOscillator();
+    var yelpG = ctx.createGain();
+    yelp.type = 'square';
+    yelpG.gain.setValueAtTime(0.22, t);
+    yelp.connect(yelpG); yelpG.connect(master);
+
+    // === LAYER 3: Low engine rumble ===
+    var rumble = ctx.createOscillator();
+    var rumbleG = ctx.createGain();
+    rumble.type = 'sine';
+    rumble.frequency.setValueAtTime(75, t);
+    rumbleG.gain.setValueAtTime(0.15, t);
+    rumble.connect(rumbleG); rumbleG.connect(master);
+
+    var totalDur = 4.0; // 4 seconds total
+    var cycleDur = 0.8; // each HI-LO cycle
+    var cycles = Math.floor(totalDur / cycleDur);
+
+    // Wail: 700 → 1100 → 700 per cycle (Indian ambulance pattern)
+    for (var i = 0; i < cycles; i++) {
+      var s = t + i * cycleDur;
+      wail.frequency.setValueAtTime(700, s);
+      wail.frequency.linearRampToValueAtTime(1100, s + cycleDur * 0.45);
+      wail.frequency.linearRampToValueAtTime(700, s + cycleDur);
     }
+
+    // Yelp: 960/720 alternating every 0.1s
+    var yelpSteps = Math.floor(totalDur / 0.1);
+    for (var j = 0; j < yelpSteps; j++) {
+      yelp.frequency.setValueAtTime(j % 2 === 0 ? 960 : 720, t + j * 0.1);
+    }
+
+    // Fade out last 0.15s
+    master.gain.setValueAtTime(1.0, t + totalDur - 0.15);
+    master.gain.linearRampToValueAtTime(0.0, t + totalDur);
+
+    wail.start(t);   wail.stop(t + totalDur);
+    yelp.start(t);   yelp.stop(t + totalDur);
+    rumble.start(t); rumble.stop(t + totalDur);
+
+    // Cleanup
+    setTimeout(function(){ try { ctx.close(); } catch(e){} }, (totalDur + 0.5) * 1000);
   } catch(e) {}
 }
 function triggerSOS() {
