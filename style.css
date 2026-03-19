@@ -119,10 +119,9 @@ body {
   position: relative;
 }
 .blood-drop-anim::after {
-  content: 'ðŸ©¸'; position: absolute; top: 50%; left: 50%;
+  content: ''; position: absolute; top: 50%; left: 50%;
   transform: translate(-50%,-50%) rotate(180deg);
-  font-size: 2.5rem;
-}
+  }
 @keyframes float-drop {
   0%,100%{transform:rotate(180deg) translateY(0);} 50%{transform:rotate(180deg) translateY(-12px);}
 }
@@ -485,4 +484,13 @@ body {
   .form-card { padding: 1.2rem 1rem; }
   .search-hero h1 { font-size: 1.2rem; }
   .dash-header h1 { font-size: 1.2rem; }
+  /* Remove extra whitespace on small screens */
+  .hero { padding: 1.5rem 1rem; }
+  .section-center { padding: 0; }
+  .compat-table th, .compat-table td { padding: 8px 10px; font-size: 0.78rem; }
+  .donor-card { padding: 1.1rem; }
+  .stat-card { padding: 1rem; }
+  .stat-icon { width: 42px; height: 42px; font-size: 1.2rem; }
+  .stat-info .num { font-size: 1.5rem; }
 }
+
