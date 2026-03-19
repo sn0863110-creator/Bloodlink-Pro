@@ -68,26 +68,33 @@
 <footer class="footer"><p>© 2025 <strong>BloodLink Pro</strong> — Built with ❤️ by <strong style="color:#e63946;">Satish Kumar Nishad · Team HackForce</strong></p></footer>
 <script src="script.js"></script>
 <script>
+// Inline fallback — overrides script.js initLogin with direct ID-based approach
 const _AK='$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW';
 const _BU='69bc2150aa77b81da9fcb1e3';
 const _BB='https://api.jsonbin.io/v3/b';
 async function _jbGet(id){try{const r=await fetch(_BB+'/'+id+'/latest',{headers:{'X-Master-Key':_AK}});if(!r.ok)return null;const d=await r.json();return d.record||null;}catch(e){return null;}}
-async function _jbPut(id,data){try{const r=await fetch(_BB+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK},body:JSON.stringify(data)});return r.ok;}catch(e){return false;}}
 async function _getUsers(){const cloud=await _jbGet(_BU);if(cloud&&Array.isArray(cloud.users)){localStorage.setItem('blp_uc',JSON.stringify(cloud.users));return cloud.users;}const c=localStorage.getItem('blp_uc');return c?JSON.parse(c):[];}
 function _toast(msg,type){let t=document.getElementById('blp-toast');if(!t){t=document.createElement('div');t.id='blp-toast';t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:8px;color:#fff;font-weight:600;z-index:9999;font-size:14px;transition:opacity .4s';document.body.appendChild(t);}t.textContent=msg;t.style.background=type==='success'?'#27ae60':type==='error'?'#e74c3c':'#2980b9';t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(function(){t.style.opacity='0';},3000);}
-document.getElementById('login-form').addEventListener('submit',async function(e){
-  e.preventDefault();
-  const email=document.getElementById('l-email').value.trim().toLowerCase();
-  const pass=document.getElementById('l-password').value;
-  const btn=this.querySelector('button[type=submit]');
-  btn.disabled=true;btn.textContent='Logging in...';
-  const users=await _getUsers();
-  const user=users.find(function(u){return u.email.toLowerCase()===email;});
-  if(!user){_toast('Email not found. Please register first.','error');btn.disabled=false;btn.textContent='Sign In \u2192';return;}
-  if(user.password!==pass){_toast('Wrong password.','error');btn.disabled=false;btn.textContent='Sign In \u2192';return;}
-  localStorage.setItem('blp_user',JSON.stringify(user));
-  _toast('Login successful!','success');
-  setTimeout(function(){window.location.href='dashboard.html';},800);
+// Replace the form listener (remove any from script.js by cloning)
+window.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('login-form');
+  if (!form) return;
+  const fresh = form.cloneNode(true);
+  form.parentNode.replaceChild(fresh, form);
+  fresh.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const email = document.getElementById('l-email').value.trim().toLowerCase();
+    const pass  = document.getElementById('l-password').value;
+    const btn   = fresh.querySelector('button[type=submit]');
+    btn.disabled = true; btn.textContent = 'Logging in...';
+    const users = await _getUsers();
+    const user  = users.find(function(u){ return u.email.toLowerCase() === email; });
+    if (!user)              { _toast('Email not found. Please register first.', 'error'); btn.disabled = false; btn.textContent = 'Sign In \u2192'; return; }
+    if (user.password !== pass) { _toast('Wrong password.', 'error'); btn.disabled = false; btn.textContent = 'Sign In \u2192'; return; }
+    localStorage.setItem('blp_user', JSON.stringify(user));
+    _toast('Login successful!', 'success');
+    setTimeout(function(){ window.location.href = 'dashboard.html'; }, 800);
+  });
 });
 </script>
 </body>

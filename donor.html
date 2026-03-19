@@ -103,21 +103,27 @@ const _BD3='69bc22a2b7ec241ddc82de74';
 const _BB3='https://api.jsonbin.io/v3/b';
 async function _getDonors3(){try{const r=await fetch(_BB3+'/'+_BD3+'/latest',{headers:{'X-Master-Key':_AK3}});if(!r.ok)throw 0;const d=await r.json();const arr=(d.record&&d.record.donors)||[];localStorage.setItem('blp_dc',JSON.stringify(arr));return arr;}catch(e){const c=localStorage.getItem('blp_dc');return c?JSON.parse(c):[];}}
 function _toast3(msg,type){let t=document.getElementById('blp-toast');if(!t){t=document.createElement('div');t.id='blp-toast';t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:8px;color:#fff;font-weight:600;z-index:9999;font-size:14px;transition:opacity .4s';document.body.appendChild(t);}t.textContent=msg;t.style.background=type==='success'?'#27ae60':type==='error'?'#e74c3c':'#2980b9';t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(function(){t.style.opacity='0';},3000);}
-document.getElementById('donor-form').addEventListener('submit',async function(e){
-  e.preventDefault();
-  const btn=this.querySelector('button[type=submit]');
-  btn.disabled=true;btn.textContent='Submitting...';
-  const name=document.getElementById('d-name').value.trim();
-  const blood=document.getElementById('d-blood').value;
-  const city=document.getElementById('d-city').value.trim();
-  const phone=document.getElementById('d-contact').value.trim();
-  if(!name||!blood||!city||!phone){_toast3('Please fill all required fields.','error');btn.disabled=false;btn.textContent='Register as Donor';return;}
-  const donors=await _getDonors3();
-  donors.push({id:Date.now(),name:name,blood:blood,city:city,phone:phone,date:new Date().toISOString()});
-  localStorage.setItem('blp_dc',JSON.stringify(donors));
-  try{await fetch(_BB3+'/'+_BD3,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK3},body:JSON.stringify({donors:donors})});}catch(e){}
-  _toast3('Donor registered successfully!','success');
-  setTimeout(function(){document.getElementById('donor-form').reset();btn.disabled=false;btn.textContent='Register as Donor';},1200);
+window.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('donor-form');
+  if (!form) return;
+  const fresh = form.cloneNode(true);
+  form.parentNode.replaceChild(fresh, form);
+  fresh.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = fresh.querySelector('button[type=submit]');
+    btn.disabled = true; btn.textContent = 'Submitting...';
+    const name  = document.getElementById('d-name').value.trim();
+    const blood = document.getElementById('d-blood').value;
+    const city  = document.getElementById('d-city').value.trim();
+    const phone = document.getElementById('d-contact').value.trim();
+    if(!name||!blood||!city||!phone){_toast3('Please fill all required fields.','error');btn.disabled=false;btn.textContent='Register as Donor';return;}
+    const donors = await _getDonors3();
+    donors.push({id:Date.now(),name:name,blood:blood,city:city,phone:phone,date:new Date().toISOString()});
+    localStorage.setItem('blp_dc',JSON.stringify(donors));
+    try{await fetch(_BB3+'/'+_BD3,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK3},body:JSON.stringify({donors:donors})});}catch(e){}
+    _toast3('Donor registered successfully!','success');
+    setTimeout(function(){fresh.reset();btn.disabled=false;btn.textContent='Register as Donor';},1200);
+  });
 });
 </script>
 </body>
