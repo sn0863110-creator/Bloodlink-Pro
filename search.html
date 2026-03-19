@@ -147,7 +147,10 @@ async function performSearch(){
   const found=donors.filter(function(d){return(!blood||d.blood===blood)&&(!city||d.city.toLowerCase().includes(city));});
   const ce=document.getElementById('results-count');if(ce)ce.textContent=found.length+' donor(s) found';
   if(!found.length){results.innerHTML='<div class="empty-state"><div class="icon">🩸</div><h3>No donors found</h3><p>Try different filters.</p></div>';return;}
-  results.innerHTML=found.map(function(d){return '<div class="donor-card"><div class="donor-blood">'+d.blood+'</div><div class="donor-info"><h3>'+d.name+'</h3><p>📍 '+d.city+'</p><p>📞 <a href="tel:'+d.phone+'">'+d.phone+'</a></p></div></div>';}).join('');
+  results.innerHTML=found.map(function(d){
+    var avail = d.available !== 'no';
+    return '<div class="donor-card"><div class="donor-blood">'+d.blood+'</div><div class="donor-info"><h3>'+d.name+'</h3><p>📍 '+d.city+'</p><p>📞 <a href="tel:'+d.phone+'">'+d.phone+'</a></p><p style="margin-top:4px;"><span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:0.72rem;font-weight:700;background:'+(avail?'#dcfce7':'#fef2f2')+';color:'+(avail?'#15803d':'#e74c3c')+'">'+(avail?'✅ Available':'⏸️ Unavailable')+'</span></p></div></div>';
+  }).join('');
 }
 document.getElementById('search-form').addEventListener('submit',function(e){e.preventDefault();performSearch();});
 </script>

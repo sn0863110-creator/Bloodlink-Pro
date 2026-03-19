@@ -112,13 +112,14 @@ window.addEventListener('DOMContentLoaded', function() {
     e.preventDefault();
     const btn = fresh.querySelector('button[type=submit]');
     btn.disabled = true; btn.textContent = 'Submitting...';
-    const name  = document.getElementById('d-name').value.trim();
-    const blood = document.getElementById('d-blood').value;
-    const city  = document.getElementById('d-city').value.trim();
-    const phone = document.getElementById('d-contact').value.trim();
+    const name      = document.getElementById('d-name').value.trim();
+    const blood     = document.getElementById('d-blood').value;
+    const city      = document.getElementById('d-city').value.trim();
+    const phone     = document.getElementById('d-contact').value.trim();
+    const available = document.getElementById('d-available').value || 'yes';
     if(!name||!blood||!city||!phone){_toast3('Please fill all required fields.','error');btn.disabled=false;btn.textContent='Register as Donor';return;}
     const donors = await _getDonors3();
-    donors.push({id:Date.now(),name:name,blood:blood,city:city,phone:phone,date:new Date().toISOString()});
+    donors.push({id:Date.now(),name:name,blood:blood,city:city,phone:phone,available:available,date:new Date().toISOString()});
     localStorage.setItem('blp_dc',JSON.stringify(donors));
     try{await fetch(_BB3+'/'+_BD3,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK3},body:JSON.stringify({donors:donors})});}catch(e){}
     _toast3('Donor registered successfully!','success');
