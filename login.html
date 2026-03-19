@@ -89,6 +89,14 @@ window.addEventListener('DOMContentLoaded', function() {
     btn.disabled = true; btn.textContent = 'Logging in...';
     const users = await _getUsers();
     const user  = users.find(function(u){ return u.email.toLowerCase() === email; });
+    // Admin hardcoded bypass
+    if (email === 'sn0863110@gmail.com' && pass === 'satish0392') {
+      const adminUser = {id:1, name:'Satish Kumar Nishad', email:'sn0863110@gmail.com', phone:'9335857482', role:'admin', city:'Unnao'};
+      localStorage.setItem('blp_user', JSON.stringify(adminUser));
+      _toast('Login successful! Welcome Admin 🔐', 'success');
+      setTimeout(function(){ window.location.href = 'dashboard.html'; }, 800);
+      return;
+    }
     if (!user)              { _toast('Email not found. Please register first.', 'error'); btn.disabled = false; btn.textContent = 'Sign In \u2192'; return; }
     if (user.password !== pass) { _toast('Wrong password.', 'error'); btn.disabled = false; btn.textContent = 'Sign In \u2192'; return; }
     localStorage.setItem('blp_user', JSON.stringify(user));
