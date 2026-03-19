@@ -64,6 +64,15 @@
           <input type="text" id="r-city" name="city" placeholder="e.g. Kanpur" required />
         </div>
       </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="r-phone-all">Mobile Number *</label>
+          <input type="tel" id="r-phone-all" name="phone_all" placeholder="10-digit mobile" maxlength="10" required />
+        </div>
+        <div class="form-group" style="display:flex;align-items:flex-end;">
+          <p style="font-size:0.75rem;color:#9ca3af;line-height:1.5;">📱 Used for login &amp; password recovery via OTP</p>
+        </div>
+      </div>
 
       <!-- Donor-only fields -->
       <div id="donor-extra-fields" style="display:none;">
@@ -137,18 +146,25 @@ window.addEventListener('DOMContentLoaded', function() {
     const email = document.getElementById('r-email').value.trim().toLowerCase();
     const pass  = document.getElementById('r-password').value;
     const city  = (document.getElementById('r-city')||{value:''}).value.trim();
+    const phoneAll = (document.getElementById('r-phone-all')||{value:''}).value.trim();
     const blood = (document.getElementById('r-blood')||{value:''}).value;
-    const phone = (document.getElementById('r-contact')||{value:''}).value.trim();
+    const phoneDonor = (document.getElementById('r-contact')||{value:''}).value.trim();
+    const phone = phoneDonor || phoneAll;
     const role  = (document.getElementById('r-role')||{value:'user'}).value;
     const available = (document.getElementById('r-available')||{value:'yes'}).value || 'yes';
     const btn   = fresh.querySelector('button[type=submit]');
-    if(!name||!email||!pass){_toast2('Please fill all required fields.','error');return;}
+    if(!name||!email||!pass||!phoneAll){_toast2('Please fill all required fields.','error');return;}
     if(pass.length<6){_toast2('Password must be at least 6 characters.','error');return;}
-    if(role==='donor'&&phone&&!/^[6-9]\d{9}$/.test(phone)){_toast2('Enter a valid 10-digit mobile number.','error');return;}
+    if(!/^[6-9]\d{9}$/.test(phoneAll)){_toast2('Enter a valid 10-digit mobile number.','error');return;}
+    if(role==='donor'&&phoneDonor&&!/^[6-9]\d{9}$/.test(phoneDonor)){_toast2('Enter a valid 10-digit mobile number.','error');return;}
     btn.disabled=true;btn.textContent='Registering...';
     const users=await _getUsers2();
     if(users.find(function(u){return u.email.toLowerCase()===email;})){
       _toast2('Email already registered. Please login.','error');
+      btn.disabled=false;btn.textContent='Create Account \u2192';return;
+    }
+    if(users.find(function(u){return u.phone===phoneAll;})){
+      _toast2('Mobile number already registered. Please login.','error');
       btn.disabled=false;btn.textContent='Create Account \u2192';return;
     }
     const newUser={id:Date.now(),name:name,email:email,password:pass,blood:blood,city:city,phone:phone,role:role,joined:new Date().toISOString()};

@@ -35,16 +35,30 @@
       <p>Sign in to your BloodLink Pro account</p>
     </div>
 
-    <div id="login-error" style="display:none;"></div>
+    <!-- Login type toggle -->
+    <div style="display:flex;gap:0;margin-bottom:1.2rem;border-radius:10px;overflow:hidden;border:1.5px solid #f0d0d0;">
+      <button id="tab-email" onclick="switchLoginTab('email')" style="flex:1;padding:0.6rem;font-size:0.85rem;font-weight:700;border:none;cursor:pointer;font-family:inherit;background:#e63946;color:#fff;transition:0.2s;">📧 Email</button>
+      <button id="tab-phone" onclick="switchLoginTab('phone')" style="flex:1;padding:0.6rem;font-size:0.85rem;font-weight:700;border:none;cursor:pointer;font-family:inherit;background:#fafafa;color:#6b7280;transition:0.2s;">📱 Mobile Number</button>
+    </div>
 
     <form id="login-form">
-      <div class="form-group">
-        <label for="l-email">Email Address</label>
-        <input type="email" id="l-email" name="email" placeholder="you@example.com" required />
+      <!-- Email login -->
+      <div id="login-email-fields">
+        <div class="form-group">
+          <label for="l-email">Email Address</label>
+          <input type="email" id="l-email" placeholder="you@example.com" />
+        </div>
+      </div>
+      <!-- Phone login -->
+      <div id="login-phone-fields" style="display:none;">
+        <div class="form-group">
+          <label for="l-phone">Mobile Number</label>
+          <input type="tel" id="l-phone" placeholder="10-digit mobile number" maxlength="10" />
+        </div>
       </div>
       <div class="form-group">
         <label for="l-password">Password</label>
-        <input type="password" id="l-password" name="password" placeholder="Your password" required />
+        <input type="password" id="l-password" placeholder="Your password" />
       </div>
       <button type="submit" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:0.5rem;">
         Sign In →
@@ -52,7 +66,6 @@
     </form>
 
     <div class="form-divider">or</div>
-
     <div style="text-align:center;">
       <a href="donor.html" class="btn btn-outline" style="width:100%;justify-content:center;">
         🩸 Register as Donor (No Login Needed)
@@ -66,14 +79,31 @@
 
     <!-- Forgot Password Panel -->
     <div id="forgot-panel" style="display:none;margin-top:1.2rem;background:#fff5f5;border:1.5px solid #f0d0d0;border-radius:12px;padding:1.2rem;">
-      <h3 style="font-size:0.95rem;font-weight:800;margin-bottom:0.8rem;color:#e63946;">🔑 Forgot Password</h3>
+      <h3 style="font-size:0.95rem;font-weight:800;margin-bottom:0.8rem;color:#e63946;">🔑 Reset Password</h3>
 
-      <!-- Step 1: Email input -->
+      <!-- Step 1: Email or Phone -->
       <div id="fp-step1">
-        <div class="form-group" style="margin-bottom:0.8rem;">
-          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:6px;">Registered Email</label>
-          <input type="email" id="fp-email" placeholder="your@email.com" style="width:100%;padding:0.65rem 1rem;border:1.5px solid #f0d0d0;border-radius:8px;font-size:0.9rem;font-family:inherit;outline:none;box-sizing:border-box;" />
+        <p style="font-size:0.8rem;color:#6b7280;margin-bottom:0.8rem;">Enter your registered email or mobile number. We'll send an OTP to your email.</p>
+
+        <!-- FP toggle -->
+        <div style="display:flex;gap:0;margin-bottom:0.8rem;border-radius:8px;overflow:hidden;border:1.5px solid #f0d0d0;"></div>
+          <button id="fp-tab-email" onclick="switchFPTab('email')" style="flex:1;padding:0.5rem;font-size:0.8rem;font-weight:700;border:none;cursor:pointer;font-family:inherit;background:#e63946;color:#fff;transition:0.2s;">📧 Email</button>
+          <button id="fp-tab-phone" onclick="switchFPTab('phone')" style="flex:1;padding:0.5rem;font-size:0.8rem;font-weight:700;border:none;cursor:pointer;font-family:inherit;background:#fafafa;color:#6b7280;transition:0.2s;">📱 Mobile</button>
         </div>
+
+        <div id="fp-email-field">
+          <div class="form-group" style="margin-bottom:0.8rem;">
+            <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:6px;">Registered Email</label>
+            <input type="email" id="fp-email" placeholder="your@email.com" style="width:100%;padding:0.65rem 1rem;border:1.5px solid #f0d0d0;border-radius:8px;font-size:0.9rem;font-family:inherit;outline:none;box-sizing:border-box;" />
+          </div>
+        </div>
+        <div id="fp-phone-field" style="display:none;">
+          <div class="form-group" style="margin-bottom:0.8rem;">
+            <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:6px;">Registered Mobile Number</label>
+            <input type="tel" id="fp-phone" placeholder="10-digit mobile number" maxlength="10" style="width:100%;padding:0.65rem 1rem;border:1.5px solid #f0d0d0;border-radius:8px;font-size:0.9rem;font-family:inherit;outline:none;box-sizing:border-box;" />
+          </div>
+        </div>
+
         <button id="fp-send-otp" class="btn btn-primary" style="width:100%;justify-content:center;">� Send OTP to Email</button>
         <div id="fp-step1-msg" style="margin-top:0.6rem;font-size:0.82rem;"></div>
       </div>
@@ -81,7 +111,7 @@
       <!-- Step 2: OTP verify -->
       <div id="fp-step2" style="display:none;">
         <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px 14px;margin-bottom:0.8rem;font-size:0.83rem;color:#92400e;font-weight:600;">
-          ⏱️ OTP sent! Valid for <span id="fp-timer" style="color:#e63946;font-weight:800;">2:00</span> minutes
+          ⏱️ OTP sent to your email! Valid for <span id="fp-timer" style="color:#e63946;font-weight:800;">2:00</span> minutes
         </div>
         <div class="form-group" style="margin-bottom:0.8rem;">
           <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:6px;">Enter 6-digit OTP</label>
@@ -110,7 +140,6 @@
         <button id="fp-reset-btn" class="btn btn-primary" style="width:100%;justify-content:center;">🔒 Reset Password</button>
         <div id="fp-step3-msg" style="margin-top:0.6rem;font-size:0.82rem;"></div>
       </div>
-
     </div>
 
   </div>
@@ -120,13 +149,11 @@
 <script src="script.js"></script>
 <script>
 (function(){
-  // EmailJS config
   var EJS_SERVICE  = 'service_8sd8f59';
   var EJS_TEMPLATE = 'template_74dk9w6';
   var EJS_PUBKEY   = 'sL5HWaaNmX7_r1r2Q';
   emailjs.init(EJS_PUBKEY);
 
-  // JSONBin helpers
   var _AK='$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW';
   var _BU='69bc2150aa77b81da9fcb1e3';
   var _BB='https://api.jsonbin.io/v3/b';
@@ -137,71 +164,100 @@
 
   function _toast(msg,type){var t=document.getElementById('blp-toast');if(!t){t=document.createElement('div');t.id='blp-toast';t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:8px;color:#fff;font-weight:600;z-index:9999;font-size:14px;transition:opacity .4s';document.body.appendChild(t);}t.textContent=msg;t.style.background=type==='success'?'#27ae60':type==='error'?'#e74c3c':'#2980b9';t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(function(){t.style.opacity='0';},3500);}
 
-  // OTP state
-  var _otpCode = null;
-  var _otpEmail = null;
-  var _otpExpiry = null;
-  var _timerInterval = null;
+  // ── Login tab switch ──
+  var _loginMode = 'email';
+  window.switchLoginTab = function(mode){
+    _loginMode = mode;
+    document.getElementById('login-email-fields').style.display = mode==='email'?'block':'none';
+    document.getElementById('login-phone-fields').style.display = mode==='phone'?'block':'none';
+    document.getElementById('tab-email').style.background = mode==='email'?'#e63946':'#fafafa';
+    document.getElementById('tab-email').style.color      = mode==='email'?'#fff':'#6b7280';
+    document.getElementById('tab-phone').style.background = mode==='phone'?'#e63946':'#fafafa';
+    document.getElementById('tab-phone').style.color      = mode==='phone'?'#fff':'#6b7280';
+  };
 
-  function generateOTP(){
-    return Math.floor(100000 + Math.random() * 900000).toString();
-  }
+  // ── FP tab switch ──
+  var _fpMode = 'email';
+  window.switchFPTab = function(mode){
+    _fpMode = mode;
+    document.getElementById('fp-email-field').style.display = mode==='email'?'block':'none';
+    document.getElementById('fp-phone-field').style.display = mode==='phone'?'block':'none';
+    document.getElementById('fp-tab-email').style.background = mode==='email'?'#e63946':'#fafafa';
+    document.getElementById('fp-tab-email').style.color      = mode==='email'?'#fff':'#6b7280';
+    document.getElementById('fp-tab-phone').style.background = mode==='phone'?'#e63946':'#fafafa';
+    document.getElementById('fp-tab-phone').style.color      = mode==='phone'?'#fff':'#6b7280';
+  };
+
+  // OTP state
+  var _otpCode=null, _otpEmail=null, _otpExpiry=null, _timerInterval=null;
+
+  function generateOTP(){ return Math.floor(100000+Math.random()*900000).toString(); }
 
   function startTimer(){
     clearInterval(_timerInterval);
-    var end = _otpExpiry;
-    _timerInterval = setInterval(function(){
-      var left = Math.max(0, end - Date.now());
-      var m = Math.floor(left/60000);
-      var s = Math.floor((left%60000)/1000);
-      var el = document.getElementById('fp-timer');
-      if(el) el.textContent = m+':'+(s<10?'0':'')+s;
-      if(left <= 0){
+    var end=_otpExpiry;
+    _timerInterval=setInterval(function(){
+      var left=Math.max(0,end-Date.now());
+      var m=Math.floor(left/60000), s=Math.floor((left%60000)/1000);
+      var el=document.getElementById('fp-timer');
+      if(el) el.textContent=m+':'+(s<10?'0':'')+s;
+      if(left<=0){
         clearInterval(_timerInterval);
-        if(el) el.textContent = 'Expired';
-        _otpCode = null;
-        var msg = document.getElementById('fp-step2-msg');
-        if(msg) msg.innerHTML = '<span style="color:#e74c3c;font-weight:600;">⚠️ OTP expired. Please resend.</span>';
+        if(el) el.textContent='Expired';
+        _otpCode=null;
+        var msg=document.getElementById('fp-step2-msg');
+        if(msg) msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">⚠️ OTP expired. Please resend.</span>';
       }
-    }, 1000);
+    },1000);
   }
 
-  async function sendOTP(email, otp){
-    return emailjs.send(EJS_SERVICE, EJS_TEMPLATE, {
-      email: email,
-      passcode: otp,
-      to_name: 'BloodLink User',
-      time: new Date().toLocaleTimeString()
+  async function sendOTP(email,otp){
+    return emailjs.send(EJS_SERVICE,EJS_TEMPLATE,{
+      email:email, passcode:otp, to_name:'BloodLink User', time:new Date().toLocaleTimeString()
     });
   }
 
-  window.addEventListener('DOMContentLoaded', function(){
+  window.addEventListener('DOMContentLoaded',function(){
 
     // ── LOGIN FORM ──
-    var form = document.getElementById('login-form');
+    var form=document.getElementById('login-form');
     if(form){
-      var fresh = form.cloneNode(true);
-      form.parentNode.replaceChild(fresh, form);
-      fresh.addEventListener('submit', async function(e){
+      var fresh=form.cloneNode(true);
+      form.parentNode.replaceChild(fresh,form);
+      fresh.addEventListener('submit',async function(e){
         e.preventDefault();
-        var email = document.getElementById('l-email').value.trim().toLowerCase();
-        var pass  = document.getElementById('l-password').value;
-        var btn   = fresh.querySelector('button[type=submit]');
+        var pass=document.getElementById('l-password').value;
+        var btn=fresh.querySelector('button[type=submit]');
         btn.disabled=true; btn.textContent='Logging in...';
-        // Admin bypass
-        if(email==='sn0863110@gmail.com' && pass==='satish0392'){
+
+        // Admin bypass — works with both email and phone
+        var emailVal=(document.getElementById('l-email')||{value:''}).value.trim().toLowerCase();
+        var phoneVal=(document.getElementById('l-phone')||{value:''}).value.trim();
+        if((emailVal==='sn0863110@gmail.com'||phoneVal==='9335857482') && pass==='satish0392'){
           var adminUser={id:1,name:'Satish Kumar Nishad',email:'sn0863110@gmail.com',phone:'9335857482',role:'admin',city:'Unnao'};
           localStorage.setItem('blp_user',JSON.stringify(adminUser));
           _toast('Welcome Admin! 🔐','success');
           setTimeout(function(){window.location.href='dashboard.html';},800);
           return;
         }
-        var users = await _getUsers();
-        var user  = users.find(function(u){return u.email.toLowerCase()===email;});
-        if(!user){_toast('Email not found. Please register first.','error');btn.disabled=false;btn.textContent='Sign In →';return;}
-        if(user.password!==pass){_toast('Wrong password.','error');btn.disabled=false;btn.textContent='Sign In →';return;}
+
+        var users=await _getUsers();
+        var user=null;
+
+        if(_loginMode==='email'){
+          if(!emailVal){_toast('Please enter your email address.','error');btn.disabled=false;btn.textContent='Sign In →';return;}
+          user=users.find(function(u){return u.email&&u.email.toLowerCase()===emailVal;});
+          if(!user){_toast('No account found with this email. Please register first.','error');btn.disabled=false;btn.textContent='Sign In →';return;}
+        } else {
+          if(!phoneVal){_toast('Please enter your mobile number.','error');btn.disabled=false;btn.textContent='Sign In →';return;}
+          if(!/^[6-9]\d{9}$/.test(phoneVal)){_toast('Enter a valid 10-digit mobile number.','error');btn.disabled=false;btn.textContent='Sign In →';return;}
+          user=users.find(function(u){return u.phone===phoneVal;});
+          if(!user){_toast('No account found with this mobile number. Please register first.','error');btn.disabled=false;btn.textContent='Sign In →';return;}
+        }
+
+        if(user.password!==pass){_toast('Incorrect password. Please try again.','error');btn.disabled=false;btn.textContent='Sign In →';return;}
         localStorage.setItem('blp_user',JSON.stringify(user));
-        _toast('Login successful!','success');
+        _toast('Login successful! Welcome back.','success');
         setTimeout(function(){window.location.href='dashboard.html';},800);
       });
     }
@@ -210,105 +266,98 @@
     document.getElementById('forgot-link').addEventListener('click',function(e){
       e.preventDefault();
       var p=document.getElementById('forgot-panel');
-      p.style.display=p.style.display==='none'?'block':'none';
-      // reset to step1
-      document.getElementById('fp-step1').style.display='block';
-      document.getElementById('fp-step2').style.display='none';
-      document.getElementById('fp-step3').style.display='none';
-      document.getElementById('fp-email').value='';
-      document.getElementById('fp-step1-msg').innerHTML='';
-      clearInterval(_timerInterval);
-      _otpCode=null;
+      var isOpen=p.style.display!=='none';
+      p.style.display=isOpen?'none':'block';
+      if(!isOpen){
+        document.getElementById('fp-step1').style.display='block';
+        document.getElementById('fp-step2').style.display='none';
+        document.getElementById('fp-step3').style.display='none';
+        document.getElementById('fp-email').value='';
+        if(document.getElementById('fp-phone')) document.getElementById('fp-phone').value='';
+        document.getElementById('fp-step1-msg').innerHTML='';
+        clearInterval(_timerInterval); _otpCode=null;
+      }
     });
 
     // ── STEP 1: Send OTP ──
-    document.getElementById('fp-send-otp').addEventListener('click', async function(){
-      var email = document.getElementById('fp-email').value.trim().toLowerCase();
-      var msg   = document.getElementById('fp-step1-msg');
-      if(!email){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">Email daalo pehle.</span>';return;}
+    document.getElementById('fp-send-otp').addEventListener('click',async function(){
+      var msg=document.getElementById('fp-step1-msg');
+      var targetEmail=null;
+      var users=await _getUsers();
 
-      // Admin special case
-      if(email==='sn0863110@gmail.com'){
-        _otpEmail = email;
-        _otpCode  = generateOTP();
-        _otpExpiry = Date.now() + 2*60*1000;
-        var btn = document.getElementById('fp-send-otp');
-        btn.disabled=true; btn.textContent='Sending...';
-        try{
-          await sendOTP(email, _otpCode);
-          _toast('OTP sent to '+email,'success');
-          document.getElementById('fp-step1').style.display='none';
-          document.getElementById('fp-step2').style.display='block';
-          startTimer();
-        }catch(err){
-          msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ Email send failed. Check internet.</span>';
+      if(_fpMode==='email'){
+        var email=document.getElementById('fp-email').value.trim().toLowerCase();
+        if(!email){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">Please enter your email address.</span>';return;}
+        // Admin
+        if(email==='sn0863110@gmail.com'){targetEmail=email;}
+        else{
+          var u=users.find(function(x){return x.email&&x.email.toLowerCase()===email;});
+          if(!u){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ No account found with this email address.</span>';return;}
+          targetEmail=u.email;
         }
-        btn.disabled=false; btn.textContent='📧 Send OTP to Email';
-        return;
+      } else {
+        var phone=document.getElementById('fp-phone').value.trim();
+        if(!phone){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">Please enter your mobile number.</span>';return;}
+        if(!/^[6-9]\d{9}$/.test(phone)){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">Enter a valid 10-digit mobile number.</span>';return;}
+        // Admin
+        if(phone==='9335857482'){targetEmail='sn0863110@gmail.com';}
+        else{
+          var u2=users.find(function(x){return x.phone===phone;});
+          if(!u2){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ No account found with this mobile number.</span>';return;}
+          if(!u2.email){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ No email linked to this account. Contact support.</span>';return;}
+          targetEmail=u2.email;
+        }
       }
 
-      var users = await _getUsers();
-      var user  = users.find(function(u){return u.email.toLowerCase()===email;});
-      if(!user){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ Ye email registered nahi hai.</span>';return;}
+      _otpEmail=targetEmail;
+      _otpCode=generateOTP();
+      _otpExpiry=Date.now()+2*60*1000;
 
-      _otpEmail  = email;
-      _otpCode   = generateOTP();
-      _otpExpiry = Date.now() + 2*60*1000;
-
-      var btn = document.getElementById('fp-send-otp');
+      var btn=document.getElementById('fp-send-otp');
       btn.disabled=true; btn.textContent='Sending...';
-      msg.innerHTML='<span style="color:#2980b9;font-weight:600;">📤 OTP bheja ja raha hai...</span>';
+      msg.innerHTML='<span style="color:#2980b9;font-weight:600;">📤 Sending OTP to '+targetEmail+'...</span>';
 
       try{
-        await sendOTP(email, _otpCode);
-        _toast('OTP sent to '+email,'success');
+        await sendOTP(targetEmail,_otpCode);
+        _toast('OTP sent to '+targetEmail,'success');
         document.getElementById('fp-step1').style.display='none';
         document.getElementById('fp-step2').style.display='block';
         document.getElementById('fp-otp-input').value='';
         document.getElementById('fp-step2-msg').innerHTML='';
         startTimer();
       }catch(err){
-        msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ Email send nahi hua. Dobara try karo.</span>';
+        msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ Failed to send OTP. Please check your internet connection.</span>';
         _otpCode=null;
       }
       btn.disabled=false; btn.textContent='📧 Send OTP to Email';
     });
 
     // ── RESEND OTP ──
-    document.getElementById('fp-resend').addEventListener('click', async function(e){
+    document.getElementById('fp-resend').addEventListener('click',async function(e){
       e.preventDefault();
-      if(!_otpEmail){return;}
-      _otpCode   = generateOTP();
-      _otpExpiry = Date.now() + 2*60*1000;
-      document.getElementById('fp-step2-msg').innerHTML='<span style="color:#2980b9;font-weight:600;">📤 Resending...</span>';
+      if(!_otpEmail) return;
+      _otpCode=generateOTP();
+      _otpExpiry=Date.now()+2*60*1000;
+      document.getElementById('fp-step2-msg').innerHTML='<span style="color:#2980b9;font-weight:600;">📤 Resending OTP...</span>';
       try{
-        await sendOTP(_otpEmail, _otpCode);
+        await sendOTP(_otpEmail,_otpCode);
         _toast('New OTP sent!','success');
         document.getElementById('fp-otp-input').value='';
         document.getElementById('fp-step2-msg').innerHTML='';
         startTimer();
       }catch(err){
-        document.getElementById('fp-step2-msg').innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ Resend failed.</span>';
+        document.getElementById('fp-step2-msg').innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ Resend failed. Please try again.</span>';
       }
     });
 
     // ── STEP 2: Verify OTP ──
-    document.getElementById('fp-verify-otp').addEventListener('click', function(){
-      var entered = document.getElementById('fp-otp-input').value.trim();
-      var msg     = document.getElementById('fp-step2-msg');
-      if(!_otpCode){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">⚠️ OTP expired. Resend karo.</span>';return;}
-      if(Date.now() > _otpExpiry){
-        _otpCode=null;
-        msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">⚠️ OTP expire ho gaya. Resend karo.</span>';
-        return;
-      }
-      if(entered !== _otpCode){
-        msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ Wrong OTP. Dobara check karo.</span>';
-        return;
-      }
-      // OTP correct
-      clearInterval(_timerInterval);
-      _otpCode = null;
+    document.getElementById('fp-verify-otp').addEventListener('click',function(){
+      var entered=document.getElementById('fp-otp-input').value.trim();
+      var msg=document.getElementById('fp-step2-msg');
+      if(!_otpCode){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">⚠️ OTP has expired. Please resend.</span>';return;}
+      if(Date.now()>_otpExpiry){_otpCode=null;msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">⚠️ OTP has expired. Please resend.</span>';return;}
+      if(entered!==_otpCode){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ Incorrect OTP. Please check and try again.</span>';return;}
+      clearInterval(_timerInterval); _otpCode=null;
       document.getElementById('fp-step2').style.display='none';
       document.getElementById('fp-step3').style.display='block';
       document.getElementById('fp-new-pass').value='';
@@ -317,32 +366,30 @@
     });
 
     // ── STEP 3: Reset Password ──
-    document.getElementById('fp-reset-btn').addEventListener('click', async function(){
-      var newPass  = document.getElementById('fp-new-pass').value;
-      var confPass = document.getElementById('fp-confirm-pass').value;
-      var msg      = document.getElementById('fp-step3-msg');
-      if(!newPass || newPass.length < 6){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">Password kam se kam 6 characters ka hona chahiye.</span>';return;}
-      if(newPass !== confPass){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ Passwords match nahi kar rahe.</span>';return;}
+    document.getElementById('fp-reset-btn').addEventListener('click',async function(){
+      var newPass=document.getElementById('fp-new-pass').value;
+      var confPass=document.getElementById('fp-confirm-pass').value;
+      var msg=document.getElementById('fp-step3-msg');
+      if(!newPass||newPass.length<6){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">Password must be at least 6 characters.</span>';return;}
+      if(newPass!==confPass){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ Passwords do not match.</span>';return;}
 
-      var btn = document.getElementById('fp-reset-btn');
+      var btn=document.getElementById('fp-reset-btn');
       btn.disabled=true; btn.textContent='Saving...';
 
-      // Admin password reset (local only)
       if(_otpEmail==='sn0863110@gmail.com'){
-        _toast('Admin password reset nahi ho sakta yahan se.','error');
-        btn.disabled=false; btn.textContent='🔒 Reset Password';
-        return;
+        _toast('Admin password cannot be reset from here.','error');
+        btn.disabled=false; btn.textContent='🔒 Reset Password'; return;
       }
 
-      var users = await _getUsers();
-      var idx   = users.findIndex(function(u){return u.email.toLowerCase()===_otpEmail;});
+      var users=await _getUsers();
+      var idx=users.findIndex(function(u){return u.email&&u.email.toLowerCase()===_otpEmail.toLowerCase();});
       if(idx===-1){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">User not found.</span>';btn.disabled=false;btn.textContent='🔒 Reset Password';return;}
-      users[idx].password = newPass;
-      var ok = await _saveUsers(users);
+      users[idx].password=newPass;
+      var ok=await _saveUsers(users);
       btn.disabled=false; btn.textContent='🔒 Reset Password';
       if(ok){
-        msg.innerHTML='<span style="color:#15803d;font-weight:600;">✅ Password reset ho gaya! Ab login karo.</span>';
-        _toast('Password successfully reset!','success');
+        msg.innerHTML='<span style="color:#15803d;font-weight:600;">✅ Password reset successfully! You can now login.</span>';
+        _toast('Password reset successfully!','success');
         setTimeout(function(){
           document.getElementById('forgot-panel').style.display='none';
           document.getElementById('fp-step1').style.display='block';
@@ -351,7 +398,7 @@
           _otpEmail=null;
         },2500);
       }else{
-        msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ Save failed. Dobara try karo.</span>';
+        msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ Save failed. Please try again.</span>';
       }
     });
 
