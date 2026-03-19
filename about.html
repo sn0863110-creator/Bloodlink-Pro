@@ -101,6 +101,7 @@
   <div class="nav-links" id="nav-links">
     <a href="index.html">Home</a><a href="search.html">Find Donors</a><a href="banks.html">Blood Banks</a><a href="pricing.html">Market</a><a href="about.html" class="active">About Us</a>
     <span id="nav-user" style="display:none;font-size:0.85rem;font-weight:600;color:var(--primary);padding:0.4rem 0.8rem;background:var(--bg-soft);border-radius:8px;"></span>
+    <a href="dashboard.html" id="nav-dashboard" class="btn btn-ghost btn-sm" style="display:none;">Dashboard</a>
     <a href="login.html" id="nav-login" class="btn btn-outline btn-sm">Login</a>
     <a href="register.html" id="nav-register" class="btn btn-primary btn-sm">Register</a>
     <button id="nav-logout" class="btn btn-ghost btn-sm" style="display:none;">Logout</button>
@@ -230,7 +231,7 @@
   function forceCloseQR(){document.getElementById('qr-viewer').classList.remove('open');document.body.style.overflow='';}function closeQR(e){if(e&&e.target!==document.getElementById('qr-viewer'))return;document.getElementById('qr-viewer').classList.remove('open');document.body.style.overflow='';}
   function copyUPI(){navigator.clipboard.writeText('sn0863110-2@okhdfcbank').then(function(){var b=document.getElementById('upi-copy-btn'),ic=document.getElementById('upi-icon-copy'),ik=document.getElementById('upi-icon-check');b.classList.add('copied');ic.style.display='none';ik.style.display='inline';setTimeout(function(){b.classList.remove('copied');ic.style.display='inline';ik.style.display='none';},2000);});}
   document.addEventListener('keydown',function(e){if(e.key==='Escape'){forceCloseStory();forceCloseQR();}});
-  updateNav();
+  document.addEventListener('DOMContentLoaded', function(){ if(typeof updateNavAuth==='function') updateNavAuth(); });
 </script>
 </body>
 </html>
