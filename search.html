@@ -8,6 +8,7 @@
   <meta name="keywords" content="find blood donors, blood donor search, O positive donor Kanpur, blood donor Unnao, emergency blood UP, blood group search India" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://sn0863110-creator.github.io/BloodLink-Pro/search.html" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩸</text></svg>" />
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 </head>
@@ -226,6 +227,7 @@ async function performSearch(){
 }
 
 async function adminDeleteFromSearch(id) {
+  if (!(typeof isAdmin==='function' && isAdmin())) { if(typeof showToast==='function') showToast('Access denied.','error'); return; }
   if (!confirm('Delete this donor?')) return;
   const donors = await _getDonors4();
   const filtered = donors.filter(function(x){return x.id!=id;});
@@ -236,6 +238,7 @@ async function adminDeleteFromSearch(id) {
 }
 
 async function adminApproveFromSearch(id) {
+  if (!(typeof isAdmin==='function' && isAdmin())) { if(typeof showToast==='function') showToast('Access denied.','error'); return; }
   const donors = await _getDonors4();
   const d = donors.find(function(x){return x.id==id;});
   if(d) d.status='approved';

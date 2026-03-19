@@ -1,9 +1,12 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login — BloodLink Pro</title>
+  <title>Login — BloodLink Pro | Sign In</title>
+  <meta name="description" content="Sign in to your BloodLink Pro account." />
+  <meta name="robots" content="noindex, follow" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E&#x1FA78;%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
@@ -85,8 +88,8 @@
       <div id="fp-step1">
         <p style="font-size:0.8rem;color:#6b7280;margin-bottom:0.8rem;">Enter your registered email or mobile number. We'll send an OTP to your email.</p>
 
-        <!-- FP toggle -->
-        <div style="display:flex;gap:0;margin-bottom:0.8rem;border-radius:8px;overflow:hidden;border:1.5px solid #f0d0d0;"></div>
+                <!-- FP toggle -->
+        <div style="display:flex;gap:0;margin-bottom:0.8rem;border-radius:8px;overflow:hidden;border:1.5px solid #f0d0d0;">
           <button id="fp-tab-email" onclick="switchFPTab('email')" style="flex:1;padding:0.5rem;font-size:0.8rem;font-weight:700;border:none;cursor:pointer;font-family:inherit;background:#e63946;color:#fff;transition:0.2s;">📧 Email</button>
           <button id="fp-tab-phone" onclick="switchFPTab('phone')" style="flex:1;padding:0.5rem;font-size:0.8rem;font-weight:700;border:none;cursor:pointer;font-family:inherit;background:#fafafa;color:#6b7280;transition:0.2s;">📱 Mobile</button>
         </div>

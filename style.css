@@ -627,3 +627,8 @@ body {
   .stats-bar-inner { justify-content: space-around; }
   .footer-links { grid-template-columns: 1fr; }
 }
+
+/* ===== MODAL MOBILE FIX ===== */
+@media (max-width: 480px) {
+  .modal-box { max-width: 90vw; padding: 1.2rem; }
+}

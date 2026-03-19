@@ -8,6 +8,7 @@
   <meta name="keywords" content="blood unit price, buy blood, sell blood unit, blood market India, blood unit cost UP" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://sn0863110-creator.github.io/BloodLink-Pro/pricing.html" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩸</text></svg>" />
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
@@ -137,7 +138,7 @@
   <div style="background:#fff;border-radius:16px;padding:1.5rem;border:1px solid #f0d0d0;box-shadow:0 2px 12px rgba(230,57,70,0.05);">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
       <h3 style="font-size:1rem;font-weight:800;margin:0;">📋 Recent Transactions</h3>
-      <button onclick="clearAllTransactions()" style="background:#fff5f5;border:1.5px solid #f0d0d0;color:#e63946;padding:5px 14px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;">🗑️ Clear All</button>
+      <button id="clear-all-btn" onclick="clearAllTransactions()" style="display:none;background:#fff5f5;border:1.5px solid #f0d0d0;color:#e63946;padding:5px 14px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;">🗑️ Clear All</button>
     </div>
     <div class="tx-list" id="tx-list">
       <div style="text-align:center;padding:1.5rem;color:#9ca3af;font-size:0.88rem;">No transactions yet</div>
@@ -517,15 +518,24 @@ async function renderSellerListings() {
 
 // Close modal on overlay click
 document.getElementById('modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
 async function clearAllTransactions() {
+  if (typeof isAdmin === 'function' && !isAdmin()) { showToast('Admin access required.', 'error'); return; }
   if (!confirm('Clear all transactions and listings?')) return;
   await cloudSaveMarket([], []);
   await renderMarket();
   showToast('✅ All cleared', 'success');
 }
 
-document.addEventListener('DOMContentLoaded', function(){ renderMarket(); });
+document.addEventListener('DOMContentLoaded', function(){
+  renderMarket();
+  // Show clear button only for admin
+  if (typeof isAdmin === 'function' && isAdmin()) {
+    var btn = document.getElementById('clear-all-btn');
+    if (btn) btn.style.display = 'inline-flex';
+  }
+});
 </script>
 </body>
 </html>

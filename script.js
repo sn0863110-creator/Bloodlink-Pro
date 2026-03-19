@@ -339,6 +339,7 @@ function renderAdminPanel(pending, allDonors, market) {
 }
 
 async function adminApproveDonor(id) {
+  if (!isAdmin()) { showToast('Access denied.', 'error'); return; }
   var donors = await getDonors();
   var d = donors.find(function(x){return x.id==id;});
   if (!d) return;
@@ -349,6 +350,7 @@ async function adminApproveDonor(id) {
 }
 
 async function adminDeleteDonor(id) {
+  if (!isAdmin()) { showToast('Access denied.', 'error'); return; }
   if (!confirm('Delete this donor?')) return;
   var donors = await getDonors();
   var filtered = donors.filter(function(x){return x.id!=id;});
