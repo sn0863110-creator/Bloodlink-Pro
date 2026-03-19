@@ -94,6 +94,23 @@ function updateNav() {
     const nd = el('nav-dashboard'); if (nd) nd.style.display = 'none';
   }
   el('nav-logout')?.addEventListener('click', logout);
+
+  // Hamburger toggle
+  const toggle = el('nav-toggle');
+  const links  = el('nav-links');
+  if (toggle && links) {
+    toggle.addEventListener('click', function() {
+      toggle.classList.toggle('open');
+      links.classList.toggle('open');
+    });
+    // Close menu on link click
+    links.querySelectorAll('a, button').forEach(function(item) {
+      item.addEventListener('click', function() {
+        toggle.classList.remove('open');
+        links.classList.remove('open');
+      });
+    });
+  }
 }
 
 // ── HOME PAGE ─────────────────────────────────────
