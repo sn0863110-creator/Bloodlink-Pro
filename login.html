@@ -6,6 +6,7 @@
   <title>Login — BloodLink Pro</title>
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 </head>
 <body data-page="login">
 
@@ -34,7 +35,7 @@
       <p>Sign in to your BloodLink Pro account</p>
     </div>
 
-    <div id="login-error" class="error-msg" style="background:#fef2f2;border:1px solid #fca5a5;padding:10px 14px;border-radius:8px;margin-bottom:1rem;"></div>
+    <div id="login-error" class="error-msg" style="background:#fef2f2;border:1px solid #fca5a5;padding:10px 14px;border-radius:8px;margin-bottom:1rem;display:none;"></div>
 
     <form id="login-form">
       <div class="form-group">
@@ -59,7 +60,57 @@
     </div>
 
     <div class="form-footer" style="margin-top:1.2rem;">
-      Don't have an account? <a href="register.html">Create one</a>
+      <a href="#" id="forgot-link" style="color:#e63946;font-weight:600;">Forgot Password?</a>
+      &nbsp;·&nbsp; Don't have an account? <a href="register.html">Create one</a>
+    </div>
+
+    <!-- Forgot Password Panel -->
+    <div id="forgot-panel" style="display:none;margin-top:1.2rem;background:#fff5f5;border:1.5px solid #f0d0d0;border-radius:12px;padding:1.2rem;">
+      <h3 style="font-size:0.95rem;font-weight:800;margin-bottom:0.8rem;color:#e63946;">🔑 Forgot Password</h3>
+
+      <!-- Step 1: Email input -->
+      <div id="fp-step1">
+        <div class="form-group" style="margin-bottom:0.8rem;">
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:6px;">Registered Email</label>
+          <input type="email" id="fp-email" placeholder="your@email.com" style="width:100%;padding:0.65rem 1rem;border:1.5px solid #f0d0d0;border-radius:8px;font-size:0.9rem;font-family:inherit;outline:none;box-sizing:border-box;" />
+        </div>
+        <button id="fp-send-otp" class="btn btn-primary" style="width:100%;justify-content:center;">� Send OTP to Email</button>
+        <div id="fp-step1-msg" style="margin-top:0.6rem;font-size:0.82rem;"></div>
+      </div>
+
+      <!-- Step 2: OTP verify -->
+      <div id="fp-step2" style="display:none;">
+        <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px 14px;margin-bottom:0.8rem;font-size:0.83rem;color:#92400e;font-weight:600;">
+          ⏱️ OTP sent! Valid for <span id="fp-timer" style="color:#e63946;font-weight:800;">2:00</span> minutes
+        </div>
+        <div class="form-group" style="margin-bottom:0.8rem;">
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:6px;">Enter 6-digit OTP</label>
+          <input type="text" id="fp-otp-input" placeholder="000000" maxlength="6" style="width:100%;padding:0.65rem 1rem;border:1.5px solid #f0d0d0;border-radius:8px;font-size:1.1rem;font-family:inherit;outline:none;letter-spacing:4px;text-align:center;box-sizing:border-box;" />
+        </div>
+        <button id="fp-verify-otp" class="btn btn-primary" style="width:100%;justify-content:center;">✅ Verify OTP</button>
+        <div style="margin-top:0.5rem;text-align:center;">
+          <a href="#" id="fp-resend" style="font-size:0.8rem;color:#e63946;font-weight:600;">Resend OTP</a>
+        </div>
+        <div id="fp-step2-msg" style="margin-top:0.6rem;font-size:0.82rem;"></div>
+      </div>
+
+      <!-- Step 3: New password -->
+      <div id="fp-step3" style="display:none;">
+        <div style="background:#dcfce7;border:1px solid #86efac;border-radius:8px;padding:10px 14px;margin-bottom:0.8rem;font-size:0.83rem;color:#15803d;font-weight:600;">
+          ✅ OTP verified! Set your new password.
+        </div>
+        <div class="form-group" style="margin-bottom:0.8rem;">
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:6px;">New Password</label>
+          <input type="password" id="fp-new-pass" placeholder="Min 6 characters" style="width:100%;padding:0.65rem 1rem;border:1.5px solid #f0d0d0;border-radius:8px;font-size:0.9rem;font-family:inherit;outline:none;box-sizing:border-box;" />
+        </div>
+        <div class="form-group" style="margin-bottom:0.8rem;">
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:6px;">Confirm Password</label>
+          <input type="password" id="fp-confirm-pass" placeholder="Repeat password" style="width:100%;padding:0.65rem 1rem;border:1.5px solid #f0d0d0;border-radius:8px;font-size:0.9rem;font-family:inherit;outline:none;box-sizing:border-box;" />
+        </div>
+        <button id="fp-reset-btn" class="btn btn-primary" style="width:100%;justify-content:center;">🔒 Reset Password</button>
+        <div id="fp-step3-msg" style="margin-top:0.6rem;font-size:0.82rem;"></div>
+      </div>
+
     </div>
 
   </div>
@@ -68,42 +119,244 @@
 <footer class="footer"><p>© 2025 <strong>BloodLink Pro</strong> — Built with ❤️ by <strong style="color:#e63946;">Satish Kumar Nishad · Team HackForce</strong></p></footer>
 <script src="script.js"></script>
 <script>
-// Inline fallback — overrides script.js initLogin with direct ID-based approach
-const _AK='$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW';
-const _BU='69bc2150aa77b81da9fcb1e3';
-const _BB='https://api.jsonbin.io/v3/b';
-async function _jbGet(id){try{const r=await fetch(_BB+'/'+id+'/latest',{headers:{'X-Master-Key':_AK}});if(!r.ok)return null;const d=await r.json();return d.record||null;}catch(e){return null;}}
-async function _getUsers(){const cloud=await _jbGet(_BU);if(cloud&&Array.isArray(cloud.users)){localStorage.setItem('blp_uc',JSON.stringify(cloud.users));return cloud.users;}const c=localStorage.getItem('blp_uc');return c?JSON.parse(c):[];}
-function _toast(msg,type){let t=document.getElementById('blp-toast');if(!t){t=document.createElement('div');t.id='blp-toast';t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:8px;color:#fff;font-weight:600;z-index:9999;font-size:14px;transition:opacity .4s';document.body.appendChild(t);}t.textContent=msg;t.style.background=type==='success'?'#27ae60':type==='error'?'#e74c3c':'#2980b9';t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(function(){t.style.opacity='0';},3000);}
-// Replace the form listener (remove any from script.js by cloning)
-window.addEventListener('DOMContentLoaded', function() {
-  const form = document.getElementById('login-form');
-  if (!form) return;
-  const fresh = form.cloneNode(true);
-  form.parentNode.replaceChild(fresh, form);
-  fresh.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const email = document.getElementById('l-email').value.trim().toLowerCase();
-    const pass  = document.getElementById('l-password').value;
-    const btn   = fresh.querySelector('button[type=submit]');
-    btn.disabled = true; btn.textContent = 'Logging in...';
-    const users = await _getUsers();
-    const user  = users.find(function(u){ return u.email.toLowerCase() === email; });
-    // Admin hardcoded bypass
-    if (email === 'sn0863110@gmail.com' && pass === 'satish0392') {
-      const adminUser = {id:1, name:'Satish Kumar Nishad', email:'sn0863110@gmail.com', phone:'9335857482', role:'admin', city:'Unnao'};
-      localStorage.setItem('blp_user', JSON.stringify(adminUser));
-      _toast('Login successful! Welcome Admin 🔐', 'success');
-      setTimeout(function(){ window.location.href = 'dashboard.html'; }, 800);
-      return;
+(function(){
+  // EmailJS config
+  var EJS_SERVICE  = 'service_8sd8f59';
+  var EJS_TEMPLATE = 'template_74dk9w6';
+  var EJS_PUBKEY   = 'sL5HWaaNmX7_r1r2Q';
+  emailjs.init(EJS_PUBKEY);
+
+  // JSONBin helpers
+  var _AK='$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW';
+  var _BU='69bc2150aa77b81da9fcb1e3';
+  var _BB='https://api.jsonbin.io/v3/b';
+  async function _jbGet(id){try{var r=await fetch(_BB+'/'+id+'/latest',{headers:{'X-Master-Key':_AK}});if(!r.ok)return null;var d=await r.json();return d.record||null;}catch(e){return null;}}
+  async function _jbPut(id,data){try{var r=await fetch(_BB+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK},body:JSON.stringify(data)});return r.ok;}catch(e){return false;}}
+  async function _getUsers(){var c=await _jbGet(_BU);if(c&&Array.isArray(c.users)){localStorage.setItem('blp_uc',JSON.stringify(c.users));return c.users;}var l=localStorage.getItem('blp_uc');return l?JSON.parse(l):[];}
+  async function _saveUsers(arr){localStorage.setItem('blp_uc',JSON.stringify(arr));return await _jbPut(_BU,{users:arr});}
+
+  function _toast(msg,type){var t=document.getElementById('blp-toast');if(!t){t=document.createElement('div');t.id='blp-toast';t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:8px;color:#fff;font-weight:600;z-index:9999;font-size:14px;transition:opacity .4s';document.body.appendChild(t);}t.textContent=msg;t.style.background=type==='success'?'#27ae60':type==='error'?'#e74c3c':'#2980b9';t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(function(){t.style.opacity='0';},3500);}
+
+  // OTP state
+  var _otpCode = null;
+  var _otpEmail = null;
+  var _otpExpiry = null;
+  var _timerInterval = null;
+
+  function generateOTP(){
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  function startTimer(){
+    clearInterval(_timerInterval);
+    var end = _otpExpiry;
+    _timerInterval = setInterval(function(){
+      var left = Math.max(0, end - Date.now());
+      var m = Math.floor(left/60000);
+      var s = Math.floor((left%60000)/1000);
+      var el = document.getElementById('fp-timer');
+      if(el) el.textContent = m+':'+(s<10?'0':'')+s;
+      if(left <= 0){
+        clearInterval(_timerInterval);
+        if(el) el.textContent = 'Expired';
+        _otpCode = null;
+        var msg = document.getElementById('fp-step2-msg');
+        if(msg) msg.innerHTML = '<span style="color:#e74c3c;font-weight:600;">⚠️ OTP expired. Please resend.</span>';
+      }
+    }, 1000);
+  }
+
+  async function sendOTP(email, otp){
+    return emailjs.send(EJS_SERVICE, EJS_TEMPLATE, {
+      email: email,
+      passcode: otp,
+      to_name: 'BloodLink User',
+      time: new Date().toLocaleTimeString()
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', function(){
+
+    // ── LOGIN FORM ──
+    var form = document.getElementById('login-form');
+    if(form){
+      var fresh = form.cloneNode(true);
+      form.parentNode.replaceChild(fresh, form);
+      fresh.addEventListener('submit', async function(e){
+        e.preventDefault();
+        var email = document.getElementById('l-email').value.trim().toLowerCase();
+        var pass  = document.getElementById('l-password').value;
+        var btn   = fresh.querySelector('button[type=submit]');
+        btn.disabled=true; btn.textContent='Logging in...';
+        // Admin bypass
+        if(email==='sn0863110@gmail.com' && pass==='satish0392'){
+          var adminUser={id:1,name:'Satish Kumar Nishad',email:'sn0863110@gmail.com',phone:'9335857482',role:'admin',city:'Unnao'};
+          localStorage.setItem('blp_user',JSON.stringify(adminUser));
+          _toast('Welcome Admin! 🔐','success');
+          setTimeout(function(){window.location.href='dashboard.html';},800);
+          return;
+        }
+        var users = await _getUsers();
+        var user  = users.find(function(u){return u.email.toLowerCase()===email;});
+        if(!user){_toast('Email not found. Please register first.','error');btn.disabled=false;btn.textContent='Sign In →';return;}
+        if(user.password!==pass){_toast('Wrong password.','error');btn.disabled=false;btn.textContent='Sign In →';return;}
+        localStorage.setItem('blp_user',JSON.stringify(user));
+        _toast('Login successful!','success');
+        setTimeout(function(){window.location.href='dashboard.html';},800);
+      });
     }
-    if (!user)              { _toast('Email not found. Please register first.', 'error'); btn.disabled = false; btn.textContent = 'Sign In \u2192'; return; }
-    if (user.password !== pass) { _toast('Wrong password.', 'error'); btn.disabled = false; btn.textContent = 'Sign In \u2192'; return; }
-    localStorage.setItem('blp_user', JSON.stringify(user));
-    _toast('Login successful!', 'success');
-    setTimeout(function(){ window.location.href = 'dashboard.html'; }, 800);
+
+    // ── FORGOT LINK ──
+    document.getElementById('forgot-link').addEventListener('click',function(e){
+      e.preventDefault();
+      var p=document.getElementById('forgot-panel');
+      p.style.display=p.style.display==='none'?'block':'none';
+      // reset to step1
+      document.getElementById('fp-step1').style.display='block';
+      document.getElementById('fp-step2').style.display='none';
+      document.getElementById('fp-step3').style.display='none';
+      document.getElementById('fp-email').value='';
+      document.getElementById('fp-step1-msg').innerHTML='';
+      clearInterval(_timerInterval);
+      _otpCode=null;
+    });
+
+    // ── STEP 1: Send OTP ──
+    document.getElementById('fp-send-otp').addEventListener('click', async function(){
+      var email = document.getElementById('fp-email').value.trim().toLowerCase();
+      var msg   = document.getElementById('fp-step1-msg');
+      if(!email){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">Email daalo pehle.</span>';return;}
+
+      // Admin special case
+      if(email==='sn0863110@gmail.com'){
+        _otpEmail = email;
+        _otpCode  = generateOTP();
+        _otpExpiry = Date.now() + 2*60*1000;
+        var btn = document.getElementById('fp-send-otp');
+        btn.disabled=true; btn.textContent='Sending...';
+        try{
+          await sendOTP(email, _otpCode);
+          _toast('OTP sent to '+email,'success');
+          document.getElementById('fp-step1').style.display='none';
+          document.getElementById('fp-step2').style.display='block';
+          startTimer();
+        }catch(err){
+          msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ Email send failed. Check internet.</span>';
+        }
+        btn.disabled=false; btn.textContent='📧 Send OTP to Email';
+        return;
+      }
+
+      var users = await _getUsers();
+      var user  = users.find(function(u){return u.email.toLowerCase()===email;});
+      if(!user){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ Ye email registered nahi hai.</span>';return;}
+
+      _otpEmail  = email;
+      _otpCode   = generateOTP();
+      _otpExpiry = Date.now() + 2*60*1000;
+
+      var btn = document.getElementById('fp-send-otp');
+      btn.disabled=true; btn.textContent='Sending...';
+      msg.innerHTML='<span style="color:#2980b9;font-weight:600;">📤 OTP bheja ja raha hai...</span>';
+
+      try{
+        await sendOTP(email, _otpCode);
+        _toast('OTP sent to '+email,'success');
+        document.getElementById('fp-step1').style.display='none';
+        document.getElementById('fp-step2').style.display='block';
+        document.getElementById('fp-otp-input').value='';
+        document.getElementById('fp-step2-msg').innerHTML='';
+        startTimer();
+      }catch(err){
+        msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ Email send nahi hua. Dobara try karo.</span>';
+        _otpCode=null;
+      }
+      btn.disabled=false; btn.textContent='📧 Send OTP to Email';
+    });
+
+    // ── RESEND OTP ──
+    document.getElementById('fp-resend').addEventListener('click', async function(e){
+      e.preventDefault();
+      if(!_otpEmail){return;}
+      _otpCode   = generateOTP();
+      _otpExpiry = Date.now() + 2*60*1000;
+      document.getElementById('fp-step2-msg').innerHTML='<span style="color:#2980b9;font-weight:600;">📤 Resending...</span>';
+      try{
+        await sendOTP(_otpEmail, _otpCode);
+        _toast('New OTP sent!','success');
+        document.getElementById('fp-otp-input').value='';
+        document.getElementById('fp-step2-msg').innerHTML='';
+        startTimer();
+      }catch(err){
+        document.getElementById('fp-step2-msg').innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ Resend failed.</span>';
+      }
+    });
+
+    // ── STEP 2: Verify OTP ──
+    document.getElementById('fp-verify-otp').addEventListener('click', function(){
+      var entered = document.getElementById('fp-otp-input').value.trim();
+      var msg     = document.getElementById('fp-step2-msg');
+      if(!_otpCode){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">⚠️ OTP expired. Resend karo.</span>';return;}
+      if(Date.now() > _otpExpiry){
+        _otpCode=null;
+        msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">⚠️ OTP expire ho gaya. Resend karo.</span>';
+        return;
+      }
+      if(entered !== _otpCode){
+        msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ Wrong OTP. Dobara check karo.</span>';
+        return;
+      }
+      // OTP correct
+      clearInterval(_timerInterval);
+      _otpCode = null;
+      document.getElementById('fp-step2').style.display='none';
+      document.getElementById('fp-step3').style.display='block';
+      document.getElementById('fp-new-pass').value='';
+      document.getElementById('fp-confirm-pass').value='';
+      document.getElementById('fp-step3-msg').innerHTML='';
+    });
+
+    // ── STEP 3: Reset Password ──
+    document.getElementById('fp-reset-btn').addEventListener('click', async function(){
+      var newPass  = document.getElementById('fp-new-pass').value;
+      var confPass = document.getElementById('fp-confirm-pass').value;
+      var msg      = document.getElementById('fp-step3-msg');
+      if(!newPass || newPass.length < 6){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">Password kam se kam 6 characters ka hona chahiye.</span>';return;}
+      if(newPass !== confPass){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ Passwords match nahi kar rahe.</span>';return;}
+
+      var btn = document.getElementById('fp-reset-btn');
+      btn.disabled=true; btn.textContent='Saving...';
+
+      // Admin password reset (local only)
+      if(_otpEmail==='sn0863110@gmail.com'){
+        _toast('Admin password reset nahi ho sakta yahan se.','error');
+        btn.disabled=false; btn.textContent='🔒 Reset Password';
+        return;
+      }
+
+      var users = await _getUsers();
+      var idx   = users.findIndex(function(u){return u.email.toLowerCase()===_otpEmail;});
+      if(idx===-1){msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">User not found.</span>';btn.disabled=false;btn.textContent='🔒 Reset Password';return;}
+      users[idx].password = newPass;
+      var ok = await _saveUsers(users);
+      btn.disabled=false; btn.textContent='🔒 Reset Password';
+      if(ok){
+        msg.innerHTML='<span style="color:#15803d;font-weight:600;">✅ Password reset ho gaya! Ab login karo.</span>';
+        _toast('Password successfully reset!','success');
+        setTimeout(function(){
+          document.getElementById('forgot-panel').style.display='none';
+          document.getElementById('fp-step1').style.display='block';
+          document.getElementById('fp-step2').style.display='none';
+          document.getElementById('fp-step3').style.display='none';
+          _otpEmail=null;
+        },2500);
+      }else{
+        msg.innerHTML='<span style="color:#e74c3c;font-weight:600;">❌ Save failed. Dobara try karo.</span>';
+      }
+    });
+
   });
-});
+})();
 </script>
 </body>
 </html>
