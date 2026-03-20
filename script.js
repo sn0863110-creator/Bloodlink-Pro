@@ -258,6 +258,8 @@ async function initDashboard() {
   renderRecentActivity(approved, market);
   // Admin panel
   if (isAdmin()) renderAdminPanel(pending, donors, market);
+  // Load emergency requests for admin
+  if (isAdmin()) loadEmergencyRequests();
 }
 
 function renderDashCharts(donors) {
@@ -357,4 +359,53 @@ async function adminDeleteDonor(id) {
   await saveDonors(filtered);
   showToast('🗑️ Donor deleted', 'error');
   initDashboard();
+}
+
+// ── EMERGENCY REQUESTS (Admin) ────────────────────────────
+async function loadEmergencyRequests() {
+  try {
+    var r = await jbGet(BIN_MARKET);
+    var reqs = (r && r.requests) || [];
+    var active = reqs.filter(function(x){ return x.status !== 'fulfilled' && (Date.now()-x.ts) < 3600000*24; });
+    if (!active.length) return;
+    var dash = document.querySelector('.dash-body');
+    if (!dash) return;
+    var existing = document.getElementById('emergency-requests-panel');
+    if (existing) existing.remove();
+    var panel = document.createElement('div');
+    panel.id = 'emergency-requests-panel';
+    panel.style.cssText = 'background:#fff;border-radius:14px;padding:1.5rem;box-shadow:0 4px 24px rgba(220,38,38,0.1);border:2px solid #dc2626;margin-bottom:2rem;';
+    var urgColors = {'critical':'#fef2f2','high':'#fffbeb','normal':'#f0fdf4'};
+    var urgLabel = {'critical':'🔴 CRITICAL','high':'🟡 HIGH','normal':'🟢 NORMAL'};
+    panel.innerHTML = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">'
+      +'<span style="font-size:1.4rem;">🚨</span>'
+      +'<h3 style="font-size:1.1rem;font-weight:800;color:#dc2626;margin:0;">Emergency Requests ('+active.length+')</h3>'
+      +'<a href="emergency.html" style="margin-left:auto;font-size:0.78rem;color:#e63946;font-weight:700;text-decoration:none;">View All →</a>'
+      +'</div>'
+      + active.slice(0,5).map(function(req){
+        var age = Math.floor((Date.now()-req.ts)/60000);
+        var ageStr = age<60?age+' min ago':Math.floor(age/60)+' hr ago';
+        return '<div style="background:'+urgColors[req.urgency||'normal']+';border-radius:10px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+          +'<span style="font-size:1rem;">🩸</span>'
+          +'<div style="flex:1;min-width:120px;"><div style="font-weight:700;font-size:0.88rem;">'+req.blood+' · '+req.units+' unit(s) · '+req.city+'</div>'
+          +'<div style="font-size:0.75rem;color:#6b7280;">'+req.name+' · '+ageStr+'</div></div>'
+          +'<span style="font-size:0.7rem;font-weight:800;padding:2px 8px;border-radius:8px;background:#fff;">'+urgLabel[req.urgency||'normal']+'</span>'
+          +'<a href="tel:'+req.contact+'" style="background:#e63946;color:#fff;padding:5px 12px;border-radius:8px;font-size:0.75rem;font-weight:700;text-decoration:none;">📞 Call</a>'
+          +'<button onclick="fulfillRequest(\''+req.id+'\')" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;padding:5px 10px;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;">✅ Fulfilled</button>'
+          +'</div>';
+      }).join('');
+    dash.insertBefore(panel, dash.firstChild);
+  } catch(e) {}
+}
+
+async function fulfillRequest(id) {
+  if (!isAdmin()) return;
+  try {
+    var r = await jbGet(BIN_MARKET);
+    if (!r) return;
+    r.requests = (r.requests||[]).map(function(x){ return x.id==id ? Object.assign({},x,{status:'fulfilled'}) : x; });
+    await jbPut(BIN_MARKET, r);
+    showToast('✅ Request marked as fulfilled','success');
+    loadEmergencyRequests();
+  } catch(e) {}
 }

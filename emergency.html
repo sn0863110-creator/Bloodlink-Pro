@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Emergency Blood Request — BloodLink Pro</title>
+  <meta name="description" content="Submit an emergency blood request. BloodLink Pro notifies nearby donors instantly." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://sn0863110-creator.github.io/BloodLink-Pro/emergency.html" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩸</text></svg>" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#e63946" />
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+</head>
+<body data-page="emergency">
+<nav class="navbar">
+  <a href="index.html" class="nav-brand"><span class="drop-icon">🩸</span> BloodLink<span style="color:#1a1a2e;font-weight:400">Pro</span></a>
+  <button class="nav-toggle" id="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  <div class="nav-links" id="nav-links">
+    <a href="index.html">Home</a>
+    <a href="search.html">Find Donors</a>
+    <a href="emergency.html" class="active" style="color:#e63946;font-weight:700;">🚨 Emergency</a>
+    <a href="banks.html">Blood Banks</a>
+    <a href="pricing.html">Market</a>
+    <a href="about.html">About Us</a>
+    <span id="nav-user" style="display:none;font-size:0.85rem;font-weight:600;color:var(--primary);padding:0.4rem 0.8rem;background:var(--bg-soft);border-radius:8px;"></span>
+    <a href="dashboard.html" id="nav-dashboard" class="btn btn-ghost btn-sm" style="display:none;">Dashboard</a>
+    <a href="login.html" id="nav-login" class="btn btn-outline btn-sm">Login</a>
+    <a href="register.html" id="nav-register" class="btn btn-primary btn-sm">Register</a>
+    <button id="nav-logout" class="btn btn-ghost btn-sm" style="display:none;">Logout</button>
+  </div>
+</nav>
+
+<div class="emergency-ticker">
+  <span class="ticker-inner">🚨 CRITICAL: Submit your blood request below — donors will be notified instantly &nbsp;|&nbsp; 📞 Ambulance: 108 &nbsp;|&nbsp; 🏥 Blood Bank Helpline: 1910</span>
+</div>
+
+<!-- Hero -->
+<div style="background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;padding:2.5rem 2rem;text-align:center;">
+  <div style="font-size:2.5rem;margin-bottom:0.5rem;">🚨</div>
+  <h1 style="font-size:2rem;font-weight:900;margin-bottom:0.4rem;">Emergency Blood Request</h1>
+  <p style="opacity:0.85;font-size:0.95rem;max-width:500px;margin:0 auto;">Fill the form below. Nearby donors will be notified immediately. Average response time: 15–30 minutes.</p>
+  <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
+    <span style="background:rgba(255,255,255,0.15);padding:5px 14px;border-radius:20px;font-size:0.78rem;font-weight:600;">⚡ Instant notification</span>
+    <span style="background:rgba(255,255,255,0.15);padding:5px 14px;border-radius:20px;font-size:0.78rem;font-weight:600;">📍 Location-based matching</span>
+    <span style="background:rgba(255,255,255,0.15);padding:5px 14px;border-radius:20px;font-size:0.78rem;font-weight:600;">🆓 100% Free</span>
+  </div>
+</div>
+
+<div style="max-width:700px;margin:0 auto;padding:2rem 1rem;">
+
+  <!-- Disclaimer -->
+  <div style="background:#fef3c7;border:1.5px solid #fcd34d;border-radius:10px;padding:12px 16px;margin-bottom:1.5rem;font-size:0.82rem;color:#92400e;">
+    ⚠️ <strong>Disclaimer:</strong> BloodLink Pro is a donor-matching platform only. Always contact your nearest hospital or blood bank simultaneously. Call <a href="tel:108" style="color:#dc2626;font-weight:700;">108</a> for ambulance.
+  </div>
+
+  <!-- Active Requests Banner -->
+  <div id="active-requests-section" style="margin-bottom:1.5rem;display:none;">
+    <h3 style="font-size:1rem;font-weight:800;margin-bottom:0.8rem;color:#dc2626;">🔴 Active Emergency Requests</h3>
+    <div id="active-requests-list"></div>
+  </div>
+
+  <!-- Request Form -->
+  <div style="background:#fff;border-radius:16px;padding:2rem;box-shadow:0 4px 24px rgba(230,57,70,0.1);border:1.5px solid #f0d0d0;">
+    <h2 style="font-size:1.2rem;font-weight:800;margin-bottom:1.2rem;color:#dc2626;">📋 Submit Blood Request</h2>
+    <form id="emergency-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Patient Name *</label>
+          <input type="text" id="e-name" placeholder="Full name" required />
+        </div>
+        <div class="form-group">
+          <label>Blood Group Needed *</label>
+          <select id="e-blood" required>
+            <option value="">Select</option>
+            <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+            <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Units Required *</label>
+          <input type="number" id="e-units" min="1" max="10" value="1" required />
+        </div>
+        <div class="form-group">
+          <label>City / Location *</label>
+          <input type="text" id="e-city" placeholder="e.g. Kanpur" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Contact Number *</label>
+          <input type="tel" id="e-contact" placeholder="10-digit mobile" maxlength="10" required />
+        </div>
+        <div class="form-group">
+          <label>Hospital / Location Details</label>
+          <input type="text" id="e-hospital" placeholder="e.g. GSVM Medical, Ward 3" />
+        </div>
+      </div>
+
+      <!-- Urgency Level -->
+      <div class="form-group">
+        <label>Urgency Level *</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;">
+          <label id="urg-critical" style="display:flex;align-items:center;gap:8px;padding:10px;border:2px solid #dc2626;border-radius:10px;cursor:pointer;background:#fef2f2;font-weight:700;font-size:0.85rem;">
+            <input type="radio" name="urgency" value="critical" checked style="accent-color:#dc2626;" /> 🔴 Critical
+          </label>
+          <label id="urg-high" style="display:flex;align-items:center;gap:8px;padding:10px;border:2px solid #f0d0d0;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">
+            <input type="radio" name="urgency" value="high" style="accent-color:#f59e0b;" /> 🟡 High
+          </label>
+          <label id="urg-normal" style="display:flex;align-items:center;gap:8px;padding:10px;border:2px solid #f0d0d0;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">
+            <input type="radio" name="urgency" value="normal" style="accent-color:#16a34a;" /> 🟢 Normal
+          </label>
+        </div>
+      </div>
+
+      <!-- Consent -->
+      <div style="background:#fff5f5;border:1.5px solid #f0d0d0;border-radius:10px;padding:1rem;margin-bottom:1rem;">
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:0.85rem;">
+          <input type="checkbox" id="e-consent" required style="margin-top:3px;accent-color:#e63946;width:16px;height:16px;flex-shrink:0;" />
+          <span>I confirm this is a genuine emergency request. I agree to share my contact details with potential donors.</span>
+        </label>
+      </div>
+
+      <button type="submit" id="e-submit-btn" class="btn btn-danger btn-lg" style="width:100%;justify-content:center;font-size:1rem;">
+        🚨 Submit Emergency Request
+      </button>
+    </form>
+
+    <!-- Success State -->
+    <div id="e-success" style="display:none;text-align:center;padding:1.5rem;">
+      <div style="font-size:3rem;margin-bottom:0.8rem;">✅</div>
+      <h3 style="font-size:1.2rem;font-weight:800;color:#15803d;margin-bottom:0.5rem;">Request Submitted!</h3>
+      <p style="color:#6b7280;font-size:0.9rem;margin-bottom:1rem;">Nearby donors have been notified. You should receive a call within 15–30 minutes.</p>
+      <div id="e-matched-donors" style="margin-bottom:1rem;"></div>
+      <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:12px;font-size:0.82rem;color:#dc2626;font-weight:600;">
+        📞 Also call: <a href="tel:108" style="color:#dc2626;">108 (Ambulance)</a> &nbsp;|&nbsp; <a href="tel:1910" style="color:#dc2626;">1910 (Blood Bank)</a>
+      </div>
+      <button onclick="location.reload()" class="btn btn-outline" style="margin-top:1rem;">Submit Another Request</button>
+    </div>
+  </div>
+
+  <!-- Queue Info -->
+  <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:12px 16px;margin-top:1rem;font-size:0.82rem;color:#0369a1;">
+    ℹ️ If no donor responds within 30 minutes, your request will be escalated to the next nearest city automatically.
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div style="font-size:1.4rem;font-weight:900;color:#fff;margin-bottom:0.3rem;">🩸 BloodLink<span style="color:#e63946;">Pro</span></div>
+      <div style="font-size:0.8rem;color:#9ca3af;max-width:260px;line-height:1.6;">India's smart blood donation network. Connecting donors to those in need, 24/7.</div>
+    </div>
+    <div class="footer-links">
+      <div class="fl-col"><div class="fl-head">Platform</div><a href="search.html">Find Donors</a><a href="donor.html">Become a Donor</a><a href="banks.html">Blood Banks</a></div>
+      <div class="fl-col"><div class="fl-head">Emergency</div><a href="emergency.html">Submit Request</a><a href="tel:108">Call 108</a><a href="tel:1910">Blood Bank: 1910</a></div>
+      <div class="fl-col"><div class="fl-head">Contact</div><a href="mailto:sn0863110@gmail.com">sn0863110@gmail.com</a><a href="tel:+919335857482">+91 93358 57482</a></div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 BloodLink Pro — Built with ❤️ by <strong style="color:#e63946;">Satish Kumar Nishad · Team HackForce</strong></span>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+<script>
+const _AK_E='$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW';
+const _BD_E='69bc22a2b7ec241ddc82de74'; // donors bin
+const _BM_E='69bc22a2b7ec241ddc82de79'; // market bin (stores requests too)
+const _BB_E='https://api.jsonbin.io/v3/b';
+
+async function _getRequests(){
+  try{var r=await fetch(_BB_E+'/'+_BM_E+'/latest',{headers:{'X-Master-Key':_AK_E}});if(!r.ok)throw 0;var d=await r.json();return d.record.requests||[];}
+  catch(e){return JSON.parse(localStorage.getItem('blp_req')||'[]');}
+}
+async function _saveRequest(req){
+  try{
+    var r=await fetch(_BB_E+'/'+_BM_E+'/latest',{headers:{'X-Master-Key':_AK_E}});
+    var d=await r.json();var rec=d.record||{};
+    rec.requests=rec.requests||[];
+    rec.requests.unshift(req);
+    rec.requests=rec.requests.slice(0,50);
+    localStorage.setItem('blp_req',JSON.stringify(rec.requests));
+    await fetch(_BB_E+'/'+_BM_E,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK_E},body:JSON.stringify(rec)});
+  }catch(e){var arr=JSON.parse(localStorage.getItem('blp_req')||'[]');arr.unshift(req);localStorage.setItem('blp_req',JSON.stringify(arr.slice(0,50)));}
+}
+async function _getDonors_E(){
+  try{var r=await fetch(_BB_E+'/'+_BD_E+'/latest',{headers:{'X-Master-Key':_AK_E}});if(!r.ok)throw 0;var d=await r.json();return(d.record&&d.record.donors)||[];}
+  catch(e){return JSON.parse(localStorage.getItem('blp_dc')||'[]');}
+}
+
+// Render active requests
+async function renderActiveRequests(){
+  var reqs=await _getRequests();
+  var active=reqs.filter(function(r){return r.status!=='fulfilled'&&(Date.now()-r.ts)<3600000*6;});
+  var sec=document.getElementById('active-requests-section');
+  var list=document.getElementById('active-requests-list');
+  if(!active.length){if(sec)sec.style.display='none';return;}
+  if(sec)sec.style.display='block';
+  var urgColors={'critical':'#fef2f2','high':'#fffbeb','normal':'#f0fdf4'};
+  var urgBorder={'critical':'#fca5a5','high':'#fcd34d','normal':'#86efac'};
+  var urgLabel={'critical':'🔴 CRITICAL','high':'🟡 HIGH','normal':'🟢 NORMAL'};
+  list.innerHTML=active.slice(0,5).map(function(r){
+    var age=Math.floor((Date.now()-r.ts)/60000);
+    var ageStr=age<60?age+' min ago':Math.floor(age/60)+' hr ago';
+    return '<div style="background:'+urgColors[r.urgency||'normal']+';border:1.5px solid '+urgBorder[r.urgency||'normal']+';border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">'
+      +'<span style="font-size:1.2rem;">🩸</span>'
+      +'<div style="flex:1;min-width:140px;"><div style="font-weight:700;font-size:0.9rem;">'+r.blood+' needed · '+r.units+' unit(s)</div>'
+      +'<div style="font-size:0.78rem;color:#6b7280;">📍 '+r.city+(r.hospital?' · '+r.hospital:'')+' · '+ageStr+'</div></div>'
+      +'<span style="font-size:0.72rem;font-weight:800;padding:3px 10px;border-radius:10px;background:'+urgBorder[r.urgency||'normal']+';color:#1a1a2e;">'+urgLabel[r.urgency||'normal']+'</span>'
+      +'<a href="tel:'+r.contact+'" onclick="return confirm(\'Call '+r.name+' about '+r.blood+' blood request?\')" style="background:#e63946;color:#fff;padding:6px 14px;border-radius:8px;font-size:0.78rem;font-weight:700;text-decoration:none;">📞 Respond</a>'
+      +'</div>';
+  }).join('');
+}
+
+// Form submit
+document.addEventListener('DOMContentLoaded',function(){
+  renderActiveRequests();
+  var form=document.getElementById('emergency-form');
+  if(!form)return;
+  form.addEventListener('submit',async function(e){
+    e.preventDefault();
+    var btn=document.getElementById('e-submit-btn');
+    btn.disabled=true;btn.textContent='Submitting...';
+    var name=document.getElementById('e-name').value.trim();
+    var blood=document.getElementById('e-blood').value;
+    var units=document.getElementById('e-units').value||1;
+    var city=document.getElementById('e-city').value.trim();
+    var contact=document.getElementById('e-contact').value.trim();
+    var hospital=document.getElementById('e-hospital').value.trim();
+    var urgency=document.querySelector('input[name="urgency"]:checked').value;
+    if(!/^[6-9]\d{9}$/.test(contact)){if(typeof showToast==='function')showToast('Enter valid 10-digit mobile number','error');btn.disabled=false;btn.textContent='🚨 Submit Emergency Request';return;}
+    var req={id:Date.now(),name:name,blood:blood,units:parseInt(units),city:city,contact:contact,hospital:hospital,urgency:urgency,status:'active',ts:Date.now()};
+    await _saveRequest(req);
+    // Find matching donors
+    var donors=await _getDonors_E();
+    var matched=donors.filter(function(d){return d.status!=='pending'&&d.available!=='no'&&d.blood===blood&&d.city.toLowerCase()===city.toLowerCase();});
+    // Show success
+    form.style.display='none';
+    var succ=document.getElementById('e-success');succ.style.display='block';
+    var matchDiv=document.getElementById('e-matched-donors');
+    if(matched.length){
+      matchDiv.innerHTML='<div style="background:#dcfce7;border:1px solid #86efac;border-radius:10px;padding:12px;margin-bottom:8px;"><div style="font-weight:700;color:#15803d;margin-bottom:6px;">✅ '+matched.length+' matching donor(s) found in '+city+':</div>'
+        +matched.slice(0,3).map(function(d){return '<div style="font-size:0.82rem;padding:4px 0;border-bottom:1px solid #bbf7d0;"><b>'+d.name+'</b> · '+d.blood+' · <a href="tel:'+d.phone+'" style="color:#15803d;font-weight:700;">Call Now</a></div>';}).join('')
+        +'</div>';
+    } else {
+      matchDiv.innerHTML='<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px;font-size:0.85rem;color:#92400e;"><b>No exact match in '+city+'</b> — try nearby cities or contact blood banks directly.</div>';
+    }
+    if(typeof playEmergencyHorn==='function') playEmergencyHorn();
+    if(typeof showToast==='function') showToast('🚨 Emergency request submitted!','error');
+  });
+});
+</script>
+</body>
+</html>
