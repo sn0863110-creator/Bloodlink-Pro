@@ -2,8 +2,8 @@
   "name": "BloodLink Pro",
   "short_name": "BloodLink",
   "description": "India's smart blood donation network — find donors instantly",
-  "start_url": "/BloodLink-Pro/",
-  "scope": "/BloodLink-Pro/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#e63946",
@@ -26,12 +26,12 @@
   "shortcuts": [
     {
       "name": "Find Donors",
-      "url": "/BloodLink-Pro/search.html",
+      "url": "./search.html",
       "description": "Search blood donors"
     },
     {
       "name": "Emergency SOS",
-      "url": "/BloodLink-Pro/search.html#sos",
+      "url": "./search.html#sos",
       "description": "Send emergency alert"
     }
   ]

@@ -1,11 +1,12 @@
 // BloodLink Pro — Service Worker v2 (Phase 12: Performance)
-const CACHE = 'blp-v2';
+const CACHE = 'blp-v3';
 const OFFLINE_URL = 'offline.html';
 const ASSETS = [
   'index.html', 'search.html', 'donor.html', 'login.html',
   'register.html', 'banks.html', 'dashboard.html', 'about.html',
   'pricing.html', 'emergency.html', 'profile.html',
-  'style.css', 'script.js', 'offline.html', 'manifest.json'
+  'style.css', 'script.js', 'offline.html', 'manifest.json',
+  'firebase-config.js', 'firebase-db.js'
 ];
 
 self.addEventListener('install', function(e) {
