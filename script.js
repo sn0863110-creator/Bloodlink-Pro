@@ -206,6 +206,8 @@ function triggerSOS() {
 document.addEventListener('DOMContentLoaded', function() {
   setupHamburger();
   updateNavAuth();
+  initDarkMode();
+  applyLanguage();
   var page=location.pathname.split('/').pop()||'index.html';
   if (page==='login.html')     initLogin();
   if (page==='register.html')  initRegister();
@@ -535,3 +537,120 @@ async function adminDismissReport(id) {
 // - Cost: ~₹0.15 per SMS — viable for production
 
 // ══════════════════════════════════════════════════════════
+
+// ── DARK MODE ─────────────────────────────────────────────
+function initDarkMode() {
+  var saved = localStorage.getItem('blp_dark');
+  if (saved === '1') document.body.classList.add('dark-mode');
+  updateDarkBtn();
+}
+function toggleDarkMode() {
+  document.body.classList.toggle('dark-mode');
+  var isDark = document.body.classList.contains('dark-mode');
+  localStorage.setItem('blp_dark', isDark ? '1' : '0');
+  updateDarkBtn();
+}
+function updateDarkBtn() {
+  var btn = document.getElementById('dark-toggle');
+  if (!btn) return;
+  var isDark = document.body.classList.contains('dark-mode');
+  btn.textContent = isDark ? '☀️' : '🌙';
+  btn.title = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+}
+
+// ── LANGUAGE (Hindi / English) ────────────────────────────
+var _lang = localStorage.getItem('blp_lang') || 'en';
+
+var _translations = {
+  en: {
+    'Find Donors': 'Find Donors',
+    'Emergency': '🚨 Emergency',
+    'Blood Banks': 'Blood Banks',
+    'Dashboard': 'Dashboard',
+    'Login': 'Login',
+    'Register': 'Register',
+    'Logout': 'Logout',
+    'Profile': '👤 Profile',
+    'Become a Donor': '🩸 Become a Donor',
+    'Find Blood Now': '🔍 Find Blood Now',
+    'Send Emergency SOS': '🆘 Send Emergency SOS Alert',
+    'Home': 'Home',
+    'About Us': 'About Us',
+    'Market': 'Market'
+  },
+  hi: {
+    'Find Donors': 'डोनर खोजें',
+    'Emergency': '🚨 आपातकाल',
+    'Blood Banks': 'ब्लड बैंक',
+    'Dashboard': 'डैशबोर्ड',
+    'Login': 'लॉगिन',
+    'Register': 'रजिस्टर',
+    'Logout': 'लॉगआउट',
+    'Profile': '👤 प्रोफाइल',
+    'Become a Donor': '🩸 डोनर बनें',
+    'Find Blood Now': '🔍 अभी खोजें',
+    'Send Emergency SOS': '🆘 आपातकालीन SOS भेजें',
+    'Home': 'होम',
+    'About Us': 'हमारे बारे में',
+    'Market': 'मार्केट'
+  }
+};
+
+function t(key) {
+  return (_translations[_lang] && _translations[_lang][key]) || key;
+}
+
+function applyLanguage() {
+  // Translate nav links by data-i18n attribute
+  document.querySelectorAll('[data-i18n]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n');
+    el.textContent = t(key);
+  });
+  var btn = document.getElementById('lang-toggle');
+  if (btn) btn.textContent = _lang === 'en' ? 'हिं' : 'EN';
+}
+
+function toggleLanguage() {
+  _lang = _lang === 'en' ? 'hi' : 'en';
+  localStorage.setItem('blp_lang', _lang);
+  applyLanguage();
+}
+
+// ── QR CODE ───────────────────────────────────────────────
+function showQRCode() {
+  var overlay = document.getElementById('qr-modal-overlay');
+  if (!overlay) {
+    // Create modal dynamically
+    overlay = document.createElement('div');
+    overlay.id = 'qr-modal-overlay';
+    overlay.innerHTML = '<div id="qr-modal-box">'
+      + '<h3>📱 Scan to Open BloodLink Pro</h3>'
+      + '<p>Share this QR code for instant access</p>'
+      + '<canvas id="qr-canvas" width="200" height="200"></canvas>'
+      + '<div style="margin-top:1rem;font-size:0.75rem;color:#9ca3af;">blood-link-pro.vercel.app</div>'
+      + '<button onclick="document.getElementById(\'qr-modal-overlay\').classList.remove(\'open\')" '
+      + 'style="margin-top:1rem;background:#e63946;color:#fff;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:700;font-family:inherit;">Close</button>'
+      + '</div>';
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.classList.remove('open'); });
+    document.body.appendChild(overlay);
+  }
+  overlay.classList.add('open');
+  // Draw QR using canvas (simple URL-encoded QR via Google Charts API image)
+  var canvas = document.getElementById('qr-canvas');
+  if (canvas) {
+    var ctx = canvas.getContext('2d');
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() { ctx.drawImage(img, 0, 0, 200, 200); };
+    img.onerror = function() {
+      // Fallback: show URL text
+      ctx.fillStyle = '#fff'; ctx.fillRect(0,0,200,200);
+      ctx.fillStyle = '#1a1a2e'; ctx.font = '11px Inter,sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('blood-link-pro.vercel.app', 100, 100);
+    };
+    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent('https://blood-link-pro.vercel.app');
+  }
+}
+
+// ── INIT ALL EXTRAS ───────────────────────────────────────
+// Dark mode and language are initialized via the main DOMContentLoaded above

@@ -52,9 +52,12 @@
     <a href="about.html">About Us</a>
     <span id="nav-user" style="display:none;font-size:0.85rem;font-weight:600;color:var(--primary);padding:0.4rem 0.8rem;background:var(--bg-soft);border-radius:8px;"></span>
     <a href="dashboard.html" id="nav-dashboard" class="btn btn-ghost btn-sm" style="display:none;">Dashboard</a>
-    <a href="login.html" id="nav-login" class="btn btn-outline btn-sm">Login</a>
-    <a href="register.html" id="nav-register" class="btn btn-primary btn-sm">Register</a>
-    <button id="nav-logout" class="btn btn-ghost btn-sm" style="display:none;">Logout</button>
+    <a href="login.html" id="nav-login" class="btn btn-outline btn-sm" data-i18n="Login">Login</a>
+    <a href="register.html" id="nav-register" class="btn btn-primary btn-sm" data-i18n="Register">Register</a>
+    <button id="nav-logout" class="btn btn-ghost btn-sm" style="display:none;" data-i18n="Logout">Logout</button>
+    <button id="lang-toggle" onclick="toggleLanguage()" title="Switch Language">हिं</button>
+    <button id="dark-toggle" onclick="toggleDarkMode()" title="Dark Mode">🌙</button>
+    <button onclick="showQRCode()" title="QR Code" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:1rem;color:var(--text-muted);font-family:inherit;transition:var(--transition);">📱</button>
   </div>
 </nav>
 

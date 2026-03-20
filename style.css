@@ -646,3 +646,103 @@ body {
 @media (max-width: 480px) {
   .modal-box { max-width: 90vw; padding: 1.2rem; }
 }
+
+/* ===== DARK MODE ===== */
+body.dark-mode {
+  --bg: #0f172a;
+  --bg-soft: #1e293b;
+  --bg-card: #1e293b;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border: #334155;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --shadow-hover: 0 8px 32px rgba(0,0,0,0.5);
+}
+body.dark-mode .navbar {
+  background: rgba(15,23,42,0.97);
+  border-bottom-color: #334155;
+}
+body.dark-mode .form-card,
+body.dark-mode .dash-card,
+body.dark-mode .stat-card,
+body.dark-mode .donor-card,
+body.dark-mode .bank-card,
+body.dark-mode .how-card,
+body.dark-mode .fv-card {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+  background: #0f172a;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+body.dark-mode input::placeholder { color: #64748b; }
+body.dark-mode .hero { background: linear-gradient(135deg,#0f172a 0%,#1e293b 100%); }
+body.dark-mode .footer { background: #020617; }
+body.dark-mode .search-box,
+body.dark-mode .search-page { background: #0f172a; }
+body.dark-mode .dashboard { background: #0f172a; }
+body.dark-mode .dash-body { background: #0f172a; }
+body.dark-mode .recent-list { background: #1e293b; }
+body.dark-mode .empty-state { background: #1e293b; color: #94a3b8; }
+body.dark-mode .form-page { background: #0f172a; }
+body.dark-mode .nav-links a { color: #94a3b8; }
+body.dark-mode .nav-links a:hover,
+body.dark-mode .nav-links a.active { background: #1e293b; color: #e63946; }
+body.dark-mode .blood-badge { background: #7f1d1d; color: #fca5a5; }
+body.dark-mode .avail-tag.yes { background: #14532d; color: #86efac; }
+body.dark-mode .avail-tag.no  { background: #1e293b; color: #64748b; }
+body.dark-mode .stats-bar-section { background: #1e293b; }
+body.dark-mode .section { background: #0f172a !important; }
+body.dark-mode .cta-section { background: linear-gradient(135deg,#7f1d1d,#991b1b); }
+
+/* Dark mode toggle button */
+#dark-toggle {
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--text-muted);
+  transition: var(--transition);
+  font-family: inherit;
+  line-height: 1;
+}
+#dark-toggle:hover { border-color: var(--primary); color: var(--primary); }
+
+/* ===== LANGUAGE TOGGLE ===== */
+#lang-toggle {
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  transition: var(--transition);
+  font-family: inherit;
+  letter-spacing: 0.5px;
+}
+#lang-toggle:hover { border-color: var(--primary); color: var(--primary); }
+
+/* ===== QR MODAL ===== */
+#qr-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  z-index: 9999; display: none; align-items: center; justify-content: center;
+}
+#qr-modal-overlay.open { display: flex; }
+#qr-modal-box {
+  background: var(--bg-card);
+  border-radius: 20px; padding: 2rem; text-align: center;
+  max-width: 320px; width: 90%;
+  box-shadow: 0 16px 60px rgba(0,0,0,0.3);
+}
+#qr-modal-box h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text); }
+#qr-modal-box p  { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem; }
+#qr-canvas { border-radius: 12px; border: 3px solid var(--border); }
