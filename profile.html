@@ -10,6 +10,11 @@
   <meta name="theme-color" content="#e63946" />
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <!-- Firebase Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
 </head>
 <body data-page="profile">
 <nav class="navbar">
@@ -278,6 +283,31 @@ window.addEventListener('DOMContentLoaded', async function(){
     var newPass=document.getElementById('ep-pass').value;
     var newLastDon=document.getElementById('ep-lastdon').value;
     var newHealth=document.getElementById('ep-health').value;
+    // ── Try Firebase first ──
+    if(typeof fbUpdate==='function'&&typeof _fbReady!=='undefined'&&_fbReady&&user.uid){
+      try{
+        var profileUpdate={};
+        if(newName)profileUpdate.name=newName;
+        if(newCity)profileUpdate.city=newCity;
+        await fbUpdate('users',user.uid,profileUpdate);
+        if(_currentDonorRecord&&_currentDonorRecord.id){
+          var donorUpdate={};
+          if(newName)donorUpdate.name=newName;
+          if(newCity)donorUpdate.city=newCity;
+          if(newLastDon)donorUpdate.lastDonation=newLastDon;
+          if(newHealth)donorUpdate.health=newHealth;
+          await fbUpdate('donors',_currentDonorRecord.id,donorUpdate);
+        }
+        if(newName)user.name=newName;
+        if(newCity)user.city=newCity;
+        localStorage.setItem('blp_user',JSON.stringify(user));
+        btn.disabled=false;btn.textContent='💾 Save Changes';
+        if(typeof showToast==='function')showToast('✅ Profile updated!','success');
+        document.getElementById('profile-name').textContent=newName||user.name;
+        return;
+      }catch(e){/* fall through to JSONBin */}
+    }
+    // JSONBin fallback
     var users=await _getUsers_P();
     var idx=users.findIndex(function(u){return u.phone===user.phone;});
     if(idx>-1){

@@ -18,6 +18,11 @@
   <meta name="theme-color" content="#e63946" />
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <!-- Firebase Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
 </head>
 <body data-page="emergency">
 <nav class="navbar">
@@ -303,6 +308,24 @@ document.addEventListener('DOMContentLoaded',function(){
     var urgency=document.querySelector('input[name="urgency"]:checked').value;
     if(!/^[6-9]\d{9}$/.test(contact)){if(typeof showToast==='function')showToast('Enter valid 10-digit mobile number','error');btn.disabled=false;btn.textContent='🚨 Submit Emergency Request';return;}
     var req={id:Date.now(),name:name,blood:blood,units:parseInt(units),city:city,contact:contact,hospital:hospital,urgency:urgency,status:'active',ts:Date.now()};
+    // ── Try Firebase first ──
+    if(typeof fbAdd==='function'&&typeof _fbReady!=='undefined'&&_fbReady){
+      try{
+        await fbAdd('emergency_requests',req);
+        incrementRateLimit();
+        var donors=await _getDonors_E();
+        var matched=donors.filter(function(d){return d.status!=='pending'&&d.available!=='no'&&d.blood===blood&&d.city.toLowerCase()===city.toLowerCase();});
+        form.style.display='none';
+        var succ=document.getElementById('e-success');succ.style.display='block';
+        var matchDiv=document.getElementById('e-matched-donors');
+        if(matched.length){matchDiv.innerHTML='<div style="background:#dcfce7;border:1px solid #86efac;border-radius:10px;padding:12px;margin-bottom:8px;"><div style="font-weight:700;color:#15803d;margin-bottom:6px;">✅ '+matched.length+' matching donor(s) found in '+city+':</div>'+matched.slice(0,3).map(function(d){return '<div style="font-size:0.82rem;padding:4px 0;border-bottom:1px solid #bbf7d0;"><b>'+d.name+'</b> · '+d.blood+' · <a href="tel:'+d.phone+'" style="color:#15803d;font-weight:700;">Call Now</a></div>';}).join('')+'</div>';}
+        else{matchDiv.innerHTML='<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px;font-size:0.85rem;color:#92400e;"><b>No exact match in '+city+'</b> — try nearby cities or contact blood banks directly.</div>';}
+        if(typeof playEmergencyHorn==='function')playEmergencyHorn();
+        if(typeof showToast==='function')showToast('🚨 Emergency request submitted!','error');
+        return;
+      }catch(e){/* fall through to JSONBin */}
+    }
+    // JSONBin fallback
     await _saveRequest(req);
     incrementRateLimit();
     // Find matching donors

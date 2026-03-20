@@ -1,9 +1,121 @@
-// BloodLink Pro — script.js v3 (HackForce / Satish Kumar Nishad)
+// BloodLink Pro — script.js v4 (Firebase + JSONBin fallback)
+// ── Firebase is PRIMARY database. JSONBin kept as fallback. ──
+
+// ── JSONBIN FALLBACK CONFIG (kept for offline/migration) ──
 const API_KEY    = '$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW';
 const BIN_USERS  = '69bc2150aa77b81da9fcb1e3';
 const BIN_DONORS = '69bc22a2b7ec241ddc82de74';
 const BIN_MARKET = '69bc22a2b7ec241ddc82de79';
 const BASE_URL   = 'https://api.jsonbin.io/v3/b';
+
+// ── FIREBASE CONFIG ────────────────────────────────────────
+// Replace these values with your Firebase project config
+// Get from: Firebase Console → Project Settings → Web App
+// Same config is documented in firebase-config.js
+const FB_CONFIG = typeof FIREBASE_CONFIG !== 'undefined' ? FIREBASE_CONFIG : {
+  apiKey:            "AIzaSyDEMO_REPLACE_WITH_YOUR_KEY",
+  authDomain:        "bloodlink-pro.firebaseapp.com",
+  projectId:         "bloodlink-pro",
+  storageBucket:     "bloodlink-pro.appspot.com",
+  messagingSenderId: "123456789",
+  appId:             "1:123456789:web:abcdef"
+};
+
+// ── Firebase SDK (loaded via CDN in HTML) ──────────────────
+// firebase-app, firebase-auth, firebase-firestore loaded in <head>
+var _fbApp = null, _fbDb = null, _fbAuth = null;
+var _fbReady = false;
+
+function initFirebase() {
+  try {
+    if (typeof firebase === 'undefined') { console.warn('Firebase SDK not loaded'); return false; }
+    if (!_fbApp) {
+      _fbApp  = firebase.initializeApp(FB_CONFIG);
+      _fbDb   = firebase.firestore();
+      _fbAuth = firebase.auth();
+      _fbReady = true;
+      // Firestore offline persistence
+      _fbDb.enablePersistence({ synchronizeTabs: true }).catch(function(){});
+      console.log('✅ Firebase initialized');
+    }
+    return true;
+  } catch(e) { console.warn('Firebase init failed:', e.message); return false; }
+}
+
+// ── FIREBASE HELPERS ───────────────────────────────────────
+async function fbCol(name) { return _fbDb.collection(name); }
+
+async function fbGetAll(colName) {
+  if (!_fbReady) return null;
+  try {
+    var snap = await _fbDb.collection(colName).orderBy('createdAt', 'desc').get();
+    return snap.docs.map(function(d){ return Object.assign({ id: d.id }, d.data()); });
+  } catch(e) { return null; }
+}
+
+async function fbAdd(colName, data) {
+  if (!_fbReady) return null;
+  try {
+    var ref = await _fbDb.collection(colName).add(Object.assign({}, data, { createdAt: firebase.firestore.FieldValue.serverTimestamp(), ts: Date.now() }));
+    return ref.id;
+  } catch(e) { return null; }
+}
+
+async function fbUpdate(colName, id, data) {
+  if (!_fbReady) return false;
+  try {
+    await _fbDb.collection(colName).doc(id).update(Object.assign({}, data, { updatedAt: firebase.firestore.FieldValue.serverTimestamp() }));
+    return true;
+  } catch(e) { return false; }
+}
+
+async function fbDelete(colName, id) {
+  if (!_fbReady) return false;
+  try { await _fbDb.collection(colName).doc(id).delete(); return true; }
+  catch(e) { return false; }
+}
+
+async function fbQuery(colName, field, op, value) {
+  if (!_fbReady) return null;
+  try {
+    var snap = await _fbDb.collection(colName).where(field, op, value).get();
+    return snap.docs.map(function(d){ return Object.assign({ id: d.id }, d.data()); });
+  } catch(e) { return null; }
+}
+
+// ── FIREBASE AUTH ──────────────────────────────────────────
+async function fbSignUp(email, password, profile) {
+  if (!_fbReady) throw new Error('Firebase not ready');
+  var cred = await _fbAuth.createUserWithEmailAndPassword(email, password);
+  await cred.user.updateProfile({ displayName: profile.name });
+  await _fbDb.collection('users').doc(cred.user.uid).set(Object.assign({}, profile, {
+    uid: cred.user.uid, email: email,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }));
+  return cred.user;
+}
+
+async function fbSignIn(email, password) {
+  if (!_fbReady) throw new Error('Firebase not ready');
+  var cred = await _fbAuth.signInWithEmailAndPassword(email, password);
+  // Get profile from Firestore
+  var snap = await _fbDb.collection('users').doc(cred.user.uid).get();
+  var profile = snap.exists ? snap.data() : {};
+  var user = Object.assign({ uid: cred.user.uid, email: email }, profile);
+  localStorage.setItem('blp_user', JSON.stringify(user));
+  return user;
+}
+
+async function fbSignOut() {
+  if (_fbReady) await _fbAuth.signOut();
+  localStorage.removeItem('blp_user');
+  window.location.href = 'login.html';
+}
+
+async function fbResetPassword(email) {
+  if (!_fbReady) throw new Error('Firebase not ready');
+  await _fbAuth.sendPasswordResetEmail(email);
+}
 
 // ── ADMIN CONFIG ──────────────────────────────────────────
 const ADMIN_EMAIL = 'sn0863110@gmail.com';
@@ -13,6 +125,7 @@ function isAdmin() {
   return u && (u.email === ADMIN_EMAIL || u.phone === ADMIN_PHONE || u.role === 'admin');
 }
 
+// ── JSONBIN FALLBACK ───────────────────────────────────────
 async function jbGet(id) {
   try {
     const r = await fetch(BASE_URL+'/'+id+'/latest', {headers:{'X-Master-Key':API_KEY}});
@@ -27,48 +140,177 @@ async function jbPut(id, data) {
   } catch(e) { return false; }
 }
 
+// ── UNIFIED DATA LAYER ─────────────────────────────────────
+// Uses Firebase if ready, falls back to JSONBin
+
 async function getUsers() {
+  // Firebase first
+  if (_fbReady) {
+    var users = await fbGetAll('users');
+    if (users) { localStorage.setItem('blp_uc', JSON.stringify(users)); return users; }
+  }
+  // JSONBin fallback
   const c = await jbGet(BIN_USERS);
   if (c && Array.isArray(c.users)) { localStorage.setItem('blp_uc', JSON.stringify(c.users)); return c.users; }
   const l = localStorage.getItem('blp_uc'); return l ? JSON.parse(l) : [];
 }
-async function saveUsers(arr) { localStorage.setItem('blp_uc', JSON.stringify(arr)); return await jbPut(BIN_USERS, {users:arr}); }
+
+async function saveUsers(arr) {
+  localStorage.setItem('blp_uc', JSON.stringify(arr));
+  return await jbPut(BIN_USERS, {users:arr});
+}
 
 async function getDonors() {
+  // Firebase first
+  if (_fbReady) {
+    var donors = await fbGetAll('donors');
+    if (donors) { localStorage.setItem('blp_dc', JSON.stringify(donors)); return donors; }
+  }
+  // JSONBin fallback
   const c = await jbGet(BIN_DONORS);
   if (c && Array.isArray(c.donors)) { localStorage.setItem('blp_dc', JSON.stringify(c.donors)); return c.donors; }
   const l = localStorage.getItem('blp_dc'); return l ? JSON.parse(l) : [];
 }
-// Returns only approved donors for public, all for admin
+
 async function getApprovedDonors() {
   var all = await getDonors();
   if (isAdmin()) return all;
   return all.filter(function(d){ return d.status !== 'pending'; });
 }
-async function saveDonors(arr) { localStorage.setItem('blp_dc', JSON.stringify(arr)); return await jbPut(BIN_DONORS, {donors:arr}); }
+
+async function saveDonors(arr) {
+  localStorage.setItem('blp_dc', JSON.stringify(arr));
+  // Firebase: update each donor individually
+  if (_fbReady) {
+    // Batch update not needed — individual saves happen via fbUpdate/fbAdd
+    return true;
+  }
+  return await jbPut(BIN_DONORS, {donors:arr});
+}
+
+async function addDonorToDb(donorData) {
+  // Firebase: check duplicate phone
+  if (_fbReady) {
+    var existing = await fbQuery('donors', 'phone', '==', donorData.phone);
+    if (existing && existing.length > 0) throw new Error('DUPLICATE_PHONE');
+    var id = await fbAdd('donors', donorData);
+    if (id) return id;
+  }
+  // JSONBin fallback
+  var donors = await getDonors();
+  if (donors.find(function(x){ return x.phone === donorData.phone; })) throw new Error('DUPLICATE_PHONE');
+  donorData.id = Date.now();
+  donors.push(donorData);
+  await jbPut(BIN_DONORS, {donors: donors});
+  localStorage.setItem('blp_dc', JSON.stringify(donors));
+  return donorData.id;
+}
+
+async function updateDonorInDb(id, data) {
+  if (_fbReady) return await fbUpdate('donors', String(id), data);
+  // JSONBin fallback
+  var donors = await getDonors();
+  var d = donors.find(function(x){ return x.id == id; });
+  if (d) Object.assign(d, data);
+  await jbPut(BIN_DONORS, {donors: donors});
+  localStorage.setItem('blp_dc', JSON.stringify(donors));
+  return true;
+}
+
+async function deleteDonorFromDb(id) {
+  if (_fbReady) return await fbDelete('donors', String(id));
+  var donors = await getDonors();
+  var filtered = donors.filter(function(x){ return x.id != id; });
+  await jbPut(BIN_DONORS, {donors: filtered});
+  localStorage.setItem('blp_dc', JSON.stringify(filtered));
+  return true;
+}
 
 async function cloudGetMarket() {
+  if (_fbReady) {
+    try {
+      var txSnap = await _fbDb.collection('market').orderBy('createdAt','desc').limit(50).get();
+      var lsSnap = await _fbDb.collection('listings').where('remaining','>',0).get();
+      var transactions = txSnap.docs.map(function(d){ return Object.assign({id:d.id},d.data()); });
+      var listings     = lsSnap.docs.map(function(d){ return Object.assign({id:d.id},d.data()); });
+      return { transactions: transactions, listings: listings };
+    } catch(e) {}
+  }
+  // JSONBin fallback
   const c = await jbGet(BIN_MARKET);
   if (c && c.transactions !== undefined) {
     localStorage.setItem('blp_mc', JSON.stringify(c));
     return {transactions: c.transactions || [], listings: c.listings || []};
   }
-  if (c && Array.isArray(c.market)) return {transactions: c.market, listings: []};
   try {
     const l = JSON.parse(localStorage.getItem('blp_mc') || '{}');
     if (l.transactions) return {transactions: l.transactions || [], listings: l.listings || []};
   } catch(e) {}
   return {transactions: [], listings: []};
 }
+
 async function cloudSaveMarket(transactions, listings) {
   const data = {transactions: transactions || [], listings: listings || []};
   localStorage.setItem('blp_mc', JSON.stringify(data));
   return await jbPut(BIN_MARKET, data);
 }
 
+// ── EMERGENCY REQUESTS ─────────────────────────────────────
+async function addEmergencyRequest(reqData) {
+  if (_fbReady) {
+    var id = await fbAdd('emergency_requests', reqData);
+    if (id) return id;
+  }
+  // JSONBin fallback
+  var r = await jbGet(BIN_MARKET);
+  var rec = r || {};
+  rec.requests = rec.requests || [];
+  rec.requests.unshift(Object.assign({}, reqData, { id: Date.now(), ts: Date.now() }));
+  rec.requests = rec.requests.slice(0, 50);
+  await jbPut(BIN_MARKET, rec);
+  return reqData.id;
+}
+
+async function getEmergencyRequests() {
+  if (_fbReady) {
+    try {
+      var snap = await _fbDb.collection('emergency_requests')
+        .where('status', '==', 'active')
+        .orderBy('createdAt', 'desc')
+        .limit(20).get();
+      return snap.docs.map(function(d){ return Object.assign({id:d.id},d.data()); });
+    } catch(e) {}
+  }
+  var r = await jbGet(BIN_MARKET);
+  return (r && r.requests) ? r.requests.filter(function(x){ return x.status !== 'fulfilled'; }) : [];
+}
+
+// ── REPORTS ────────────────────────────────────────────────
+async function addReport(reportData) {
+  if (_fbReady) return await fbAdd('reports', reportData);
+  var r = await jbGet(BIN_MARKET);
+  var rec = r || {};
+  rec.reports = rec.reports || [];
+  rec.reports.unshift(Object.assign({}, reportData, { id: Date.now(), ts: Date.now() }));
+  await jbPut(BIN_MARKET, rec);
+}
+
+async function getReports() {
+  if (_fbReady) {
+    var reports = await fbGetAll('reports');
+    if (reports) return reports;
+  }
+  var r = await jbGet(BIN_MARKET);
+  return (r && r.reports) || [];
+}
+
 function currentUser() { const u = localStorage.getItem('blp_user'); return u ? JSON.parse(u) : null; }
 function setCurrentUser(u) { localStorage.setItem('blp_user', JSON.stringify(u)); }
-function logout() { localStorage.removeItem('blp_user'); window.location.href = 'login.html'; }
+function logout() {
+  if (_fbReady && _fbAuth) { _fbAuth.signOut().catch(function(){}); }
+  localStorage.removeItem('blp_user');
+  window.location.href = 'login.html';
+}
 
 function showToast(msg, type) {
   let t = document.getElementById('blp-toast');
@@ -204,6 +446,7 @@ function triggerSOS() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  initFirebase();
   setupHamburger();
   updateNavAuth();
   initDarkMode();

@@ -10,6 +10,11 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩸</text></svg>" />
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <!-- Firebase Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
 </head>
 <body data-page="register">
 
@@ -209,6 +214,25 @@ window.addEventListener('DOMContentLoaded', function() {
       _toast2('Mobile number already registered. Please login.','error');
       btn.disabled=false;btn.textContent='Create Account \u2192';return;
     }
+    // ── Try Firebase Auth first ──
+    if(typeof fbSignUp==='function'){
+      try{
+        await fbSignUp(email,pass,{name:name,city:city,phone:phone,role:role,blood:blood});
+        // Also add to donors collection if donor role
+        if(role==='donor'&&blood&&phone&&typeof fbAdd==='function'){
+          await fbAdd('donors',{name:name,blood:blood,city:city,phone:phone,available:available,status:'pending',date:new Date().toISOString()});
+        }
+        _toast2('Registration successful! Please login.','success');
+        setTimeout(function(){window.location.href='login.html';},1200);
+        return;
+      }catch(fbErr){
+        var fc=fbErr.code||'';
+        if(fc==='auth/email-already-in-use'){_toast2('Email already registered. Please login.','error');btn.disabled=false;btn.textContent='Create Account →';return;}
+        if(fc==='auth/weak-password'){_toast2('Password too weak. Use at least 6 characters.','error');btn.disabled=false;btn.textContent='Create Account →';return;}
+        // Firebase not configured — fall through to JSONBin
+      }
+    }
+    // JSONBin fallback
     const newUser={id:Date.now(),name:name,email:email,password:pass,blood:blood,city:city,phone:phone,role:role,joined:new Date().toISOString()};
     users.push(newUser);
     if(role==='donor'&&blood&&phone){

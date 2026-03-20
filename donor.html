@@ -13,6 +13,11 @@
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#e63946" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <!-- Firebase Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
 </head>
 <body data-page="donor">
 
@@ -224,7 +229,23 @@ window.addEventListener('DOMContentLoaded', function() {
         });
       }
     }catch(e){}
-    donors.push({id:Date.now(),name:name,blood:blood,city:city,phone:phone,available:available,health:health,lastDonation:lastDon,lat:lat,lon:lon,status:'pending',date:new Date().toISOString()});
+    var donorData={id:Date.now(),name:name,blood:blood,city:city,phone:phone,available:available,health:health,lastDonation:lastDon,lat:lat,lon:lon,status:'pending',date:new Date().toISOString()};
+    // ── Try Firebase first ──
+    if(typeof fbAdd==='function'&&typeof _fbReady!=='undefined'&&_fbReady){
+      try{
+        // Check duplicate in Firebase
+        if(typeof fbQuery==='function'){
+          var existing=await fbQuery('donors','phone','==',phone);
+          if(existing&&existing.length>0){_toast3('A donor with this phone number already exists.','error');btn.disabled=false;btn.textContent='🩸 Register as Donor';return;}
+        }
+        await fbAdd('donors',donorData);
+        _toast3('Donor registered! Awaiting admin approval.','success');
+        setTimeout(function(){fresh.reset();btn.disabled=false;btn.textContent='🩸 Register as Donor';},1200);
+        return;
+      }catch(e){/* fall through to JSONBin */}
+    }
+    // JSONBin fallback
+    donors.push(donorData);
     localStorage.setItem('blp_dc',JSON.stringify(donors));
     try{await fetch(_BB3+'/'+_BD3,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK3},body:JSON.stringify({donors:donors})});}catch(e){}
     _toast3('Donor registered! Awaiting admin approval.','success');
