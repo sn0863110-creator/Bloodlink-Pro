@@ -237,8 +237,12 @@
 </script>
 <script>
 async function performSearch(){
+  const blood=(document.getElementById('filter-blood')||{value:''}).value;
+  const city=(document.getElementById('filter-city')||{value:''}).value.trim().toLowerCase();
+  const results=document.getElementById('search-results');
   // Only show approved donors to public, all to admin
   const admin = (typeof isAdmin==='function') && isAdmin();
+  const allDonors=await getDonors();
   const donors=allDonors.filter(function(d){return admin || d.status!=='pending';});
   const found=donors.filter(function(d){return(!blood||d.blood===blood)&&(!city||d.city.toLowerCase().includes(city));});
   const ce=document.getElementById('results-count');if(ce)ce.textContent=found.length+' donor(s) found';
