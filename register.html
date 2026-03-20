@@ -163,14 +163,6 @@
 
 <script src="script.js"></script>
 <script>
-const _AK2='$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW';
-const _BU2='69bc2150aa77b81da9fcb1e3';
-const _BD2='69bc22a2b7ec241ddc82de74';
-const _BB2='https://api.jsonbin.io/v3/b';
-async function _jbGet2(id){try{const r=await fetch(_BB2+'/'+id+'/latest',{headers:{'X-Master-Key':_AK2}});if(!r.ok)return null;const d=await r.json();return d.record||null;}catch(e){return null;}}
-async function _jbPut2(id,data){try{const r=await fetch(_BB2+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK2},body:JSON.stringify(data)});return r.ok;}catch(e){return false;}}
-async function _getUsers2(){const cloud=await _jbGet2(_BU2);if(cloud&&Array.isArray(cloud.users)){localStorage.setItem('blp_uc',JSON.stringify(cloud.users));return cloud.users;}const c=localStorage.getItem('blp_uc');return c?JSON.parse(c):[];}
-function _toast2(msg,type){let t=document.getElementById('blp-toast');if(!t){t=document.createElement('div');t.id='blp-toast';t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:8px;color:#fff;font-weight:600;z-index:9999;font-size:14px;transition:opacity .4s';document.body.appendChild(t);}t.textContent=msg;t.style.background=type==='success'?'#27ae60':type==='error'?'#e74c3c':'#2980b9';t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(function(){t.style.opacity='0';},3000);}
 window.addEventListener('DOMContentLoaded', function() {
   // Role tabs
   document.querySelectorAll('.role-tab').forEach(function(tab){
@@ -200,35 +192,34 @@ window.addEventListener('DOMContentLoaded', function() {
     const role  = (document.getElementById('r-role')||{value:'user'}).value;
     const available = (document.getElementById('r-available')||{value:'yes'}).value || 'yes';
     const btn   = fresh.querySelector('button[type=submit]');
-    if(!name||!email||!pass||!phoneAll){_toast2('Please fill all required fields.','error');return;}
-    if(pass.length<6){_toast2('Password must be at least 6 characters.','error');return;}
-    if(!/^[6-9]\d{9}$/.test(phoneAll)){_toast2('Enter a valid 10-digit mobile number.','error');return;}
-    if(role==='donor'&&phoneDonor&&!/^[6-9]\d{9}$/.test(phoneDonor)){_toast2('Enter a valid 10-digit mobile number.','error');return;}
+    if(!name||!email||!pass||!phoneAll){showToast('Please fill all required fields.','error');return;}
+    if(pass.length<6){showToast('Password must be at least 6 characters.','error');return;}
+    if(!/^[6-9]\d{9}$/.test(phoneAll)){showToast('Enter a valid 10-digit mobile number.','error');return;}
+    if(role==='donor'&&phoneDonor&&!/^[6-9]\d{9}$/.test(phoneDonor)){showToast('Enter a valid 10-digit mobile number.','error');return;}
     btn.disabled=true;btn.textContent='Registering...';
-    const users=await _getUsers2();
+    const users=await getUsers();
     if(users.find(function(u){return u.email.toLowerCase()===email;})){
-      _toast2('Email already registered. Please login.','error');
-      btn.disabled=false;btn.textContent='Create Account \u2192';return;
+      showToast('Email already registered. Please login.','error');
+      btn.disabled=false;btn.textContent='Create Account →';return;
     }
     if(users.find(function(u){return u.phone===phoneAll;})){
-      _toast2('Mobile number already registered. Please login.','error');
-      btn.disabled=false;btn.textContent='Create Account \u2192';return;
+      showToast('Mobile number already registered. Please login.','error');
+      btn.disabled=false;btn.textContent='Create Account →';return;
     }
     // ── Try Firebase Auth first ──
     if(typeof fbSignUp==='function'){
       try{
         await fbSignUp(email,pass,{name:name,city:city,phone:phone,role:role,blood:blood});
-        // Also add to donors collection if donor role
         if(role==='donor'&&blood&&phone&&typeof fbAdd==='function'){
           await fbAdd('donors',{name:name,blood:blood,city:city,phone:phone,available:available,status:'pending',date:new Date().toISOString()});
         }
-        _toast2('Registration successful! Please login.','success');
+        showToast('Registration successful! Please login.','success');
         setTimeout(function(){window.location.href='login.html';},1200);
         return;
       }catch(fbErr){
         var fc=fbErr.code||'';
-        if(fc==='auth/email-already-in-use'){_toast2('Email already registered. Please login.','error');btn.disabled=false;btn.textContent='Create Account →';return;}
-        if(fc==='auth/weak-password'){_toast2('Password too weak. Use at least 6 characters.','error');btn.disabled=false;btn.textContent='Create Account →';return;}
+        if(fc==='auth/email-already-in-use'){showToast('Email already registered. Please login.','error');btn.disabled=false;btn.textContent='Create Account →';return;}
+        if(fc==='auth/weak-password'){showToast('Password too weak. Use at least 6 characters.','error');btn.disabled=false;btn.textContent='Create Account →';return;}
         // Firebase not configured — fall through to JSONBin
       }
     }
@@ -236,15 +227,12 @@ window.addEventListener('DOMContentLoaded', function() {
     const newUser={id:Date.now(),name:name,email:email,password:pass,blood:blood,city:city,phone:phone,role:role,joined:new Date().toISOString()};
     users.push(newUser);
     if(role==='donor'&&blood&&phone){
-      const dc=await _jbGet2(_BD2);
-      const donors=(dc&&Array.isArray(dc.donors))?dc.donors:(JSON.parse(localStorage.getItem('blp_dc')||'[]'));
+      const donors=await getDonors();
       donors.push({id:Date.now()+1,name:name,blood:blood,city:city,phone:phone,available:available,status:'pending',date:new Date().toISOString()});
-      await _jbPut2(_BD2,{donors:donors});
-      localStorage.setItem('blp_dc',JSON.stringify(donors));
+      await saveDonors(donors);
     }
-    const ok=await _jbPut2(_BU2,{users:users});
-    localStorage.setItem('blp_uc',JSON.stringify(users));
-    _toast2(ok?'Registration successful! Please login.':'Registered! Login on this device.',ok?'success':'info');
+    await saveUsers(users);
+    showToast('Registration successful! Please login.','success');
     setTimeout(function(){window.location.href='login.html';},1200);
   });
 });

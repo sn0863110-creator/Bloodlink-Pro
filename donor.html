@@ -190,11 +190,6 @@
 </footer>
 <script src="script.js"></script>
 <script>
-const _AK3='$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW';
-const _BD3='69bc22a2b7ec241ddc82de74';
-const _BB3='https://api.jsonbin.io/v3/b';
-async function _getDonors3(){try{const r=await fetch(_BB3+'/'+_BD3+'/latest',{headers:{'X-Master-Key':_AK3}});if(!r.ok)throw 0;const d=await r.json();const arr=(d.record&&d.record.donors)||[];localStorage.setItem('blp_dc',JSON.stringify(arr));return arr;}catch(e){const c=localStorage.getItem('blp_dc');return c?JSON.parse(c):[];}}
-function _toast3(msg,type){let t=document.getElementById('blp-toast');if(!t){t=document.createElement('div');t.id='blp-toast';t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:8px;color:#fff;font-weight:600;z-index:9999;font-size:14px;transition:opacity .4s';document.body.appendChild(t);}t.textContent=msg;t.style.background=type==='success'?'#27ae60':type==='error'?'#e74c3c':'#2980b9';t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(function(){t.style.opacity='0';},3000);}
 window.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('donor-form');
   if (!form) return;
@@ -212,14 +207,10 @@ window.addEventListener('DOMContentLoaded', function() {
     const lastDon   = document.getElementById('d-lastdon').value || '';
     const health    = document.getElementById('d-health').value || 'good';
     const consent   = document.getElementById('d-consent').checked;
-    if(!name||!blood||!city||!phone){_toast3('Please fill all required fields.','error');btn.disabled=false;btn.textContent='🩸 Register as Donor';return;}
-    if(!/^[6-9]\d{9}$/.test(phone)){_toast3('Enter a valid 10-digit mobile number.','error');btn.disabled=false;btn.textContent='🩸 Register as Donor';return;}
-    if(!consent){_toast3('Please accept the consent checkbox.','error');btn.disabled=false;btn.textContent='🩸 Register as Donor';return;}
-    // Safe interval check — 56 days
-    if(lastDon){var daysSince=Math.floor((Date.now()-new Date(lastDon))/86400000);if(daysSince<56){_toast3('You can donate again after '+(56-daysSince)+' more days (56-day safe interval).','error');btn.disabled=false;btn.textContent='🩸 Register as Donor';return;}}
-    const donors = await _getDonors3();
-    // Duplicate phone check
-    if(donors.find(function(x){return x.phone===phone;})){_toast3('A donor with this phone number already exists.','error');btn.disabled=false;btn.textContent='🩸 Register as Donor';return;}
+    if(!name||!blood||!city||!phone){showToast('Please fill all required fields.','error');btn.disabled=false;btn.textContent='🩸 Register as Donor';return;}
+    if(!/^[6-9]\d{9}$/.test(phone)){showToast('Enter a valid 10-digit mobile number.','error');btn.disabled=false;btn.textContent='🩸 Register as Donor';return;}
+    if(!consent){showToast('Please accept the consent checkbox.','error');btn.disabled=false;btn.textContent='🩸 Register as Donor';return;}
+    if(lastDon){var daysSince=Math.floor((Date.now()-new Date(lastDon))/86400000);if(daysSince<56){showToast('You can donate again after '+(56-daysSince)+' more days (56-day safe interval).','error');btn.disabled=false;btn.textContent='🩸 Register as Donor';return;}}
     // Try to get geolocation
     var lat=null,lon=null;
     try{
@@ -230,26 +221,15 @@ window.addEventListener('DOMContentLoaded', function() {
       }
     }catch(e){}
     var donorData={id:Date.now(),name:name,blood:blood,city:city,phone:phone,available:available,health:health,lastDonation:lastDon,lat:lat,lon:lon,status:'pending',date:new Date().toISOString()};
-    // ── Try Firebase first ──
-    if(typeof fbAdd==='function'&&typeof _fbReady!=='undefined'&&_fbReady){
-      try{
-        // Check duplicate in Firebase
-        if(typeof fbQuery==='function'){
-          var existing=await fbQuery('donors','phone','==',phone);
-          if(existing&&existing.length>0){_toast3('A donor with this phone number already exists.','error');btn.disabled=false;btn.textContent='🩸 Register as Donor';return;}
-        }
-        await fbAdd('donors',donorData);
-        _toast3('Donor registered! Awaiting admin approval.','success');
-        setTimeout(function(){fresh.reset();btn.disabled=false;btn.textContent='🩸 Register as Donor';},1200);
-        return;
-      }catch(e){/* fall through to JSONBin */}
+    try {
+      await addDonorToDb(donorData);
+      showToast('Donor registered! Awaiting admin approval.','success');
+      setTimeout(function(){fresh.reset();btn.disabled=false;btn.textContent='🩸 Register as Donor';},1200);
+    } catch(err) {
+      if(err.message==='DUPLICATE_PHONE'){showToast('A donor with this phone number already exists.','error');}
+      else{showToast('Registration failed. Please try again.','error');}
+      btn.disabled=false;btn.textContent='🩸 Register as Donor';
     }
-    // JSONBin fallback
-    donors.push(donorData);
-    localStorage.setItem('blp_dc',JSON.stringify(donors));
-    try{await fetch(_BB3+'/'+_BD3,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK3},body:JSON.stringify({donors:donors})});}catch(e){}
-    _toast3('Donor registered! Awaiting admin approval.','success');
-    setTimeout(function(){fresh.reset();btn.disabled=false;btn.textContent='🩸 Register as Donor';},1200);
   });
 });
 </script>

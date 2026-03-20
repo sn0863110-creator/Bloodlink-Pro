@@ -166,16 +166,6 @@
 </footer>
 <script src="script.js"></script>
 <script>
-const _AK_P='$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW';
-const _BU_P='69bc2150aa77b81da9fcb1e3';
-const _BD_P='69bc22a2b7ec241ddc82de74';
-const _BB_P='https://api.jsonbin.io/v3/b';
-
-async function _getUsers_P(){try{var r=await fetch(_BB_P+'/'+_BU_P+'/latest',{headers:{'X-Master-Key':_AK_P}});var d=await r.json();return(d.record&&d.record.users)||[];}catch(e){return JSON.parse(localStorage.getItem('blp_uc')||'[]');}}
-async function _saveUsers_P(arr){localStorage.setItem('blp_uc',JSON.stringify(arr));try{await fetch(_BB_P+'/'+_BU_P,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK_P},body:JSON.stringify({users:arr})});}catch(e){}}
-async function _getDonors_P(){try{var r=await fetch(_BB_P+'/'+_BD_P+'/latest',{headers:{'X-Master-Key':_AK_P}});var d=await r.json();return(d.record&&d.record.donors)||[];}catch(e){return JSON.parse(localStorage.getItem('blp_dc')||'[]');}}
-async function _saveDonors_P(arr){localStorage.setItem('blp_dc',JSON.stringify(arr));try{await fetch(_BB_P+'/'+_BD_P,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK_P},body:JSON.stringify({donors:arr})});}catch(e){}}
-
 function calcTrustScore(user,donorRecord){
   var score=0;
   if(user.email) score+=20;
@@ -209,24 +199,21 @@ async function toggleAvailability(){
   var isAvail=toggle.checked;
   updateAvailToggleUI(isAvail);
   if(!_currentDonorRecord) return;
-  var donors=await _getDonors_P();
-  var d=donors.find(function(x){return x.id==_currentDonorRecord.id;});
-  if(d){d.available=isAvail?'yes':'no';await _saveDonors_P(donors);}
+  await updateDonorInDb(_currentDonorRecord.id,{available:isAvail?'yes':'no'});
+  _currentDonorRecord.available=isAvail?'yes':'no';
   var user=JSON.parse(localStorage.getItem('blp_user')||'null');
   if(user){user.available=isAvail?'yes':'no';localStorage.setItem('blp_user',JSON.stringify(user));}
-  if(typeof showToast==='function') showToast(isAvail?'✅ You are now available to donate':'⏸️ Availability turned off','success');
+  showToast(isAvail?'✅ You are now available to donate':'⏸️ Availability turned off','success');
 }
 
 async function requestDeleteDonor(){
   if(!confirm('Remove your donor profile? This cannot be undone.')) return;
   if(!_currentDonorRecord) return;
-  var donors=await _getDonors_P();
-  var filtered=donors.filter(function(x){return x.id!=_currentDonorRecord.id;});
-  await _saveDonors_P(filtered);
+  await deleteDonorFromDb(_currentDonorRecord.id);
   _currentDonorRecord=null;
   document.getElementById('avail-toggle-card').style.display='none';
   document.getElementById('donation-info-card').style.display='none';
-  if(typeof showToast==='function') showToast('Donor profile removed','error');
+  showToast('Donor profile removed','error');
 }
 
 window.addEventListener('DOMContentLoaded', async function(){
@@ -241,7 +228,7 @@ window.addEventListener('DOMContentLoaded', async function(){
   document.getElementById('ep-name').value=user.name||'';
   document.getElementById('ep-city').value=user.city||'';
 
-  var donors=await _getDonors_P();
+  var donors=await getDonors();
   var donorRec=donors.find(function(d){return d.phone===user.phone;});
   _currentDonorRecord=donorRec||null;
 
@@ -302,13 +289,13 @@ window.addEventListener('DOMContentLoaded', async function(){
         if(newCity)user.city=newCity;
         localStorage.setItem('blp_user',JSON.stringify(user));
         btn.disabled=false;btn.textContent='💾 Save Changes';
-        if(typeof showToast==='function')showToast('✅ Profile updated!','success');
+        showToast('✅ Profile updated!','success');
         document.getElementById('profile-name').textContent=newName||user.name;
         return;
-      }catch(e){/* fall through to JSONBin */}
+      }catch(fbErr){/* fall through to JSONBin */}
     }
     // JSONBin fallback
-    var users=await _getUsers_P();
+    var users=await getUsers();
     var idx=users.findIndex(function(u){return u.phone===user.phone;});
     if(idx>-1){
       if(newName) users[idx].name=newName;
@@ -316,21 +303,19 @@ window.addEventListener('DOMContentLoaded', async function(){
       if(newPass&&newPass.length>=6) users[idx].password=newPass;
       user=users[idx];
       localStorage.setItem('blp_user',JSON.stringify(user));
-      await _saveUsers_P(users);
+      await saveUsers(users);
     }
     if(_currentDonorRecord){
-      var donors2=await _getDonors_P();
-      var di=donors2.findIndex(function(d){return d.id==_currentDonorRecord.id;});
-      if(di>-1){
-        if(newName) donors2[di].name=newName;
-        if(newCity) donors2[di].city=newCity;
-        if(newLastDon) donors2[di].lastDonation=newLastDon;
-        if(newHealth) donors2[di].health=newHealth;
-        await _saveDonors_P(donors2);
-      }
+      await updateDonorInDb(_currentDonorRecord.id,Object.assign(
+        {},
+        newName?{name:newName}:{},
+        newCity?{city:newCity}:{},
+        newLastDon?{lastDonation:newLastDon}:{},
+        newHealth?{health:newHealth}:{}
+      ));
     }
     btn.disabled=false; btn.textContent='💾 Save Changes';
-    if(typeof showToast==='function') showToast('✅ Profile updated!','success');
+    showToast('✅ Profile updated!','success');
     document.getElementById('profile-name').textContent=newName||user.name;
   });
 });

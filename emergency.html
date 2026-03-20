@@ -192,149 +192,95 @@
 
 <script src="script.js"></script>
 <script>
-const _AK_E='$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW';
-const _BD_E='69bc22a2b7ec241ddc82de74'; // donors bin
-const _BM_E='69bc22a2b7ec241ddc82de79'; // market bin (stores requests too)
-const _BB_E='https://api.jsonbin.io/v3/b';
-
 // ── RATE LIMITING (max 3 requests per day per device) ──
 function checkRateLimit() {
   var today = new Date().toDateString();
-  var key = 'blp_req_count_' + today;
-  var count = parseInt(localStorage.getItem(key) || '0');
+  var count = parseInt(localStorage.getItem('blp_req_count_' + today) || '0');
   return count;
 }
 function incrementRateLimit() {
   var today = new Date().toDateString();
   var key = 'blp_req_count_' + today;
-  var count = parseInt(localStorage.getItem(key) || '0');
-  localStorage.setItem(key, count + 1);
+  localStorage.setItem(key, parseInt(localStorage.getItem(key) || '0') + 1);
 }
 
 // ── CAPTCHA ──
-var _captchaA = 0, _captchaB = 0;
+var _captchaA = 0, _captchaB = 0, _captchaOp = '+';
 function refreshCaptcha() {
   _captchaA = Math.floor(Math.random() * 15) + 1;
   _captchaB = Math.floor(Math.random() * 10) + 1;
   var ops = ['+', '-', '×'];
-  var op = ops[Math.floor(Math.random() * ops.length)];
+  _captchaOp = ops[Math.floor(Math.random() * ops.length)];
   var q = document.getElementById('captcha-question');
   var ans = document.getElementById('captcha-answer');
-  if (q) q.textContent = _captchaA + ' ' + op + ' ' + _captchaB + ' = ?';
+  if (q) q.textContent = _captchaA + ' ' + _captchaOp + ' ' + _captchaB + ' = ?';
   if (ans) ans.value = '';
-  _captchaA = op === '+' ? _captchaA : op === '-' ? _captchaA : _captchaA;
-  _captchaB = _captchaB;
-  _captchaOp = op;
 }
-var _captchaOp = '+';
 function verifyCaptcha() {
   var ans = parseInt(document.getElementById('captcha-answer').value);
   var correct = _captchaOp === '+' ? _captchaA + _captchaB : _captchaOp === '-' ? _captchaA - _captchaB : _captchaA * _captchaB;
   return ans === correct;
 }
 
-async function _getRequests(){
-  try{var r=await fetch(_BB_E+'/'+_BM_E+'/latest',{headers:{'X-Master-Key':_AK_E}});if(!r.ok)throw 0;var d=await r.json();return d.record.requests||[];}
-  catch(e){return JSON.parse(localStorage.getItem('blp_req')||'[]');}
-}
-async function _saveRequest(req){
-  try{
-    var r=await fetch(_BB_E+'/'+_BM_E+'/latest',{headers:{'X-Master-Key':_AK_E}});
-    var d=await r.json();var rec=d.record||{};
-    rec.requests=rec.requests||[];
-    rec.requests.unshift(req);
-    rec.requests=rec.requests.slice(0,50);
-    localStorage.setItem('blp_req',JSON.stringify(rec.requests));
-    await fetch(_BB_E+'/'+_BM_E,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK_E},body:JSON.stringify(rec)});
-  }catch(e){var arr=JSON.parse(localStorage.getItem('blp_req')||'[]');arr.unshift(req);localStorage.setItem('blp_req',JSON.stringify(arr.slice(0,50)));}
-}
-async function _getDonors_E(){
-  try{var r=await fetch(_BB_E+'/'+_BD_E+'/latest',{headers:{'X-Master-Key':_AK_E}});if(!r.ok)throw 0;var d=await r.json();return(d.record&&d.record.donors)||[];}
-  catch(e){return JSON.parse(localStorage.getItem('blp_dc')||'[]');}
-}
-
-// Render active requests
+// Render active requests using unified data layer
 async function renderActiveRequests(){
-  var reqs=await _getRequests();
-  var active=reqs.filter(function(r){return r.status!=='fulfilled'&&(Date.now()-r.ts)<3600000*6;});
-  var sec=document.getElementById('active-requests-section');
-  var list=document.getElementById('active-requests-list');
+  var reqs = await getEmergencyRequests();
+  var active = reqs.filter(function(r){
+    var ts = r.ts || (r.createdAt && r.createdAt.toMillis ? r.createdAt.toMillis() : 0);
+    return r.status !== 'fulfilled' && (Date.now() - ts) < 3600000 * 6;
+  });
+  var sec = document.getElementById('active-requests-section');
+  var list = document.getElementById('active-requests-list');
   if(!active.length){if(sec)sec.style.display='none';return;}
   if(sec)sec.style.display='block';
   var urgColors={'critical':'#fef2f2','high':'#fffbeb','normal':'#f0fdf4'};
   var urgBorder={'critical':'#fca5a5','high':'#fcd34d','normal':'#86efac'};
   var urgLabel={'critical':'🔴 CRITICAL','high':'🟡 HIGH','normal':'🟢 NORMAL'};
   list.innerHTML=active.slice(0,5).map(function(r){
-    var age=Math.floor((Date.now()-r.ts)/60000);
+    var ts = r.ts || (r.createdAt && r.createdAt.toMillis ? r.createdAt.toMillis() : Date.now());
+    var age=Math.floor((Date.now()-ts)/60000);
     var ageStr=age<60?age+' min ago':Math.floor(age/60)+' hr ago';
     return '<div style="background:'+urgColors[r.urgency||'normal']+';border:1.5px solid '+urgBorder[r.urgency||'normal']+';border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">'
       +'<span style="font-size:1.2rem;">🩸</span>'
-      +'<div style="flex:1;min-width:140px;"><div style="font-weight:700;font-size:0.9rem;">'+r.blood+' needed · '+r.units+' unit(s)</div>'
-      +'<div style="font-size:0.78rem;color:#6b7280;">📍 '+r.city+(r.hospital?' · '+r.hospital:'')+' · '+ageStr+'</div></div>'
+      +'<div style="flex:1;min-width:140px;"><div style="font-weight:700;font-size:0.9rem;">'+(r.blood||'')+' needed · '+(r.units||1)+' unit(s)</div>'
+      +'<div style="font-size:0.78rem;color:#6b7280;">📍 '+(r.city||'')+(r.hospital?' · '+r.hospital:'')+' · '+ageStr+'</div></div>'
       +'<span style="font-size:0.72rem;font-weight:800;padding:3px 10px;border-radius:10px;background:'+urgBorder[r.urgency||'normal']+';color:#1a1a2e;">'+urgLabel[r.urgency||'normal']+'</span>'
-      +'<a href="tel:'+r.contact+'" onclick="return confirm(\'Call '+r.name+' about '+r.blood+' blood request?\')" style="background:#e63946;color:#fff;padding:6px 14px;border-radius:8px;font-size:0.78rem;font-weight:700;text-decoration:none;">📞 Respond</a>'
+      +'<a href="tel:'+r.contact+'" onclick="return confirm(\'Call '+(r.name||'patient')+' about '+(r.blood||'')+' blood request?\')" style="background:#e63946;color:#fff;padding:6px 14px;border-radius:8px;font-size:0.78rem;font-weight:700;text-decoration:none;">📞 Respond</a>'
       +'</div>';
   }).join('');
 }
 
 // Form submit
-document.addEventListener('DOMContentLoaded',function(){
+document.addEventListener('DOMContentLoaded', function(){
   refreshCaptcha();
   renderActiveRequests();
-  var form=document.getElementById('emergency-form');
-  if(!form)return;
-  form.addEventListener('submit',async function(e){
+  var form = document.getElementById('emergency-form');
+  if(!form) return;
+  form.addEventListener('submit', async function(e){
     e.preventDefault();
-    // Rate limit check
-    var reqCount = checkRateLimit();
-    if (reqCount >= 3) {
-      if(typeof showToast==='function') showToast('⚠️ Max 3 requests per day allowed. Try again tomorrow.','error');
-      return;
-    }
-    // CAPTCHA check
-    if (!verifyCaptcha()) {
-      if(typeof showToast==='function') showToast('❌ Wrong answer. Please solve the math question.','error');
-      refreshCaptcha();
-      return;
-    }
-    var btn=document.getElementById('e-submit-btn');
-    btn.disabled=true;btn.textContent='Submitting...';
-    var name=document.getElementById('e-name').value.trim();
-    var blood=document.getElementById('e-blood').value;
-    var units=document.getElementById('e-units').value||1;
-    var city=document.getElementById('e-city').value.trim();
-    var contact=document.getElementById('e-contact').value.trim();
-    var hospital=document.getElementById('e-hospital').value.trim();
-    var urgency=document.querySelector('input[name="urgency"]:checked').value;
-    if(!/^[6-9]\d{9}$/.test(contact)){if(typeof showToast==='function')showToast('Enter valid 10-digit mobile number','error');btn.disabled=false;btn.textContent='🚨 Submit Emergency Request';return;}
-    var req={id:Date.now(),name:name,blood:blood,units:parseInt(units),city:city,contact:contact,hospital:hospital,urgency:urgency,status:'active',ts:Date.now()};
-    // ── Try Firebase first ──
-    if(typeof fbAdd==='function'&&typeof _fbReady!=='undefined'&&_fbReady){
-      try{
-        await fbAdd('emergency_requests',req);
-        incrementRateLimit();
-        var donors=await _getDonors_E();
-        var matched=donors.filter(function(d){return d.status!=='pending'&&d.available!=='no'&&d.blood===blood&&d.city.toLowerCase()===city.toLowerCase();});
-        form.style.display='none';
-        var succ=document.getElementById('e-success');succ.style.display='block';
-        var matchDiv=document.getElementById('e-matched-donors');
-        if(matched.length){matchDiv.innerHTML='<div style="background:#dcfce7;border:1px solid #86efac;border-radius:10px;padding:12px;margin-bottom:8px;"><div style="font-weight:700;color:#15803d;margin-bottom:6px;">✅ '+matched.length+' matching donor(s) found in '+city+':</div>'+matched.slice(0,3).map(function(d){return '<div style="font-size:0.82rem;padding:4px 0;border-bottom:1px solid #bbf7d0;"><b>'+d.name+'</b> · '+d.blood+' · <a href="tel:'+d.phone+'" style="color:#15803d;font-weight:700;">Call Now</a></div>';}).join('')+'</div>';}
-        else{matchDiv.innerHTML='<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px;font-size:0.85rem;color:#92400e;"><b>No exact match in '+city+'</b> — try nearby cities or contact blood banks directly.</div>';}
-        if(typeof playEmergencyHorn==='function')playEmergencyHorn();
-        if(typeof showToast==='function')showToast('🚨 Emergency request submitted!','error');
-        return;
-      }catch(e){/* fall through to JSONBin */}
-    }
-    // JSONBin fallback
-    await _saveRequest(req);
+    if(checkRateLimit() >= 3){showToast('⚠️ Max 3 requests per day allowed. Try again tomorrow.','error');return;}
+    if(!verifyCaptcha()){showToast('❌ Wrong answer. Please solve the math question.','error');refreshCaptcha();return;}
+    var btn = document.getElementById('e-submit-btn');
+    btn.disabled=true; btn.textContent='Submitting...';
+    var name     = document.getElementById('e-name').value.trim();
+    var blood    = document.getElementById('e-blood').value;
+    var units    = document.getElementById('e-units').value || 1;
+    var city     = document.getElementById('e-city').value.trim();
+    var contact  = document.getElementById('e-contact').value.trim();
+    var hospital = document.getElementById('e-hospital').value.trim();
+    var urgency  = document.querySelector('input[name="urgency"]:checked').value;
+    if(!/^[6-9]\d{9}$/.test(contact)){showToast('Enter valid 10-digit mobile number','error');btn.disabled=false;btn.textContent='🚨 Submit Emergency Request';return;}
+    var req = {id:Date.now(),name:name,blood:blood,units:parseInt(units),city:city,contact:contact,hospital:hospital,urgency:urgency,status:'active',ts:Date.now()};
+    try {
+      await addEmergencyRequest(req);
+    } catch(e) { /* saved in fallback */ }
     incrementRateLimit();
     // Find matching donors
-    var donors=await _getDonors_E();
-    var matched=donors.filter(function(d){return d.status!=='pending'&&d.available!=='no'&&d.blood===blood&&d.city.toLowerCase()===city.toLowerCase();});
-    // Show success
+    var donors = await getDonors();
+    var matched = donors.filter(function(d){return d.status!=='pending'&&d.available!=='no'&&d.blood===blood&&d.city.toLowerCase()===city.toLowerCase();});
     form.style.display='none';
-    var succ=document.getElementById('e-success');succ.style.display='block';
-    var matchDiv=document.getElementById('e-matched-donors');
+    var succ = document.getElementById('e-success'); succ.style.display='block';
+    var matchDiv = document.getElementById('e-matched-donors');
     if(matched.length){
       matchDiv.innerHTML='<div style="background:#dcfce7;border:1px solid #86efac;border-radius:10px;padding:12px;margin-bottom:8px;"><div style="font-weight:700;color:#15803d;margin-bottom:6px;">✅ '+matched.length+' matching donor(s) found in '+city+':</div>'
         +matched.slice(0,3).map(function(d){return '<div style="font-size:0.82rem;padding:4px 0;border-bottom:1px solid #bbf7d0;"><b>'+d.name+'</b> · '+d.blood+' · <a href="tel:'+d.phone+'" style="color:#15803d;font-weight:700;">Call Now</a></div>';}).join('')
@@ -343,7 +289,7 @@ document.addEventListener('DOMContentLoaded',function(){
       matchDiv.innerHTML='<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px;font-size:0.85rem;color:#92400e;"><b>No exact match in '+city+'</b> — try nearby cities or contact blood banks directly.</div>';
     }
     if(typeof playEmergencyHorn==='function') playEmergencyHorn();
-    if(typeof showToast==='function') showToast('🚨 Emergency request submitted!','error');
+    showToast('🚨 Emergency request submitted!','error');
   });
 });
 </script>
