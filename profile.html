@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Profile — BloodLink Pro</title>
+  <meta name="robots" content="noindex, follow" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩸</text></svg>" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#e63946" />
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+</head>
+<body data-page="profile">
+<nav class="navbar">
+  <a href="index.html" class="nav-brand"><span class="drop-icon">🩸</span> BloodLink<span style="color:#1a1a2e;font-weight:400">Pro</span></a>
+  <button class="nav-toggle" id="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  <div class="nav-links" id="nav-links">
+    <a href="index.html">Home</a>
+    <a href="search.html">Find Donors</a>
+    <a href="emergency.html" style="color:#e63946;font-weight:700;">🚨 Emergency</a>
+    <a href="banks.html">Blood Banks</a>
+    <span id="nav-user" style="display:none;font-size:0.85rem;font-weight:600;color:var(--primary);padding:0.4rem 0.8rem;background:var(--bg-soft);border-radius:8px;"></span>
+    <a href="dashboard.html" id="nav-dashboard" class="btn btn-ghost btn-sm" style="display:none;">Dashboard</a>
+    <a href="login.html" id="nav-login" class="btn btn-outline btn-sm">Login</a>
+    <a href="register.html" id="nav-register" class="btn btn-primary btn-sm">Register</a>
+    <button id="nav-logout" class="btn btn-ghost btn-sm" style="display:none;">Logout</button>
+  </div>
+</nav>
+
+<div style="max-width:760px;margin:0 auto;padding:2rem 1rem;">
+
+  <!-- Not logged in state -->
+  <div id="not-logged-in" style="display:none;text-align:center;padding:4rem 2rem;">
+    <div style="font-size:3rem;margin-bottom:1rem;">🔒</div>
+    <h2 style="font-size:1.4rem;font-weight:800;margin-bottom:0.5rem;">Login Required</h2>
+    <p style="color:#6b7280;margin-bottom:1.5rem;">Please login to view your profile.</p>
+    <a href="login.html" class="btn btn-primary btn-lg">Login Now →</a>
+  </div>
+
+  <!-- Profile Content -->
+  <div id="profile-content" style="display:none;">
+
+    <!-- Profile Header Card -->
+    <div style="background:linear-gradient(135deg,#1a1a2e,#0f172a);border-radius:20px;padding:2rem;margin-bottom:1.5rem;color:#fff;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(230,57,70,0.1);border-radius:50%;"></div>
+      <div style="display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;">
+        <div id="profile-avatar" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#e63946,#c1121f);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:900;color:#fff;flex-shrink:0;border:3px solid rgba(255,255,255,0.2);">?</div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <h2 id="profile-name" style="font-size:1.4rem;font-weight:900;color:#fff;margin:0;">Loading...</h2>
+            <span id="profile-role-badge" style="font-size:0.7rem;font-weight:800;padding:3px 10px;border-radius:10px;background:rgba(230,57,70,0.3);color:#fca5a5;"></span>
+            <span id="profile-verified-badge" style="display:none;font-size:0.7rem;font-weight:800;padding:3px 10px;border-radius:10px;background:rgba(22,163,74,0.3);color:#86efac;">✅ Verified Donor</span>
+          </div>
+          <div id="profile-meta" style="font-size:0.82rem;color:rgba(255,255,255,0.5);margin-top:4px;"></div>
+        </div>
+        <!-- Trust Score -->
+        <div style="text-align:center;background:rgba(255,255,255,0.08);border-radius:12px;padding:12px 20px;">
+          <div id="trust-score" style="font-size:2rem;font-weight:900;color:#e63946;">—</div>
+          <div style="font-size:0.65rem;color:rgba(255,255,255,0.4);font-weight:700;text-transform:uppercase;letter-spacing:1px;">Trust Score</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Availability Toggle (donors only) -->
+    <div id="avail-toggle-card" style="display:none;background:#fff;border-radius:14px;padding:1.2rem 1.5rem;margin-bottom:1.5rem;box-shadow:0 2px 12px rgba(230,57,70,0.07);border:1.5px solid #f0d0d0;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+      <div>
+        <div style="font-weight:800;font-size:0.95rem;">Availability Status</div>
+        <div id="avail-status-text" style="font-size:0.82rem;color:#6b7280;margin-top:2px;">Loading...</div>
+      </div>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+        <span id="avail-label" style="font-size:0.85rem;font-weight:700;color:#6b7280;">Unavailable</span>
+        <div style="position:relative;width:52px;height:28px;">
+          <input type="checkbox" id="avail-toggle" style="opacity:0;width:0;height:0;position:absolute;" onchange="toggleAvailability()" />
+          <div id="avail-track" style="position:absolute;inset:0;background:#e5e7eb;border-radius:14px;transition:0.3s;cursor:pointer;" onclick="document.getElementById('avail-toggle').click()"></div>
+          <div id="avail-thumb" style="position:absolute;top:3px;left:3px;width:22px;height:22px;background:#fff;border-radius:50%;transition:0.3s;box-shadow:0 1px 4px rgba(0,0,0,0.2);pointer-events:none;"></div>
+        </div>
+        <span id="avail-label2" style="font-size:0.85rem;font-weight:700;color:#16a34a;">Available</span>
+      </label>
+    </div>
+
+    <!-- Donation Info (donors only) -->
+    <div id="donation-info-card" style="display:none;background:#fff;border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 2px 12px rgba(230,57,70,0.07);border:1.5px solid #f0d0d0;">
+      <h3 style="font-size:0.95rem;font-weight:800;margin-bottom:1rem;">🩸 Donation Status</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;">
+        <div style="background:#fff5f5;border-radius:10px;padding:1rem;text-align:center;">
+          <div id="days-since" style="font-size:1.6rem;font-weight:900;color:#e63946;">—</div>
+          <div style="font-size:0.72rem;color:#6b7280;font-weight:600;">Days Since Last Donation</div>
+        </div>
+        <div style="background:#f0fdf4;border-radius:10px;padding:1rem;text-align:center;">
+          <div id="days-until" style="font-size:1.6rem;font-weight:900;color:#16a34a;">—</div>
+          <div style="font-size:0.72rem;color:#6b7280;font-weight:600;">Days Until Next Eligible</div>
+        </div>
+        <div style="background:#f0f9ff;border-radius:10px;padding:1rem;text-align:center;">
+          <div id="health-status-display" style="font-size:1.4rem;font-weight:900;">—</div>
+          <div style="font-size:0.72rem;color:#6b7280;font-weight:600;">Health Status</div>
+        </div>
+      </div>
+      <div id="donation-eligible-msg" style="margin-top:1rem;font-size:0.82rem;padding:8px 12px;border-radius:8px;"></div>
+    </div>
+
+    <!-- Edit Profile Form -->
+    <div style="background:#fff;border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 2px 12px rgba(230,57,70,0.07);border:1.5px solid #f0d0d0;">
+      <h3 style="font-size:0.95rem;font-weight:800;margin-bottom:1.2rem;">✏️ Edit Profile</h3>
+      <form id="edit-profile-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="ep-name" placeholder="Your name" />
+          </div>
+          <div class="form-group">
+            <label>City</label>
+            <input type="text" id="ep-city" placeholder="Your city" />
+          </div>
+        </div>
+        <div class="form-row" id="ep-donor-fields" style="display:none;">
+          <div class="form-group">
+            <label>Last Donation Date</label>
+            <input type="date" id="ep-lastdon" />
+          </div>
+          <div class="form-group">
+            <label>Health Status</label>
+            <select id="ep-health">
+              <option value="good">✅ Good Health</option>
+              <option value="minor">⚠️ Minor Issue</option>
+              <option value="unavailable">❌ Not Fit to Donate</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>New Password <span style="color:#9ca3af;font-weight:400;">(leave blank to keep current)</span></label>
+          <input type="password" id="ep-pass" placeholder="New password (min 6 chars)" />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">💾 Save Changes</button>
+      </form>
+    </div>
+
+    <!-- Report / Delete -->
+    <div style="background:#fff;border-radius:14px;padding:1.2rem 1.5rem;border:1.5px solid #f0d0d0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+      <div style="font-size:0.85rem;color:#6b7280;">Want to remove your donor listing?</div>
+      <button onclick="requestDeleteDonor()" style="background:#fee2e2;color:#e63946;border:1.5px solid #fca5a5;padding:7px 16px;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;">🗑️ Remove My Donor Profile</button>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div style="font-size:1.4rem;font-weight:900;color:#fff;margin-bottom:0.3rem;">🩸 BloodLink<span style="color:#e63946;">Pro</span></div>
+    </div>
+    <div class="footer-links">
+      <div class="fl-col"><div class="fl-head">Account</div><a href="dashboard.html">Dashboard</a><a href="profile.html">My Profile</a><a href="login.html">Login</a></div>
+      <div class="fl-col"><div class="fl-head">Platform</div><a href="search.html">Find Donors</a><a href="emergency.html">Emergency</a><a href="banks.html">Blood Banks</a></div>
+    </div>
+  </div>
+  <div class="footer-bottom"><span>© 2025 BloodLink Pro — Built with ❤️ by <strong style="color:#e63946;">Satish Kumar Nishad</strong></span></div>
+</footer>
+<script src="script.js"></script>
+<script>
+const _AK_P='$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW';
+const _BU_P='69bc2150aa77b81da9fcb1e3';
+const _BD_P='69bc22a2b7ec241ddc82de74';
+const _BB_P='https://api.jsonbin.io/v3/b';
+
+async function _getUsers_P(){try{var r=await fetch(_BB_P+'/'+_BU_P+'/latest',{headers:{'X-Master-Key':_AK_P}});var d=await r.json();return(d.record&&d.record.users)||[];}catch(e){return JSON.parse(localStorage.getItem('blp_uc')||'[]');}}
+async function _saveUsers_P(arr){localStorage.setItem('blp_uc',JSON.stringify(arr));try{await fetch(_BB_P+'/'+_BU_P,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK_P},body:JSON.stringify({users:arr})});}catch(e){}}
+async function _getDonors_P(){try{var r=await fetch(_BB_P+'/'+_BD_P+'/latest',{headers:{'X-Master-Key':_AK_P}});var d=await r.json();return(d.record&&d.record.donors)||[];}catch(e){return JSON.parse(localStorage.getItem('blp_dc')||'[]');}}
+async function _saveDonors_P(arr){localStorage.setItem('blp_dc',JSON.stringify(arr));try{await fetch(_BB_P+'/'+_BD_P,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK_P},body:JSON.stringify({donors:arr})});}catch(e){}}
+
+function calcTrustScore(user,donorRecord){
+  var score=0;
+  if(user.email) score+=20;
+  if(user.phone) score+=20;
+  if(donorRecord){
+    if(donorRecord.status==='approved') score+=30;
+    if(donorRecord.lastDonation) score+=15;
+    if(donorRecord.health==='good') score+=10;
+    if(donorRecord.available!=='no') score+=5;
+  }
+  return Math.min(score,100);
+}
+
+function updateAvailToggleUI(isAvail){
+  var track=document.getElementById('avail-track');
+  var thumb=document.getElementById('avail-thumb');
+  var toggle=document.getElementById('avail-toggle');
+  var txt=document.getElementById('avail-status-text');
+  if(!track) return;
+  toggle.checked=isAvail;
+  track.style.background=isAvail?'#16a34a':'#e5e7eb';
+  thumb.style.left=isAvail?'27px':'3px';
+  txt.textContent=isAvail?'You are currently available to donate':'You are currently unavailable';
+  txt.style.color=isAvail?'#16a34a':'#9ca3af';
+}
+
+var _currentDonorRecord=null;
+
+async function toggleAvailability(){
+  var toggle=document.getElementById('avail-toggle');
+  var isAvail=toggle.checked;
+  updateAvailToggleUI(isAvail);
+  if(!_currentDonorRecord) return;
+  var donors=await _getDonors_P();
+  var d=donors.find(function(x){return x.id==_currentDonorRecord.id;});
+  if(d){d.available=isAvail?'yes':'no';await _saveDonors_P(donors);}
+  var user=JSON.parse(localStorage.getItem('blp_user')||'null');
+  if(user){user.available=isAvail?'yes':'no';localStorage.setItem('blp_user',JSON.stringify(user));}
+  if(typeof showToast==='function') showToast(isAvail?'✅ You are now available to donate':'⏸️ Availability turned off','success');
+}
+
+async function requestDeleteDonor(){
+  if(!confirm('Remove your donor profile? This cannot be undone.')) return;
+  if(!_currentDonorRecord) return;
+  var donors=await _getDonors_P();
+  var filtered=donors.filter(function(x){return x.id!=_currentDonorRecord.id;});
+  await _saveDonors_P(filtered);
+  _currentDonorRecord=null;
+  document.getElementById('avail-toggle-card').style.display='none';
+  document.getElementById('donation-info-card').style.display='none';
+  if(typeof showToast==='function') showToast('Donor profile removed','error');
+}
+
+window.addEventListener('DOMContentLoaded', async function(){
+  var user=JSON.parse(localStorage.getItem('blp_user')||'null');
+  if(!user){document.getElementById('not-logged-in').style.display='block';return;}
+  document.getElementById('profile-content').style.display='block';
+  var av=document.getElementById('profile-avatar');
+  if(av) av.textContent=user.name?user.name.charAt(0).toUpperCase():'?';
+  document.getElementById('profile-name').textContent=user.name||'User';
+  document.getElementById('profile-role-badge').textContent=(user.role==='admin'?'🔐 Admin':user.role==='donor'?'🩸 Donor':'👤 User');
+  document.getElementById('profile-meta').textContent=(user.email||'')+(user.city?' · 📍 '+user.city:'')+(user.phone?' · 📞 '+user.phone.substring(0,2)+'XXXXXX'+user.phone.slice(-2):'');
+  document.getElementById('ep-name').value=user.name||'';
+  document.getElementById('ep-city').value=user.city||'';
+
+  var donors=await _getDonors_P();
+  var donorRec=donors.find(function(d){return d.phone===user.phone;});
+  _currentDonorRecord=donorRec||null;
+
+  var score=calcTrustScore(user,donorRec);
+  var scoreEl=document.getElementById('trust-score');
+  scoreEl.textContent=score;
+  scoreEl.style.color=score>=80?'#16a34a':score>=50?'#f59e0b':'#e63946';
+
+  if(donorRec){
+    if(donorRec.status==='approved') document.getElementById('profile-verified-badge').style.display='inline-block';
+    document.getElementById('avail-toggle-card').style.display='flex';
+    updateAvailToggleUI(donorRec.available!=='no');
+    document.getElementById('donation-info-card').style.display='block';
+    document.getElementById('ep-donor-fields').style.display='grid';
+    var healthMap={'good':'✅ Good','minor':'⚠️ Minor Issue','unavailable':'❌ Not Fit'};
+    document.getElementById('health-status-display').textContent=healthMap[donorRec.health||'good']||'✅ Good';
+    if(donorRec.lastDonation){
+      var daysSince=Math.floor((Date.now()-new Date(donorRec.lastDonation))/86400000);
+      var daysUntil=Math.max(0,56-daysSince);
+      document.getElementById('days-since').textContent=daysSince;
+      document.getElementById('days-until').textContent=daysUntil;
+      document.getElementById('ep-lastdon').value=donorRec.lastDonation;
+      var msg=document.getElementById('donation-eligible-msg');
+      if(daysUntil===0){msg.style.background='#dcfce7';msg.style.color='#15803d';msg.textContent='✅ You are eligible to donate again!';}
+      else{msg.style.background='#fef3c7';msg.style.color='#92400e';msg.textContent='⏳ You can donate again in '+daysUntil+' days (56-day safe interval).';}
+    } else {
+      document.getElementById('days-since').textContent='N/A';
+      document.getElementById('days-until').textContent='Ready';
+    }
+    if(donorRec.health) document.getElementById('ep-health').value=donorRec.health;
+  }
+
+  document.getElementById('edit-profile-form').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var btn=this.querySelector('button[type=submit]');
+    btn.disabled=true; btn.textContent='Saving...';
+    var newName=document.getElementById('ep-name').value.trim();
+    var newCity=document.getElementById('ep-city').value.trim();
+    var newPass=document.getElementById('ep-pass').value;
+    var newLastDon=document.getElementById('ep-lastdon').value;
+    var newHealth=document.getElementById('ep-health').value;
+    var users=await _getUsers_P();
+    var idx=users.findIndex(function(u){return u.phone===user.phone;});
+    if(idx>-1){
+      if(newName) users[idx].name=newName;
+      if(newCity) users[idx].city=newCity;
+      if(newPass&&newPass.length>=6) users[idx].password=newPass;
+      user=users[idx];
+      localStorage.setItem('blp_user',JSON.stringify(user));
+      await _saveUsers_P(users);
+    }
+    if(_currentDonorRecord){
+      var donors2=await _getDonors_P();
+      var di=donors2.findIndex(function(d){return d.id==_currentDonorRecord.id;});
+      if(di>-1){
+        if(newName) donors2[di].name=newName;
+        if(newCity) donors2[di].city=newCity;
+        if(newLastDon) donors2[di].lastDonation=newLastDon;
+        if(newHealth) donors2[di].health=newHealth;
+        await _saveDonors_P(donors2);
+      }
+    }
+    btn.disabled=false; btn.textContent='💾 Save Changes';
+    if(typeof showToast==='function') showToast('✅ Profile updated!','success');
+    document.getElementById('profile-name').textContent=newName||user.name;
+  });
+});
+</script>
+</body>
+</html>

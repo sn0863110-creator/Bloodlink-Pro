@@ -99,13 +99,14 @@ function setupHamburger() {
 
 function updateNavAuth() {
   var user = currentUser();
-  var nu=document.getElementById('nav-user'), nl=document.getElementById('nav-login'), nr=document.getElementById('nav-register'), nd=document.getElementById('nav-dashboard'), no=document.getElementById('nav-logout');
+  var nu=document.getElementById('nav-user'), nl=document.getElementById('nav-login'), nr=document.getElementById('nav-register'), nd=document.getElementById('nav-dashboard'), no=document.getElementById('nav-logout'), np=document.getElementById('nav-profile');
   if (user) {
     var adminBadge = isAdmin() ? ' <span style="background:#e63946;color:#fff;font-size:0.65rem;padding:2px 7px;border-radius:10px;font-weight:800;vertical-align:middle;">ADMIN</span>' : '';
     if (nu) { nu.innerHTML='👤 '+user.name+adminBadge; nu.style.display='inline-block'; }
     if (nl) nl.style.display='none';
     if (nr) nr.style.display='none';
     if (nd) nd.style.display='inline-flex';
+    if (np) np.style.display='inline-flex';
     if (no) { no.style.display='inline-flex'; no.addEventListener('click', logout); }
   }
 }
