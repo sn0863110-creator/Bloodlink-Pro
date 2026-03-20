@@ -284,7 +284,10 @@ async function performSearch(){
         +'<a href="tel:'+d.phone+'" onclick="return confirmCall(\''+d.name+'\')" class="donor-cta-call">📞 Call</a>'
         +'<a href="'+waLink+'" target="_blank" class="donor-cta-wa">💬 WhatsApp</a>'
         +'</div>':'<div style="margin-top:8px;font-size:0.78rem;color:#9ca3af;text-align:center;padding:6px;background:#f9fafb;border-radius:8px;">Donor currently unavailable — try another</div>')
-      +'<div style="margin-top:8px;font-size:0.7rem;color:#9ca3af;border-top:1px solid #f3f4f6;padding-top:6px;">⚠️ This platform does not guarantee availability. Always verify before visiting.</div>'
+      +'<div style="margin-top:8px;font-size:0.7rem;color:#9ca3af;border-top:1px solid #f3f4f6;padding-top:6px;display:flex;align-items:center;justify-content:space-between;gap:6px;">'
+      +'<span>⚠️ This platform does not guarantee availability. Always verify before visiting.</span>'
+      +(!admin?'<button onclick="reportDonor('+d.id+',\''+d.name+'\')" style="background:none;border:none;color:#9ca3af;font-size:0.7rem;cursor:pointer;padding:0;font-family:inherit;text-decoration:underline;white-space:nowrap;">🚩 Report</button>':'')
+      +'</div>'
       +approveBtn+adminBtn
       +'</div>';
   }).join('')+'</div>';
@@ -320,6 +323,22 @@ function revealPhone(elId, phone) {
 function confirmCall(name) {
   return confirm('Call '+name+'?\n\nRemember: This platform does not guarantee availability. Please confirm before visiting.');
 }
+// Report a donor
+async function reportDonor(id, name) {
+  if (!confirm('Report "' + name + '" as fake/spam?\n\nThis will be reviewed by admin.')) return;
+  var reason = prompt('Reason for report (optional):') || 'Suspicious profile';
+  var report = { id: Date.now(), donorId: id, donorName: name, reason: reason, ts: Date.now(), reporter: 'anonymous' };
+  try {
+    var r = await fetch('https://api.jsonbin.io/v3/b/69bc22a2b7ec241ddc82de79/latest', { headers: { 'X-Master-Key': '$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW' } });
+    var d = await r.json(); var rec = d.record || {};
+    rec.reports = rec.reports || []; rec.reports.unshift(report); rec.reports = rec.reports.slice(0, 100);
+    await fetch('https://api.jsonbin.io/v3/b/69bc22a2b7ec241ddc82de79', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': '$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW' }, body: JSON.stringify(rec) });
+  } catch(e) {
+    var arr = JSON.parse(localStorage.getItem('blp_reports') || '[]'); arr.unshift(report); localStorage.setItem('blp_reports', JSON.stringify(arr.slice(0, 100)));
+  }
+  if (typeof showToast === 'function') showToast('🚩 Report submitted. Admin will review.', 'success');
+}
+
 document.getElementById('search-form').addEventListener('submit',function(e){e.preventDefault();performSearch();});
 // SOS button
 var sosBtn=document.getElementById('sos-btn');

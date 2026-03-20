@@ -333,12 +333,19 @@ function renderAdminPanel(pending, allDonors, market) {
     +pendingHTML
     +'</div>'
     // All donors section
-    +'<div>'
+    +'<div style="margin-bottom:1.2rem;">'
     +'<h4 style="font-size:0.9rem;font-weight:700;margin-bottom:0.6rem;color:#15803d;">✅ Approved Donors ('+allDonors.filter(function(d){return d.status!=='pending';}).length+')</h4>'
     +'<div style="max-height:300px;overflow-y:auto;">'+approvedHTML+'</div>'
+    +'</div>'
+    // Reports section placeholder
+    +'<div id="admin-reports-section">'
+    +'<h4 style="font-size:0.9rem;font-weight:700;margin-bottom:0.6rem;color:#7c3aed;">🚩 Donor Reports</h4>'
+    +'<div id="admin-reports-list" style="font-size:0.82rem;color:#9ca3af;">Loading reports...</div>'
     +'</div>';
 
   dash.insertBefore(panel, dash.firstChild);
+  // Load reports async
+  loadAdminReports();
 }
 
 async function adminApproveDonor(id) {
@@ -408,5 +415,41 @@ async function fulfillRequest(id) {
     await jbPut(BIN_MARKET, r);
     showToast('✅ Request marked as fulfilled','success');
     loadEmergencyRequests();
+  } catch(e) {}
+}
+
+// ── ADMIN REPORTS ─────────────────────────────────────────
+async function loadAdminReports() {
+  var el = document.getElementById('admin-reports-list');
+  if (!el) return;
+  try {
+    var r = await jbGet(BIN_MARKET);
+    var reports = (r && r.reports) || [];
+    if (!reports.length) { el.innerHTML = '<p style="color:#9ca3af;text-align:center;padding:0.8rem;">No reports yet</p>'; return; }
+    el.innerHTML = '<div style="max-height:220px;overflow-y:auto;">'
+      + reports.slice(0, 20).map(function(rep) {
+        var age = Math.floor((Date.now() - rep.ts) / 60000);
+        var ageStr = age < 60 ? age + ' min ago' : age < 1440 ? Math.floor(age/60) + ' hr ago' : Math.floor(age/1440) + ' days ago';
+        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#faf5ff;border-radius:8px;margin-bottom:6px;flex-wrap:wrap;">'
+          + '<span style="font-size:1rem;">🚩</span>'
+          + '<div style="flex:1;min-width:140px;"><div style="font-weight:700;font-size:0.82rem;">'+rep.donorName+'</div>'
+          + '<div style="font-size:0.72rem;color:#6b7280;">'+rep.reason+' · '+ageStr+'</div></div>'
+          + '<button onclick="adminDismissReport(\''+rep.id+'\')" style="background:#f3f4f6;color:#6b7280;border:none;padding:4px 10px;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit;">Dismiss</button>'
+          + '<button onclick="adminDeleteDonor('+rep.donorId+')" style="background:#fee2e2;color:#e63946;border:1.5px solid #fca5a5;padding:4px 10px;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit;">🗑️ Delete Donor</button>'
+          + '</div>';
+      }).join('')
+      + '</div>';
+  } catch(e) { el.innerHTML = '<p style="color:#9ca3af;text-align:center;padding:0.8rem;">Could not load reports</p>'; }
+}
+
+async function adminDismissReport(id) {
+  if (!isAdmin()) return;
+  try {
+    var r = await jbGet(BIN_MARKET);
+    if (!r) return;
+    r.reports = (r.reports || []).filter(function(x) { return x.id != id; });
+    await jbPut(BIN_MARKET, r);
+    showToast('Report dismissed', 'success');
+    loadAdminReports();
   } catch(e) {}
 }

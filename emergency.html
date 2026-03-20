@@ -116,6 +116,17 @@
         </div>
       </div>
 
+      <!-- CAPTCHA -->
+      <div class="form-group" id="captcha-group">
+        <label>Security Check *</label>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span id="captcha-question" style="background:#f3f4f6;padding:8px 14px;border-radius:8px;font-weight:800;font-size:1rem;color:#1a1a2e;min-width:120px;text-align:center;"></span>
+          <input type="number" id="captcha-answer" placeholder="Your answer" style="width:120px;" required />
+          <button type="button" onclick="refreshCaptcha()" style="background:none;border:1px solid #e5e7eb;padding:7px 12px;border-radius:8px;cursor:pointer;font-size:0.8rem;color:#6b7280;font-family:inherit;">🔄 New</button>
+        </div>
+        <div style="font-size:0.72rem;color:#9ca3af;margin-top:4px;">Solve the math question to verify you're human.</div>
+      </div>
+
       <!-- Consent -->
       <div style="background:#fff5f5;border:1.5px solid #f0d0d0;border-radius:10px;padding:1rem;margin-bottom:1rem;">
         <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:0.85rem;">
@@ -172,6 +183,42 @@ const _BD_E='69bc22a2b7ec241ddc82de74'; // donors bin
 const _BM_E='69bc22a2b7ec241ddc82de79'; // market bin (stores requests too)
 const _BB_E='https://api.jsonbin.io/v3/b';
 
+// ── RATE LIMITING (max 3 requests per day per device) ──
+function checkRateLimit() {
+  var today = new Date().toDateString();
+  var key = 'blp_req_count_' + today;
+  var count = parseInt(localStorage.getItem(key) || '0');
+  return count;
+}
+function incrementRateLimit() {
+  var today = new Date().toDateString();
+  var key = 'blp_req_count_' + today;
+  var count = parseInt(localStorage.getItem(key) || '0');
+  localStorage.setItem(key, count + 1);
+}
+
+// ── CAPTCHA ──
+var _captchaA = 0, _captchaB = 0;
+function refreshCaptcha() {
+  _captchaA = Math.floor(Math.random() * 15) + 1;
+  _captchaB = Math.floor(Math.random() * 10) + 1;
+  var ops = ['+', '-', '×'];
+  var op = ops[Math.floor(Math.random() * ops.length)];
+  var q = document.getElementById('captcha-question');
+  var ans = document.getElementById('captcha-answer');
+  if (q) q.textContent = _captchaA + ' ' + op + ' ' + _captchaB + ' = ?';
+  if (ans) ans.value = '';
+  _captchaA = op === '+' ? _captchaA : op === '-' ? _captchaA : _captchaA;
+  _captchaB = _captchaB;
+  _captchaOp = op;
+}
+var _captchaOp = '+';
+function verifyCaptcha() {
+  var ans = parseInt(document.getElementById('captcha-answer').value);
+  var correct = _captchaOp === '+' ? _captchaA + _captchaB : _captchaOp === '-' ? _captchaA - _captchaB : _captchaA * _captchaB;
+  return ans === correct;
+}
+
 async function _getRequests(){
   try{var r=await fetch(_BB_E+'/'+_BM_E+'/latest',{headers:{'X-Master-Key':_AK_E}});if(!r.ok)throw 0;var d=await r.json();return d.record.requests||[];}
   catch(e){return JSON.parse(localStorage.getItem('blp_req')||'[]');}
@@ -218,11 +265,24 @@ async function renderActiveRequests(){
 
 // Form submit
 document.addEventListener('DOMContentLoaded',function(){
+  refreshCaptcha();
   renderActiveRequests();
   var form=document.getElementById('emergency-form');
   if(!form)return;
   form.addEventListener('submit',async function(e){
     e.preventDefault();
+    // Rate limit check
+    var reqCount = checkRateLimit();
+    if (reqCount >= 3) {
+      if(typeof showToast==='function') showToast('⚠️ Max 3 requests per day allowed. Try again tomorrow.','error');
+      return;
+    }
+    // CAPTCHA check
+    if (!verifyCaptcha()) {
+      if(typeof showToast==='function') showToast('❌ Wrong answer. Please solve the math question.','error');
+      refreshCaptcha();
+      return;
+    }
     var btn=document.getElementById('e-submit-btn');
     btn.disabled=true;btn.textContent='Submitting...';
     var name=document.getElementById('e-name').value.trim();
@@ -235,6 +295,7 @@ document.addEventListener('DOMContentLoaded',function(){
     if(!/^[6-9]\d{9}$/.test(contact)){if(typeof showToast==='function')showToast('Enter valid 10-digit mobile number','error');btn.disabled=false;btn.textContent='🚨 Submit Emergency Request';return;}
     var req={id:Date.now(),name:name,blood:blood,units:parseInt(units),city:city,contact:contact,hospital:hospital,urgency:urgency,status:'active',ts:Date.now()};
     await _saveRequest(req);
+    incrementRateLimit();
     // Find matching donors
     var donors=await _getDonors_E();
     var matched=donors.filter(function(d){return d.status!=='pending'&&d.available!=='no'&&d.blood===blood&&d.city.toLowerCase()===city.toLowerCase();});
