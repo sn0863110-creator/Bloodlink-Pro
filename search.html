@@ -12,6 +12,8 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#e63946" />
+  <!-- Leaflet Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 </head>
 <body data-page="search">
@@ -102,6 +104,24 @@
       <button class="blood-badge" style="cursor:pointer;border:none;" onclick="quickSearch('AB+')">AB+</button>
     </div>
 
+    <!-- View Toggle: List / Map -->
+    <div style="display:flex;gap:0;margin-bottom:1.2rem;border-radius:10px;overflow:hidden;border:1.5px solid #f0d0d0;width:fit-content;">
+      <button id="view-list-btn" onclick="switchView('list')" style="padding:7px 20px;font-size:0.85rem;font-weight:700;border:none;cursor:pointer;font-family:inherit;background:#e63946;color:#fff;transition:0.2s;">📋 List View</button>
+      <button id="view-map-btn" onclick="switchView('map')" style="padding:7px 20px;font-size:0.85rem;font-weight:700;border:none;cursor:pointer;font-family:inherit;background:#fafafa;color:#6b7280;transition:0.2s;">🗺️ Map View</button>
+    </div>
+
+    <!-- Nearest Donor Banner (shown after geolocation) -->
+    <div id="nearest-banner" style="display:none;background:linear-gradient(135deg,#dcfce7,#f0fdf4);border:1.5px solid #86efac;border-radius:12px;padding:12px 16px;margin-bottom:1rem;display:none;">
+      <div style="font-size:0.82rem;font-weight:700;color:#15803d;">📍 Nearest Available Donor</div>
+      <div id="nearest-info" style="font-size:0.88rem;color:#1a1a2e;margin-top:4px;font-weight:600;"></div>
+    </div>
+
+    <!-- Map Container -->
+    <div id="map-view" style="display:none;margin-bottom:1.5rem;">
+      <div id="donor-map" style="height:400px;border-radius:14px;border:1.5px solid #f0d0d0;overflow:hidden;box-shadow:0 4px 20px rgba(230,57,70,0.08);"></div>
+      <div style="margin-top:8px;font-size:0.75rem;color:#9ca3af;text-align:center;">🗺️ Map shows donor locations by city. Click a pin to see details.</div>
+    </div>
+
     <!-- Results -->
     <div class="results-header">
       <span id="results-count" style="font-size:0.9rem;color:var(--text-muted);"></span>
@@ -160,6 +180,7 @@
   </div>
 </footer>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="script.js"></script>
 <script>
   function quickSearch(blood) {
@@ -293,6 +314,163 @@ document.getElementById('search-form').addEventListener('submit',function(e){e.p
 // SOS button
 var sosBtn=document.getElementById('sos-btn');
 if(sosBtn) sosBtn.addEventListener('click',function(){if(typeof triggerSOS==='function')triggerSOS();});
+</script>
+<script>
+// ── CITY COORDINATES (UP + major cities) ──────────────────
+var CITY_COORDS = {
+  'kanpur':[26.4499,80.3319],'unnao':[26.5485,80.4897],'lucknow':[26.8467,80.9462],
+  'allahabad':[25.4358,81.8463],'prayagraj':[25.4358,81.8463],'varanasi':[25.3176,82.9739],
+  'agra':[27.1767,78.0081],'mathura':[27.4924,77.6737],'aligarh':[27.8974,78.0880],
+  'meerut':[28.9845,77.7064],'ghaziabad':[28.6692,77.4538],'noida':[28.5355,77.3910],
+  'delhi':[28.6139,77.2090],'mumbai':[19.0760,72.8777],'pune':[18.5204,73.8567],
+  'bangalore':[12.9716,77.5946],'hyderabad':[17.3850,78.4867],'chennai':[13.0827,80.2707],
+  'kolkata':[22.5726,88.3639],'jaipur':[26.9124,75.7873],'surat':[21.1702,72.8311],
+  'fatehpur':[25.9300,80.8100],'rae bareli':[26.2309,81.2399],'sitapur':[27.5706,80.6800],
+  'hardoi':[27.3950,80.1300],'lakhimpur':[27.9500,80.7800],'barabanki':[26.9400,81.1900],
+  'etawah':[26.7800,79.0200],'mainpuri':[27.2300,79.0200],'firozabad':[27.1500,78.3900]
+};
+
+// Haversine distance (km)
+function haversine(lat1,lon1,lat2,lon2){
+  var R=6371,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180;
+  var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function getCityCoords(city){
+  if(!city) return null;
+  return CITY_COORDS[city.toLowerCase().trim()] || null;
+}
+
+// ── MAP ───────────────────────────────────────────────────
+var _map=null, _mapMarkers=[];
+
+function switchView(mode){
+  var listBtn=document.getElementById('view-list-btn');
+  var mapBtn=document.getElementById('view-map-btn');
+  var mapDiv=document.getElementById('map-view');
+  var resultsDiv=document.getElementById('search-results');
+  if(mode==='map'){
+    mapDiv.style.display='block';
+    resultsDiv.style.display='none';
+    listBtn.style.background='#fafafa'; listBtn.style.color='#6b7280';
+    mapBtn.style.background='#e63946'; mapBtn.style.color='#fff';
+    initMap();
+  } else {
+    mapDiv.style.display='none';
+    resultsDiv.style.display='block';
+    listBtn.style.background='#e63946'; listBtn.style.color='#fff';
+    mapBtn.style.background='#fafafa'; mapBtn.style.color='#6b7280';
+  }
+}
+
+async function initMap(){
+  if(!window.L) return;
+  var mapEl=document.getElementById('donor-map');
+  if(!mapEl) return;
+  // Default center: UP
+  var center=[26.8467,80.9462];
+  if(_userLat&&_userLon) center=[_userLat,_userLon];
+  if(!_map){
+    _map=L.map('donor-map').setView(center,8);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      attribution:'© <a href="https://openstreetmap.org">OpenStreetMap</a>',maxZoom:18
+    }).addTo(_map);
+  } else {
+    _map.setView(center,8);
+  }
+  // Clear old markers
+  _mapMarkers.forEach(function(m){_map.removeLayer(m);});
+  _mapMarkers=[];
+
+  // User location marker
+  if(_userLat&&_userLon){
+    var userIcon=L.divIcon({html:'<div style="background:#1d4ed8;color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:1rem;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);">📍</div>',iconSize:[32,32],iconAnchor:[16,16],className:''});
+    var um=L.marker([_userLat,_userLon],{icon:userIcon}).addTo(_map);
+    um.bindPopup('<b>Your Location</b>');
+    _mapMarkers.push(um);
+  }
+
+  // Donor markers
+  var allDonors=await _getDonors4();
+  var blood=document.getElementById('filter-blood').value;
+  var cityFilter=(document.getElementById('filter-city').value||'').trim().toLowerCase();
+  var admin=(typeof isAdmin==='function')&&isAdmin();
+  var donors=allDonors.filter(function(d){return admin||d.status!=='pending';});
+  var filtered=donors.filter(function(d){return(!blood||d.blood===blood)&&(!cityFilter||d.city.toLowerCase().includes(cityFilter));});
+
+  // Group by city
+  var cityGroups={};
+  filtered.forEach(function(d){
+    var key=d.city.toLowerCase().trim();
+    if(!cityGroups[key]) cityGroups[key]=[];
+    cityGroups[key].push(d);
+  });
+
+  Object.keys(cityGroups).forEach(function(cityKey){
+    var coords=getCityCoords(cityKey);
+    if(!coords) return;
+    var group=cityGroups[cityKey];
+    var avail=group.filter(function(d){return d.available!=='no';}).length;
+    var color=avail>0?'#e63946':'#9ca3af';
+    var icon=L.divIcon({
+      html:'<div style="background:'+color+';color:#fff;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.25);">'+group.length+'</div>',
+      iconSize:[36,36],iconAnchor:[18,18],className:''
+    });
+    var popupHtml='<div style="min-width:180px;"><b style="color:#e63946;">'+group[0].city+'</b><br>'
+      +'<span style="font-size:0.78rem;color:#6b7280;">'+group.length+' donor(s) · '+avail+' available</span><hr style="margin:6px 0;">'
+      +group.slice(0,3).map(function(d){
+        return '<div style="font-size:0.78rem;padding:3px 0;"><b>'+d.name+'</b> · '+d.blood+' · '+(d.available!=='no'?'<span style="color:#16a34a;">Available</span>':'<span style="color:#9ca3af;">Unavailable</span>')+'</div>';
+      }).join('')
+      +(group.length>3?'<div style="font-size:0.72rem;color:#9ca3af;">+' +(group.length-3)+' more</div>':'')
+      +'</div>';
+    var marker=L.marker(coords,{icon:icon}).addTo(_map);
+    marker.bindPopup(popupHtml);
+    _mapMarkers.push(marker);
+  });
+
+  setTimeout(function(){_map.invalidateSize();},200);
+}
+
+// ── GEOLOCATION + NEAREST DONOR ──────────────────────────
+var _userLat=null,_userLon=null;
+
+function detectLocation(){
+  if(!navigator.geolocation){return;}
+  navigator.geolocation.getCurrentPosition(function(pos){
+    _userLat=pos.coords.latitude;
+    _userLon=pos.coords.longitude;
+    showNearestDonor();
+  },function(){},{timeout:8000});
+}
+
+async function showNearestDonor(){
+  if(!_userLat||!_userLon) return;
+  var allDonors=await _getDonors4();
+  var blood=document.getElementById('filter-blood').value;
+  var admin=(typeof isAdmin==='function')&&isAdmin();
+  var donors=allDonors.filter(function(d){
+    return (admin||d.status!=='pending') && d.available!=='no' && (!blood||d.blood===blood);
+  });
+  var best=null,bestDist=Infinity;
+  donors.forEach(function(d){
+    var coords=getCityCoords(d.city);
+    if(!coords) return;
+    var dist=haversine(_userLat,_userLon,coords[0],coords[1]);
+    if(dist<bestDist){bestDist=dist;best=d;}
+  });
+  var banner=document.getElementById('nearest-banner');
+  var info=document.getElementById('nearest-info');
+  if(best&&banner&&info){
+    info.innerHTML='🩸 <b>'+best.name+'</b> ('+best.blood+') · 📍 '+best.city+' · ~'+Math.round(bestDist)+' km away';
+    banner.style.display='block';
+  }
+}
+
+// Auto-detect location on page load
+window.addEventListener('DOMContentLoaded',function(){
+  detectLocation();
+});
 </script>
 </body>
 </html>
