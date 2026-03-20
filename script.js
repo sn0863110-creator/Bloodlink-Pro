@@ -509,9 +509,8 @@ async function initDashboard() {
   if (isAdmin()) loadEmergencyRequests();
   // Emergency requests count
   try {
-    var mktData = await jbGet(BIN_MARKET);
-    var reqs = (mktData && mktData.requests) || [];
-    var sr = document.getElementById('stat-requests'); if(sr) sr.textContent = reqs.filter(function(r){return r.status!=='fulfilled';}).length;
+    var reqs = await getEmergencyRequests();
+    var sr = document.getElementById('stat-requests'); if(sr) sr.textContent = reqs.length;
   } catch(e) {}
 }
 
@@ -630,12 +629,18 @@ function renderAdminPanel(pending, allDonors, market) {
 
 async function adminApproveDonor(id) {
   if (!isAdmin()) { showToast('Access denied.', 'error'); return; }
-  var donors = await getDonors();
-  var d = donors.find(function(x){return x.id==id;});
-  if (!d) return;
-  d.status = 'approved';
-  await saveDonors(donors);
+  var ok = await updateDonorInDb(String(id), { status: 'approved' });
+  if (!ok) {
+    // JSONBin fallback
+    var donors = await getDonors();
+    var d = donors.find(function(x){return x.id==id;});
+    if (!d) return;
+    d.status = 'approved';
+    await saveDonors(donors);
+  }
   showToast('✅ Donor approved!', 'success');
+  initDashboard();
+}oast('✅ Donor approved!', 'success');
   initDashboard();
 }
 
@@ -652,9 +657,8 @@ async function adminDeleteDonor(id) {
 // ── EMERGENCY REQUESTS (Admin) ────────────────────────────
 async function loadEmergencyRequests() {
   try {
-    var r = await jbGet(BIN_MARKET);
-    var reqs = (r && r.requests) || [];
-    var active = reqs.filter(function(x){ return x.status !== 'fulfilled' && (Date.now()-x.ts) < 3600000*24; });
+    var active = await getEmergencyRequests();
+    active = active.filter(function(x){ return x.status !== 'fulfilled' && (Date.now()-(x.ts||0)) < 3600000*24; });
     if (!active.length) return;
     var dash = document.querySelector('.dash-body');
     if (!dash) return;
@@ -671,12 +675,13 @@ async function loadEmergencyRequests() {
       +'<a href="emergency.html" style="margin-left:auto;font-size:0.78rem;color:#e63946;font-weight:700;text-decoration:none;">View All →</a>'
       +'</div>'
       + active.slice(0,5).map(function(req){
-        var age = Math.floor((Date.now()-req.ts)/60000);
+        var ts = req.ts || (req.createdAt && req.createdAt.toMillis ? req.createdAt.toMillis() : Date.now());
+        var age = Math.floor((Date.now()-ts)/60000);
         var ageStr = age<60?age+' min ago':Math.floor(age/60)+' hr ago';
         return '<div style="background:'+urgColors[req.urgency||'normal']+';border-radius:10px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
           +'<span style="font-size:1rem;">🩸</span>'
-          +'<div style="flex:1;min-width:120px;"><div style="font-weight:700;font-size:0.88rem;">'+req.blood+' · '+req.units+' unit(s) · '+req.city+'</div>'
-          +'<div style="font-size:0.75rem;color:#6b7280;">'+req.name+' · '+ageStr+'</div></div>'
+          +'<div style="flex:1;min-width:120px;"><div style="font-weight:700;font-size:0.88rem;">'+req.blood+' · '+(req.units||1)+' unit(s) · '+req.city+'</div>'
+          +'<div style="font-size:0.75rem;color:#6b7280;">'+(req.name||'Unknown')+' · '+ageStr+'</div></div>'
           +'<span style="font-size:0.7rem;font-weight:800;padding:2px 8px;border-radius:8px;background:#fff;">'+urgLabel[req.urgency||'normal']+'</span>'
           +'<a href="tel:'+req.contact+'" style="background:#e63946;color:#fff;padding:5px 12px;border-radius:8px;font-size:0.75rem;font-weight:700;text-decoration:none;">📞 Call</a>'
           +'<button onclick="fulfillRequest(\''+req.id+'\')" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;padding:5px 10px;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;">✅ Fulfilled</button>'
@@ -689,10 +694,16 @@ async function loadEmergencyRequests() {
 async function fulfillRequest(id) {
   if (!isAdmin()) return;
   try {
-    var r = await jbGet(BIN_MARKET);
-    if (!r) return;
-    r.requests = (r.requests||[]).map(function(x){ return x.id==id ? Object.assign({},x,{status:'fulfilled'}) : x; });
-    await jbPut(BIN_MARKET, r);
+    // Firebase first
+    if (_fbReady) {
+      await fbUpdate('emergency_requests', String(id), { status: 'fulfilled' });
+    } else {
+      // JSONBin fallback
+      var r = await jbGet(BIN_MARKET);
+      if (!r) return;
+      r.requests = (r.requests||[]).map(function(x){ return x.id==id ? Object.assign({},x,{status:'fulfilled'}) : x; });
+      await jbPut(BIN_MARKET, r);
+    }
     showToast('✅ Request marked as fulfilled','success');
     loadEmergencyRequests();
   } catch(e) {}
@@ -703,17 +714,17 @@ async function loadAdminReports() {
   var el = document.getElementById('admin-reports-list');
   if (!el) return;
   try {
-    var r = await jbGet(BIN_MARKET);
-    var reports = (r && r.reports) || [];
+    var reports = await getReports();
     if (!reports.length) { el.innerHTML = '<p style="color:#9ca3af;text-align:center;padding:0.8rem;">No reports yet</p>'; return; }
     el.innerHTML = '<div style="max-height:220px;overflow-y:auto;">'
       + reports.slice(0, 20).map(function(rep) {
-        var age = Math.floor((Date.now() - rep.ts) / 60000);
+        var ts = rep.ts || (rep.createdAt && rep.createdAt.toMillis ? rep.createdAt.toMillis() : Date.now());
+        var age = Math.floor((Date.now() - ts) / 60000);
         var ageStr = age < 60 ? age + ' min ago' : age < 1440 ? Math.floor(age/60) + ' hr ago' : Math.floor(age/1440) + ' days ago';
         return '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#faf5ff;border-radius:8px;margin-bottom:6px;flex-wrap:wrap;">'
           + '<span style="font-size:1rem;">🚩</span>'
-          + '<div style="flex:1;min-width:140px;"><div style="font-weight:700;font-size:0.82rem;">'+rep.donorName+'</div>'
-          + '<div style="font-size:0.72rem;color:#6b7280;">'+rep.reason+' · '+ageStr+'</div></div>'
+          + '<div style="flex:1;min-width:140px;"><div style="font-weight:700;font-size:0.82rem;">'+(rep.donorName||'Unknown')+'</div>'
+          + '<div style="font-size:0.72rem;color:#6b7280;">'+(rep.reason||'No reason')+'  · '+ageStr+'</div></div>'
           + '<button onclick="adminDismissReport(\''+rep.id+'\')" style="background:#f3f4f6;color:#6b7280;border:none;padding:4px 10px;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit;">Dismiss</button>'
           + '<button onclick="adminDeleteDonor('+rep.donorId+')" style="background:#fee2e2;color:#e63946;border:1.5px solid #fca5a5;padding:4px 10px;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit;">🗑️ Delete Donor</button>'
           + '</div>';
@@ -725,10 +736,16 @@ async function loadAdminReports() {
 async function adminDismissReport(id) {
   if (!isAdmin()) return;
   try {
-    var r = await jbGet(BIN_MARKET);
-    if (!r) return;
-    r.reports = (r.reports || []).filter(function(x) { return x.id != id; });
-    await jbPut(BIN_MARKET, r);
+    // Firebase first
+    if (_fbReady) {
+      await fbDelete('reports', String(id));
+    } else {
+      // JSONBin fallback
+      var r = await jbGet(BIN_MARKET);
+      if (!r) return;
+      r.reports = (r.reports || []).filter(function(x) { return x.id != id; });
+      await jbPut(BIN_MARKET, r);
+    }
     showToast('Report dismissed', 'success');
     loadAdminReports();
   } catch(e) {}

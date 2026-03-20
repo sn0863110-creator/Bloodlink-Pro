@@ -236,22 +236,7 @@
   document.getElementById('last-updated').textContent = 'Updated: ' + new Date().toLocaleTimeString();
 </script>
 <script>
-const _AK4='$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW';
-const _BD4='69bc22a2b7ec241ddc82de74';
-const _BB4='https://api.jsonbin.io/v3/b';
-async function _getDonors4(){try{const r=await fetch(_BB4+'/'+_BD4+'/latest',{headers:{'X-Master-Key':_AK4}});if(!r.ok)throw 0;const d=await r.json();const arr=(d.record&&d.record.donors)||[];localStorage.setItem('blp_dc',JSON.stringify(arr));return arr;}catch(e){const c=localStorage.getItem('blp_dc');return c?JSON.parse(c):[];}}
 async function performSearch(){
-  const results=document.getElementById('search-results');
-  const blood=document.getElementById('filter-blood').value;
-  const city=(document.getElementById('filter-city').value||'').trim().toLowerCase();
-  results.innerHTML='<div class="loading-state"><div class="spinner"></div><p>Searching donors...</p></div>';
-  var allDonors;
-  try {
-    allDonors=await _getDonors4();
-  } catch(e) {
-    results.innerHTML='<div class="empty-state"><div class="icon">📡</div><h3>Network Error</h3><p>Could not connect. Check your internet.</p><button onclick="performSearch()" class="btn btn-primary btn-sm" style="margin-top:1rem;">🔄 Retry</button></div>';
-    return;
-  }
   // Only show approved donors to public, all to admin
   const admin = (typeof isAdmin==='function') && isAdmin();
   const donors=allDonors.filter(function(d){return admin || d.status!=='pending';});
@@ -310,21 +295,21 @@ async function performSearch(){
 async function adminDeleteFromSearch(id) {
   if (!(typeof isAdmin==='function' && isAdmin())) { if(typeof showToast==='function') showToast('Access denied.','error'); return; }
   if (!confirm('Delete this donor?')) return;
-  const donors = await _getDonors4();
-  const filtered = donors.filter(function(x){return x.id!=id;});
-  localStorage.setItem('blp_dc', JSON.stringify(filtered));
-  try{await fetch(_BB4+'/'+_BD4,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK4},body:JSON.stringify({donors:filtered})});}catch(e){}
+  var ok = await deleteDonorFromDb(id);
+  if (!ok) {
+    // fallback already handled inside deleteDonorFromDb
+    if(typeof showToast==='function') showToast('Delete failed','error'); return;
+  }
   if(typeof showToast==='function') showToast('🗑️ Donor deleted','error');
   performSearch();
 }
 
 async function adminApproveFromSearch(id) {
   if (!(typeof isAdmin==='function' && isAdmin())) { if(typeof showToast==='function') showToast('Access denied.','error'); return; }
-  const donors = await _getDonors4();
-  const d = donors.find(function(x){return x.id==id;});
-  if(d) d.status='approved';
-  localStorage.setItem('blp_dc', JSON.stringify(donors));
-  try{await fetch(_BB4+'/'+_BD4,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK4},body:JSON.stringify({donors:donors})});}catch(e){}
+  var ok = await updateDonorInDb(id, { status: 'approved' });
+  if (!ok) {
+    if(typeof showToast==='function') showToast('Approve failed','error'); return;
+  }
   if(typeof showToast==='function') showToast('✅ Donor approved!','success');
   performSearch();
 }
@@ -341,14 +326,11 @@ function confirmCall(name) {
 async function reportDonor(id, name) {
   if (!confirm('Report "' + name + '" as fake/spam?\n\nThis will be reviewed by admin.')) return;
   var reason = prompt('Reason for report (optional):') || 'Suspicious profile';
-  var report = { id: Date.now(), donorId: id, donorName: name, reason: reason, ts: Date.now(), reporter: 'anonymous' };
+  var report = { donorId: id, donorName: name, reason: reason, ts: Date.now(), reporter: 'anonymous' };
   try {
-    var r = await fetch('https://api.jsonbin.io/v3/b/69bc22a2b7ec241ddc82de79/latest', { headers: { 'X-Master-Key': '$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW' } });
-    var d = await r.json(); var rec = d.record || {};
-    rec.reports = rec.reports || []; rec.reports.unshift(report); rec.reports = rec.reports.slice(0, 100);
-    await fetch('https://api.jsonbin.io/v3/b/69bc22a2b7ec241ddc82de79', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': '$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW' }, body: JSON.stringify(rec) });
+    await addReport(report);
   } catch(e) {
-    var arr = JSON.parse(localStorage.getItem('blp_reports') || '[]'); arr.unshift(report); localStorage.setItem('blp_reports', JSON.stringify(arr.slice(0, 100)));
+    var arr = JSON.parse(localStorage.getItem('blp_reports') || '[]'); arr.unshift(Object.assign({id:Date.now()},report)); localStorage.setItem('blp_reports', JSON.stringify(arr.slice(0, 100)));
   }
   if (typeof showToast === 'function') showToast('🚩 Report submitted. Admin will review.', 'success');
 }
@@ -435,7 +417,7 @@ async function initMap(){
   }
 
   // Donor markers
-  var allDonors=await _getDonors4();
+  var allDonors=await getDonors();
   var blood=document.getElementById('filter-blood').value;
   var cityFilter=(document.getElementById('filter-city').value||'').trim().toLowerCase();
   var admin=(typeof isAdmin==='function')&&isAdmin();
@@ -489,7 +471,7 @@ function detectLocation(){
 
 async function showNearestDonor(){
   if(!_userLat||!_userLon) return;
-  var allDonors=await _getDonors4();
+  var allDonors=await getDonors();
   var blood=document.getElementById('filter-blood').value;
   var admin=(typeof isAdmin==='function')&&isAdmin();
   var donors=allDonors.filter(function(d){
@@ -519,23 +501,24 @@ window.addEventListener('DOMContentLoaded',function(){
 // Load urgent requests on search page
 async function loadUrgentRequests(){
   try{
-    var r=await fetch('https://api.jsonbin.io/v3/b/69bc22a2b7ec241ddc82de79/latest',{headers:{'X-Master-Key':'$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW'}});
-    if(!r.ok)return;
-    var d=await r.json();
-    var reqs=(d.record&&d.record.requests)||[];
-    var active=reqs.filter(function(r){return r.status!=='fulfilled'&&(Date.now()-r.ts)<3600000*6;});
+    var active = await getEmergencyRequests();
+    active = active.filter(function(r){
+      var ts = r.ts || (r.createdAt && r.createdAt.toMillis ? r.createdAt.toMillis() : 0);
+      return r.status!=='fulfilled' && (Date.now()-ts)<3600000*6;
+    });
     if(!active.length)return;
     var banner=document.getElementById('urgent-banner');
     var list=document.getElementById('urgent-list');
     if(!banner||!list)return;
     banner.style.display='block';
     list.innerHTML=active.slice(0,3).map(function(req){
-      var age=Math.floor((Date.now()-req.ts)/60000);
+      var ts = req.ts || (req.createdAt && req.createdAt.toMillis ? req.createdAt.toMillis() : Date.now());
+      var age=Math.floor((Date.now()-ts)/60000);
       var ageStr=age<60?age+' min ago':Math.floor(age/60)+' hr ago';
       var urgColor=req.urgency==='critical'?'#dc2626':req.urgency==='high'?'#d97706':'#16a34a';
       return '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #fecaca;flex-wrap:wrap;">'
         +'<span style="background:'+urgColor+';color:#fff;padding:2px 8px;border-radius:8px;font-size:0.7rem;font-weight:800;">'+req.blood+'</span>'
-        +'<span style="font-size:0.82rem;font-weight:600;flex:1;">'+req.name+' needs '+req.units+' unit(s) in '+req.city+'</span>'
+        +'<span style="font-size:0.82rem;font-weight:600;flex:1;">'+(req.name||'Someone')+' needs '+(req.units||1)+' unit(s) in '+req.city+'</span>'
         +'<span style="font-size:0.72rem;color:#9ca3af;">'+ageStr+'</span>'
         +'<a href="emergency.html" style="font-size:0.75rem;color:#dc2626;font-weight:700;text-decoration:none;">Respond →</a>'
         +'</div>';
