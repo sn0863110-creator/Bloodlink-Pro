@@ -73,6 +73,10 @@
         <div class="stat-icon" style="background:rgba(139,92,246,0.1);">👥</div>
         <div class="stat-info"><div class="num" id="visitor-count">—</div><div class="lbl">Total Visitors</div></div>
       </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(220,38,38,0.1);">🚨</div>
+        <div class="stat-info"><div class="num" id="stat-requests">—</div><div class="lbl">Emergency Requests</div></div>
+      </div>
     </div>
 
     <!-- Emergency SOS Panel -->
@@ -100,6 +104,14 @@
           </div>
         </div>
         <div id="donut-legend" style="display:flex;gap:1rem;justify-content:center;margin-top:10px;font-size:0.78rem;"></div>
+      </div>
+    </div>
+
+    <!-- City-wise Stats -->
+    <div class="dash-card" style="margin-bottom:2rem;">
+      <h3 style="margin-bottom:1rem;">🏙️ City-wise Donor Distribution</h3>
+      <div id="city-stats-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:0.8rem;">
+        <div style="text-align:center;padding:1.5rem;color:#9ca3af;">Loading...</div>
       </div>
     </div>
 

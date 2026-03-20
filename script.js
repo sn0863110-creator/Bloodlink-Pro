@@ -257,10 +257,17 @@ async function initDashboard() {
   if(lu) lu.textContent='Updated: '+new Date().toLocaleTimeString();
   renderDashCharts(approved);
   renderRecentActivity(approved, market);
+  renderCityStats(approved);
   // Admin panel
   if (isAdmin()) renderAdminPanel(pending, donors, market);
   // Load emergency requests for admin
   if (isAdmin()) loadEmergencyRequests();
+  // Emergency requests count
+  try {
+    var mktData = await jbGet(BIN_MARKET);
+    var reqs = (mktData && mktData.requests) || [];
+    var sr = document.getElementById('stat-requests'); if(sr) sr.textContent = reqs.filter(function(r){return r.status!=='fulfilled';}).length;
+  } catch(e) {}
 }
 
 function renderDashCharts(donors) {
@@ -283,6 +290,34 @@ function renderDashCharts(donors) {
     window._donutChart=new Chart(dc,{type:'doughnut',data:{labels:['Available','Unavailable'],datasets:[{data:[avail||1,unavail],backgroundColor:['#27ae60','#e74c3c'],borderWidth:0}]},options:{responsive:true,cutout:'70%',animation:{duration:1000,easing:'easeOutQuart'},plugins:{legend:{display:false}}}});
     var dl=document.getElementById('donut-legend'); if(dl) dl.innerHTML='<span style="color:#27ae60;font-weight:700;">● Available: '+avail+'</span>&nbsp;&nbsp;<span style="color:#e74c3c;font-weight:700;">● Unavailable: '+unavail+'</span>';
   }
+}
+
+function renderCityStats(donors) {
+  var el = document.getElementById('city-stats-list');
+  if (!el) return;
+  var cities = {};
+  donors.forEach(function(d) {
+    var c = d.city || 'Unknown';
+    if (!cities[c]) cities[c] = { total: 0, avail: 0 };
+    cities[c].total++;
+    if (d.available !== 'no') cities[c].avail++;
+  });
+  var sorted = Object.keys(cities).sort(function(a,b){ return cities[b].total - cities[a].total; });
+  if (!sorted.length) { el.innerHTML = '<div style="color:#9ca3af;text-align:center;padding:1rem;grid-column:1/-1;">No data yet</div>'; return; }
+  el.innerHTML = sorted.slice(0, 12).map(function(city) {
+    var d = cities[city];
+    var pct = d.total ? Math.round((d.avail/d.total)*100) : 0;
+    var color = pct >= 60 ? '#16a34a' : pct >= 30 ? '#f59e0b' : '#e63946';
+    return '<div style="background:#f9fafb;border-radius:10px;padding:0.9rem;text-align:center;border:1.5px solid #f0d0d0;">'
+      + '<div style="font-weight:800;font-size:0.88rem;color:#1a1a2e;margin-bottom:4px;">'+city+'</div>'
+      + '<div style="font-size:1.4rem;font-weight:900;color:'+color+';">'+d.total+'</div>'
+      + '<div style="font-size:0.68rem;color:#9ca3af;font-weight:600;">donors</div>'
+      + '<div style="font-size:0.72rem;color:'+color+';font-weight:700;margin-top:4px;">'+d.avail+' available</div>'
+      + '<div style="background:#e5e7eb;border-radius:4px;height:4px;margin-top:6px;overflow:hidden;">'
+      + '<div style="background:'+color+';height:100%;width:'+pct+'%;border-radius:4px;transition:width 0.8s;"></div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
 }
 
 function renderRecentActivity(donors, market) {
@@ -453,3 +488,50 @@ async function adminDismissReport(id) {
     loadAdminReports();
   } catch(e) {}
 }
+
+
+// ══════════════════════════════════════════════════════════
+// PHASE 16: FUTURE-READY ARCHITECTURE (BloodLink Pro v2.0)
+// ══════════════════════════════════════════════════════════
+
+// 🤖 AI-BASED DONOR MATCHING (Future)
+// Replace current city-filter with ML model:
+// - Input: patient blood group, location (lat/lon), urgency
+// - Model: TensorFlow.js or AWS SageMaker endpoint
+// - Output: ranked donor list by compatibility + proximity + trust score
+// - Example: await fetch('/api/ai-match', { method:'POST', body: JSON.stringify({blood, lat, lon, urgency}) })
+
+// 📡 REAL-TIME NOTIFICATIONS (Future)
+// Replace simulated SOS with Firebase Cloud Messaging (FCM):
+// - On emergency submit → trigger FCM push to all nearby donors
+// - Donors receive push notification on phone even when app is closed
+// - Implementation: Firebase Admin SDK on backend + FCM token stored per donor
+// - Example: admin.messaging().sendMulticast({ tokens: nearbyDonorTokens, notification: { title: '🚨 Blood Needed', body: blood+' in '+city } })
+
+// 🏥 HOSPITAL API INTEGRATION (Future)
+// Connect to NHA (National Health Authority) or state blood bank APIs:
+// - Real-time blood stock levels from hospitals
+// - Auto-alert when stock falls below threshold
+// - API: https://api.nha.gov.in/bloodbank (when available)
+// - Fallback: scrape eRaktKosh (https://www.eraktkosh.in) with permission
+
+// 🌐 MULTI-LANGUAGE SUPPORT (Future)
+// Add i18n support for Hindi, Urdu, Tamil, Bengali:
+// - Store translations in /locales/hi.json, /locales/ur.json etc.
+// - Use browser language detection: navigator.language
+// - Example: const t = translations[navigator.language.split('-')[0]] || translations['en']
+// - Key strings: 'Find Donors', 'Emergency', 'Register', 'Available'
+
+// 📊 ADVANCED ANALYTICS (Future)
+// Integrate Google Analytics 4 or Mixpanel:
+// - Track: donor registrations, search queries, emergency requests, SOS triggers
+// - Funnel: search → contact → donation confirmed
+// - Heatmaps: which cities have highest demand vs supply gap
+
+// 🔔 SMS NOTIFICATION SYSTEM (Future)
+// Integrate Twilio or MSG91 for SMS alerts:
+// - On emergency request → SMS to top 5 nearest available donors
+// - Example (MSG91): fetch('https://api.msg91.com/api/v5/flow/', { method:'POST', headers:{'authkey': MSG91_KEY}, body: JSON.stringify({ template_id: 'BLOOD_ALERT', recipients: [{ mobiles: donorPhone, city: city, blood: blood }] }) })
+// - Cost: ~₹0.15 per SMS — viable for production
+
+// ══════════════════════════════════════════════════════════

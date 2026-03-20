@@ -1,20 +1,11 @@
-// BloodLink Pro — Service Worker v1
-const CACHE = 'blp-v1';
+// BloodLink Pro — Service Worker v2 (Phase 12: Performance)
+const CACHE = 'blp-v2';
 const OFFLINE_URL = 'offline.html';
 const ASSETS = [
-  '/BloodLink-Pro/',
-  '/BloodLink-Pro/index.html',
-  '/BloodLink-Pro/search.html',
-  '/BloodLink-Pro/donor.html',
-  '/BloodLink-Pro/login.html',
-  '/BloodLink-Pro/register.html',
-  '/BloodLink-Pro/banks.html',
-  '/BloodLink-Pro/dashboard.html',
-  '/BloodLink-Pro/about.html',
-  '/BloodLink-Pro/pricing.html',
-  '/BloodLink-Pro/style.css',
-  '/BloodLink-Pro/script.js',
-  '/BloodLink-Pro/offline.html'
+  'index.html', 'search.html', 'donor.html', 'login.html',
+  'register.html', 'banks.html', 'dashboard.html', 'about.html',
+  'pricing.html', 'emergency.html', 'profile.html',
+  'style.css', 'script.js', 'offline.html', 'manifest.json'
 ];
 
 self.addEventListener('install', function(e) {
