@@ -10,6 +10,8 @@
   <link rel="canonical" href="https://sn0863110-creator.github.io/BloodLink-Pro/donor.html" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩸</text></svg>" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#e63946" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 </head>
 <body data-page="donor">
@@ -106,6 +108,33 @@
         </select>
       </div>
 
+      <div class="form-row">
+        <div class="form-group">
+          <label for="d-lastdon">Last Donation Date (if any)</label>
+          <input type="date" id="d-lastdon" name="lastDonation" />
+        </div>
+        <div class="form-group">
+          <label for="d-health">Health Status</label>
+          <select id="d-health">
+            <option value="good">✅ Good Health</option>
+            <option value="minor">⚠️ Minor Issue (consult doctor)</option>
+            <option value="unavailable">❌ Not Fit to Donate</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Consent -->
+      <div style="background:#fff5f5;border:1.5px solid #f0d0d0;border-radius:10px;padding:1rem;margin-bottom:1rem;">
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:0.85rem;">
+          <input type="checkbox" id="d-consent" required style="margin-top:3px;accent-color:#e63946;width:16px;height:16px;flex-shrink:0;" />
+          <span>I agree to share my contact details for emergency blood donation purposes. I understand this platform does not guarantee any medical outcomes.</span>
+        </label>
+      </div>
+
+      <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:0.78rem;color:#92400e;">
+        ⚠️ <strong>Disclaimer:</strong> BloodLink Pro is a donor-matching platform only. We do not provide medical services or guarantee blood availability.
+      </div>
+
       <button type="submit" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:0.5rem;">
         🩸 Register as Donor
       </button>
@@ -172,10 +201,18 @@ window.addEventListener('DOMContentLoaded', function() {
     const city      = document.getElementById('d-city').value.trim();
     const phone     = document.getElementById('d-contact').value.trim();
     const available = document.getElementById('d-available').value || 'yes';
+    const lastDon   = document.getElementById('d-lastdon').value || '';
+    const health    = document.getElementById('d-health').value || 'good';
+    const consent   = document.getElementById('d-consent').checked;
     if(!name||!blood||!city||!phone){_toast3('Please fill all required fields.','error');btn.disabled=false;btn.textContent='🩸 Register as Donor';return;}
     if(!/^[6-9]\d{9}$/.test(phone)){_toast3('Enter a valid 10-digit mobile number.','error');btn.disabled=false;btn.textContent='🩸 Register as Donor';return;}
+    if(!consent){_toast3('Please accept the consent checkbox.','error');btn.disabled=false;btn.textContent='🩸 Register as Donor';return;}
+    // Safe interval check — 56 days
+    if(lastDon){var daysSince=Math.floor((Date.now()-new Date(lastDon))/86400000);if(daysSince<56){_toast3('You can donate again after '+(56-daysSince)+' more days (56-day safe interval).','error');btn.disabled=false;btn.textContent='🩸 Register as Donor';return;}}
     const donors = await _getDonors3();
-    donors.push({id:Date.now(),name:name,blood:blood,city:city,phone:phone,available:available,status:'pending',date:new Date().toISOString()});
+    // Duplicate phone check
+    if(donors.find(function(x){return x.phone===phone;})){_toast3('A donor with this phone number already exists.','error');btn.disabled=false;btn.textContent='🩸 Register as Donor';return;}
+    donors.push({id:Date.now(),name:name,blood:blood,city:city,phone:phone,available:available,health:health,lastDonation:lastDon,status:'pending',date:new Date().toISOString()});
     localStorage.setItem('blp_dc',JSON.stringify(donors));
     try{await fetch(_BB3+'/'+_BD3,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK3},body:JSON.stringify({donors:donors})});}catch(e){}
     _toast3('Donor registered! Awaiting admin approval.','success');

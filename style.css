@@ -628,6 +628,20 @@ body {
   .footer-links { grid-template-columns: 1fr; }
 }
 
+/* ===== DONOR CTA BUTTONS ===== */
+.donor-cta-call {
+  flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+  background:#e63946; color:#fff; border-radius:8px; padding:8px;
+  font-size:0.82rem; font-weight:700; text-decoration:none; transition:0.18s;
+}
+.donor-cta-call:hover { background:#c1121f; }
+.donor-cta-wa {
+  flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+  background:#25d366; color:#fff; border-radius:8px; padding:8px;
+  font-size:0.82rem; font-weight:700; text-decoration:none; transition:0.18s;
+}
+.donor-cta-wa:hover { background:#128c7e; }
+
 /* ===== MODAL MOBILE FIX ===== */
 @media (max-width: 480px) {
   .modal-box { max-width: 90vw; padding: 1.2rem; }

@@ -1,0 +1,38 @@
+{
+  "name": "BloodLink Pro",
+  "short_name": "BloodLink",
+  "description": "India's smart blood donation network — find donors instantly",
+  "start_url": "/BloodLink-Pro/",
+  "scope": "/BloodLink-Pro/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#e63946",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23e63946'/%3E%3Ctext y='140' x='96' text-anchor='middle' font-size='120'%3E%F0%9F%A9%B8%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%23e63946'/%3E%3Ctext y='380' x='256' text-anchor='middle' font-size='320'%3E%F0%9F%A9%B8%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "medical", "social"],
+  "lang": "en-IN",
+  "shortcuts": [
+    {
+      "name": "Find Donors",
+      "url": "/BloodLink-Pro/search.html",
+      "description": "Search blood donors"
+    },
+    {
+      "name": "Emergency SOS",
+      "url": "/BloodLink-Pro/search.html#sos",
+      "description": "Send emergency alert"
+    }
+  ]
+}

@@ -10,6 +10,8 @@
   <link rel="canonical" href="https://sn0863110-creator.github.io/BloodLink-Pro/search.html" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩸</text></svg>" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#e63946" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 </head>
 <body data-page="search">
@@ -198,29 +200,60 @@ async function performSearch(){
   const blood=document.getElementById('filter-blood').value;
   const city=(document.getElementById('filter-city').value||'').trim().toLowerCase();
   results.innerHTML='<div class="loading-state"><div class="spinner"></div><p>Searching donors...</p></div>';
-  const allDonors=await _getDonors4();
+  var allDonors;
+  try {
+    allDonors=await _getDonors4();
+  } catch(e) {
+    results.innerHTML='<div class="empty-state"><div class="icon">📡</div><h3>Network Error</h3><p>Could not connect. Check your internet.</p><button onclick="performSearch()" class="btn btn-primary btn-sm" style="margin-top:1rem;">🔄 Retry</button></div>';
+    return;
+  }
   // Only show approved donors to public, all to admin
   const admin = (typeof isAdmin==='function') && isAdmin();
   const donors=allDonors.filter(function(d){return admin || d.status!=='pending';});
   const found=donors.filter(function(d){return(!blood||d.blood===blood)&&(!city||d.city.toLowerCase().includes(city));});
   const ce=document.getElementById('results-count');if(ce)ce.textContent=found.length+' donor(s) found';
-  if(!found.length){results.innerHTML='<div class="empty-state"><div class="icon">🩸</div><h3>No donors found</h3><p>Try different filters or <a href="donor.html" style="color:#e63946;font-weight:600;">register as a donor</a>.</p></div>';return;}
+  if(!found.length){
+    // Suggest nearby cities if city filter was used
+    var suggestion='';
+    if(city){
+      var nearbyCities={'kanpur':['Unnao','Lucknow','Fatehpur'],'unnao':['Kanpur','Lucknow','Rae Bareli'],'lucknow':['Unnao','Kanpur','Sitapur'],'delhi':['Noida','Gurgaon','Faridabad'],'agra':['Mathura','Firozabad','Aligarh']};
+      var nearby=nearbyCities[city.toLowerCase()];
+      if(nearby) suggestion='<p style="margin-top:8px;font-size:0.82rem;color:#6b7280;">Try nearby cities: '+nearby.map(function(c){return '<a href="#" onclick="document.getElementById(\'filter-city\').value=\''+c+'\';performSearch();return false;" style="color:#e63946;font-weight:600;">'+c+'</a>';}).join(', ')+'</p>';
+    }
+    results.innerHTML='<div class="empty-state"><div class="icon">🩸</div><h3>No donors found</h3><p>No '+(blood||'')+(city?' donors in '+city:' donors')+' right now.</p>'+suggestion+'<div style="margin-top:1rem;"><a href="donor.html" class="btn btn-primary btn-sm">+ Register as Donor</a></div><div style="margin-top:0.8rem;font-size:0.78rem;color:#9ca3af;">Or call emergency helpline: <a href="tel:108" style="color:#e63946;font-weight:700;">108</a></div></div>';
+    return;
+  }
   results.innerHTML='<div class="results-grid">'+found.map(function(d){
     var avail=d.available!=='no';
     var initials=d.name?d.name.charAt(0).toUpperCase():'?';
+    var isVerified=d.status==='approved';
     var pendingBadge=d.status==='pending'?'<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:8px;font-size:0.7rem;font-weight:700;margin-left:6px;">⏳ Pending</span>':'';
+    var verifiedBadge=isVerified?'<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:8px;font-size:0.7rem;font-weight:700;margin-left:6px;">✅ Verified</span>':'';
+    // Masked phone — show last 4 digits only, reveal on click
+    var maskedPhone=d.phone?d.phone.substring(0,2)+'XXXXXX'+d.phone.slice(-2):'N/A';
+    var phoneId='ph-'+d.id;
+    var waLink='https://wa.me/91'+d.phone+'?text='+encodeURIComponent('Hello, I found your profile on BloodLink Pro. I need '+blood+' blood urgently. Can you help?');
+    // Last active — use date field
+    var lastActive='';
+    if(d.date){var dd=new Date(d.date);var diff=Math.floor((Date.now()-dd)/86400000);lastActive=diff===0?'Today':diff===1?'Yesterday':diff+' days ago';}
     var adminBtn=admin?'<button onclick="adminDeleteFromSearch('+d.id+')" style="margin-top:8px;background:#fee2e2;color:#e63946;border:1.5px solid #fca5a5;padding:4px 10px;border-radius:7px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit;width:100%;">🗑️ Delete Donor</button>':'';
     var approveBtn=(admin&&d.status==='pending')?'<button onclick="adminApproveFromSearch('+d.id+')" style="margin-top:4px;background:#dcfce7;color:#15803d;border:1.5px solid #86efac;padding:4px 10px;border-radius:7px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit;width:100%;">✅ Approve</button>':'';
     return '<div class="donor-card">'
       +'<div class="donor-top">'
       +'<div class="donor-avatar">'+initials+'</div>'
-      +'<div><div class="donor-name">'+d.name+pendingBadge+'</div><div class="donor-city">📍 '+d.city+'</div></div>'
+      +'<div style="flex:1;min-width:0;"><div class="donor-name">'+d.name+verifiedBadge+pendingBadge+'</div><div class="donor-city">📍 '+d.city+(lastActive?'&nbsp;·&nbsp;<span style="font-size:0.72rem;color:#9ca3af;">🕐 '+lastActive+'</span>':'')+'</div></div>'
       +'<span class="blood-group-tag">'+d.blood+'</span>'
       +'</div>'
       +'<div class="donor-details">'
-      +'<div class="donor-detail">📞 <a href="tel:'+d.phone+'" style="color:#e63946;font-weight:600;">'+d.phone+'</a></div>'
+      +'<div class="donor-detail">📞 <span id="'+phoneId+'" style="color:#6b7280;font-weight:600;cursor:pointer;" onclick="revealPhone(\''+phoneId+'\',\''+d.phone+'\')">'+maskedPhone+' <span style="font-size:0.7rem;color:#e63946;">(tap to reveal)</span></span></div>'
       +'<div class="donor-detail"><span class="avail-tag '+(avail?'yes':'no')+'">'+(avail?'✅ Available':'⏸️ Unavailable')+'</span></div>'
       +'</div>'
+      // CTA buttons
+      +(avail?'<div style="display:flex;gap:8px;margin-top:10px;">'
+        +'<a href="tel:'+d.phone+'" onclick="return confirmCall(\''+d.name+'\')" class="donor-cta-call">📞 Call</a>'
+        +'<a href="'+waLink+'" target="_blank" class="donor-cta-wa">💬 WhatsApp</a>'
+        +'</div>':'<div style="margin-top:8px;font-size:0.78rem;color:#9ca3af;text-align:center;padding:6px;background:#f9fafb;border-radius:8px;">Donor currently unavailable — try another</div>')
+      +'<div style="margin-top:8px;font-size:0.7rem;color:#9ca3af;border-top:1px solid #f3f4f6;padding-top:6px;">⚠️ This platform does not guarantee availability. Always verify before visiting.</div>'
       +approveBtn+adminBtn
       +'</div>';
   }).join('')+'</div>';
@@ -246,6 +279,15 @@ async function adminApproveFromSearch(id) {
   try{await fetch(_BB4+'/'+_BD4,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':_AK4},body:JSON.stringify({donors:donors})});}catch(e){}
   if(typeof showToast==='function') showToast('✅ Donor approved!','success');
   performSearch();
+}
+// Reveal masked phone on tap
+function revealPhone(elId, phone) {
+  var el = document.getElementById(elId);
+  if (el) el.innerHTML = '<a href="tel:'+phone+'" style="color:#e63946;font-weight:700;">'+phone+'</a>';
+}
+// Confirm before calling
+function confirmCall(name) {
+  return confirm('Call '+name+'?\n\nRemember: This platform does not guarantee availability. Please confirm before visiting.');
 }
 document.getElementById('search-form').addEventListener('submit',function(e){e.preventDefault();performSearch();});
 // SOS button
