@@ -474,79 +474,156 @@ body {
 
 /* ===== RESPONSIVE 768px ===== */
 @media (max-width: 768px) {
-  /* Navbar — full mobile menu */
   .nav-toggle { display: flex; }
   .navbar { padding: 0 1rem; height: 56px; }
   .nav-brand { font-size: 1.1rem; }
   .nav-brand .drop-icon { font-size: 1.2rem; }
 
+  /* ── RIGHT SLIDE DRAWER ── */
   .nav-links {
-    display: none;
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: min(80vw, 300px);
+    background: var(--bg-card);
     flex-direction: column;
     align-items: stretch;
-    position: fixed;
-    top: 56px; left: 0; right: 0;
-    background: var(--bg-card);
-    border-bottom: 2px solid var(--border);
-    padding: 0.5rem 0.8rem 1rem;
-    gap: 2px;
-    z-index: 9998;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-    max-height: calc(100vh - 56px);
+    padding: 0 0 2rem 0;
+    gap: 0;
+    z-index: 9999;
+    box-shadow: -4px 0 32px rgba(0,0,0,0.18);
     overflow-y: auto;
     overflow-x: hidden;
-    width: 100%;
+    transform: translateX(110%);
+    transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+    display: flex !important; /* always in DOM, just hidden via transform */
   }
-  .nav-links.open { display: flex; }
+  .nav-links.open {
+    transform: translateX(0);
+  }
 
-  /* All nav items full width */
+  /* Drawer header */
+  .nav-drawer-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 1rem 1.2rem;
+    background: linear-gradient(135deg, #e63946, #c1121f);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    margin-bottom: 0.5rem;
+    flex-shrink: 0;
+  }
+  .nav-drawer-header .close-btn {
+    margin-left: auto;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: #fff;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* All nav links full width */
   .nav-links a,
-  .nav-links .btn,
-  .nav-links button {
+  .nav-links .btn {
     width: 100% !important;
-    justify-content: center !important;
-    text-align: center !important;
-    padding: 0.65rem 1rem !important;
-    font-size: 0.9rem !important;
-    border-radius: 8px !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+    padding: 0.75rem 1.2rem !important;
+    font-size: 0.92rem !important;
+    border-radius: 0 !important;
     margin: 0 !important;
     box-sizing: border-box !important;
     display: flex !important;
     align-items: center !important;
+    border-bottom: 1px solid var(--border) !important;
+    color: var(--text) !important;
+    background: transparent !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-top: none !important;
+  }
+  .nav-links a:hover,
+  .nav-links a.active {
+    background: var(--bg-soft) !important;
+    color: var(--primary) !important;
+    border-left: 3px solid var(--primary) !important;
+    padding-left: calc(1.2rem - 3px) !important;
+  }
+  .nav-links a[style*="color:#e63946"] {
+    color: #e63946 !important;
   }
 
-  /* User name badge — mobile full width */
+  /* Logout button */
+  .nav-links button#nav-logout {
+    width: 100% !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+    padding: 0.75rem 1.2rem !important;
+    font-size: 0.92rem !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    border-bottom: 1px solid var(--border) !important;
+    border-left: none !important; border-right: none !important; border-top: none !important;
+    background: transparent !important;
+    color: #e63946 !important;
+  }
+
+  /* User badge */
   #nav-user {
     width: 100% !important;
     max-width: 100% !important;
-    text-align: center !important;
-    justify-content: center !important;
-    padding: 0.65rem 1rem !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    padding: 0.75rem 1.2rem !important;
     font-size: 0.88rem !important;
-    border-radius: 8px !important;
+    border-radius: 0 !important;
     display: flex !important;
+    border-bottom: 1px solid var(--border) !important;
+    background: var(--bg-soft) !important;
   }
 
-  /* Lang / Dark / QR buttons row — side by side */
+  /* Utility row at bottom of drawer */
   .nav-util-row {
+    margin-top: auto;
+    padding: 1rem 1.2rem 0;
+    border-top: 1px solid var(--border);
+    gap: 8px !important;
+    flex-wrap: wrap;
     display: flex !important;
-    gap: 6px !important;
-    width: 100% !important;
-    margin-top: 4px !important;
+    width: 100%;
   }
   .nav-util-row button {
     flex: 1 !important;
+    min-width: 70px !important;
     padding: 0.6rem 0.5rem !important;
-    font-size: 0.85rem !important;
+    font-size: 0.82rem !important;
     border-radius: 8px !important;
     background: var(--bg-soft) !important;
     border: 1.5px solid var(--border) !important;
-    cursor: pointer !important;
-    font-family: var(--font) !important;
-    color: var(--text) !important;
     justify-content: center !important;
     display: flex !important;
     align-items: center !important;
+  }
+
+  /* Overlay behind drawer */
+  .drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 9998;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.28s ease;
+  }
+  .drawer-overlay.open {
+    opacity: 1;
+    pointer-events: all;
   }
 
   /* Hero */
@@ -828,6 +905,9 @@ body.dark-mode #nav-user {
 body.dark-mode .nav-links {
   background: #0f172a;
   border-color: #334155;
+}
+body.dark-mode .nav-drawer-header {
+  background: linear-gradient(135deg, #7f1d1d, #991b1b);
 }
 body.dark-mode .nav-util-row button {
   background: #1e293b !important;

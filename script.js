@@ -327,15 +327,46 @@ function setupHamburger() {
   const menu = document.getElementById('nav-links')  || document.getElementById('nav-menu');
   if (!btn || !menu) return;
 
+  // ── Inject drawer header (first child of nav-links) ──
+  if (!menu.querySelector('.nav-drawer-header')) {
+    var header = document.createElement('div');
+    header.className = 'nav-drawer-header';
+    header.innerHTML = '<span>🩸 BloodLink<span style="font-weight:400">Pro</span></span>'
+      + '<button class="close-btn" id="drawer-close" aria-label="Close menu">✕</button>';
+    menu.insertBefore(header, menu.firstChild);
+  }
+
+  // ── Inject overlay ──
+  var overlay = document.getElementById('drawer-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'drawer-overlay';
+    overlay.className = 'drawer-overlay';
+    document.body.appendChild(overlay);
+  }
+
+  function openMenu() {
+    menu.classList.add('open');
+    btn.classList.add('open');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
   function closeMenu() {
     menu.classList.remove('open');
     btn.classList.remove('open');
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
   }
 
   btn.addEventListener('click', function(e){
     e.stopPropagation();
-    menu.classList.toggle('open');
-    btn.classList.toggle('open');
+    menu.classList.contains('open') ? closeMenu() : openMenu();
+  });
+
+  // Close button inside drawer
+  menu.addEventListener('click', function(e){
+    if (e.target && (e.target.id === 'drawer-close' || e.target.closest('#drawer-close'))) closeMenu();
   });
 
   // Close when any nav link is clicked
@@ -343,17 +374,26 @@ function setupHamburger() {
     link.addEventListener('click', closeMenu);
   });
 
-  // Close on outside click
-  document.addEventListener('click', function(e){
-    if (!menu.contains(e.target) && e.target !== btn) closeMenu();
-  });
+  // Close on overlay click
+  overlay.addEventListener('click', closeMenu);
 
-  // Touch swipe to close (swipe right to close)
+  // Touch swipe right-to-close on drawer
   var touchStartX = 0;
   menu.addEventListener('touchstart', function(e){ touchStartX = e.touches[0].clientX; }, { passive: true });
   menu.addEventListener('touchend', function(e){
     var dx = e.changedTouches[0].clientX - touchStartX;
     if (dx > 60) closeMenu();
+  }, { passive: true });
+
+  // Touch swipe left-to-open (from right edge of screen)
+  var bodyTouchStartX = 0;
+  document.addEventListener('touchstart', function(e){
+    bodyTouchStartX = e.touches[0].clientX;
+  }, { passive: true });
+  document.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].clientX - bodyTouchStartX;
+    var startedFromRight = bodyTouchStartX > window.innerWidth - 40;
+    if (dx < -50 && startedFromRight && !menu.classList.contains('open')) openMenu();
   }, { passive: true });
 }
 
