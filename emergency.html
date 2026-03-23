@@ -40,9 +40,11 @@
     <a href="login.html" id="nav-login" class="btn btn-outline btn-sm">Login</a>
     <a href="register.html" id="nav-register" class="btn btn-primary btn-sm">Register</a>
     <button id="nav-logout" class="btn btn-ghost btn-sm" style="display:none;">Logout</button>
-    <button id="lang-toggle" onclick="toggleLanguage()" title="Switch Language">हिं</button>
-    <button id="dark-toggle" onclick="toggleDarkMode()" title="Dark Mode">🌙</button>
-    <button onclick="showQRCode()" title="QR Code" class="nav-qr-btn">📱</button>
+    <div class="nav-util-row">
+      <button id="lang-toggle" onclick="toggleLanguage()" title="Switch Language">हिं</button>
+      <button id="dark-toggle" onclick="toggleDarkMode()" title="Dark Mode">🌙</button>
+      <button onclick="showQRCode()" title="QR Code" class="nav-qr-btn">📱</button>
+    </div>
   </div>
 </nav>
 
@@ -204,6 +206,80 @@ function incrementRateLimit() {
   localStorage.setItem(key, parseInt(localStorage.getItem(key) || '0') + 1);
 }
 
+// ── EMAILJS NOTIFICATION ──────────────────────────────────
+function sendEmergencyEmail(req, matchedDonors) {
+  try {
+    if (typeof emailjs === 'undefined') {
+      // Load EmailJS dynamically
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+      s.onload = function() {
+        emailjs.init('sL5HWaaNmX7_r1r2Q');
+        _sendEmail(req, matchedDonors);
+      };
+      document.head.appendChild(s);
+    } else {
+      emailjs.init('sL5HWaaNmX7_r1r2Q');
+      _sendEmail(req, matchedDonors);
+    }
+  } catch(e) { console.warn('EmailJS error:', e); }
+}
+
+function _sendEmail(req, matchedDonors) {
+  var donorList = matchedDonors.length
+    ? matchedDonors.slice(0,5).map(function(d){ return d.name+' ('+d.blood+') - '+d.city+' - '+d.phone; }).join('\n')
+    : 'No matching donors found';
+  emailjs.send('service_8sd8f59', 'template_74dk9w6', {
+    to_email: 'sn0863110@gmail.com',
+    subject: '🚨 EMERGENCY: '+req.blood+' blood needed in '+req.city,
+    patient_name: req.name,
+    blood_group: req.blood,
+    units: req.units,
+    city: req.city,
+    hospital: req.hospital || 'Not specified',
+    contact: req.contact,
+    urgency: req.urgency.toUpperCase(),
+    matched_donors: donorList,
+    message: '🚨 EMERGENCY BLOOD REQUEST\n\nPatient: '+req.name+'\nBlood: '+req.blood+' ('+req.units+' units)\nCity: '+req.city+'\nHospital: '+(req.hospital||'N/A')+'\nContact: '+req.contact+'\nUrgency: '+req.urgency.toUpperCase()+'\n\nMatching Donors:\n'+donorList
+  }).catch(function(e){ console.warn('Email send failed:', e); });
+}
+
+// ── BROWSER PUSH NOTIFICATION ─────────────────────────────
+function sendBrowserNotification(blood, city, donorCount) {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') {
+    new Notification('🚨 Emergency Blood Request Submitted', {
+      body: blood+' needed in '+city+'. '+donorCount+' donor(s) found.',
+      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🩸</text></svg>'
+    });
+  } else if (Notification.permission !== 'denied') {
+    Notification.requestPermission().then(function(p) {
+      if (p === 'granted') sendBrowserNotification(blood, city, donorCount);
+    });
+  }
+}
+
+// ── WHATSAPP BROADCAST ────────────────────────────────────
+function sendWhatsAppBroadcast() {
+  var matched = window._emergencyMatched || [];
+  var req = window._emergencyReq || {};
+  if (!matched.length) { showToast('No donors to message', 'error'); return; }
+  var msg = encodeURIComponent('🚨 *EMERGENCY BLOOD REQUEST*\n\nBlood Group: *'+req.blood+'*\nPatient: '+req.name+'\nCity: '+req.city+(req.hospital?'\nHospital: '+req.hospital:'')+'\nContact: *'+req.contact+'*\nUrgency: '+req.urgency.toUpperCase()+'\n\nPlease respond ASAP!\n— BloodLink Pro');
+  // Open WhatsApp for first donor, show links for rest
+  var first = matched[0];
+  window.open('https://wa.me/91'+first.phone+'?text='+msg, '_blank');
+  if (matched.length > 1) {
+    setTimeout(function() {
+      showToast('Opening WhatsApp for '+matched.length+' donors...', 'info');
+      matched.slice(1, 4).forEach(function(d, i) {
+        setTimeout(function() {
+          window.open('https://wa.me/91'+d.phone+'?text='+msg, '_blank');
+        }, (i+1) * 800);
+      });
+    }, 500);
+  }
+}
+
 // ── CAPTCHA ──
 var _captchaA = 0, _captchaB = 0, _captchaOp = '+';
 function refreshCaptcha() {
@@ -278,18 +354,54 @@ document.addEventListener('DOMContentLoaded', function(){
     // Find matching donors
     var donors = await getDonors();
     var matched = donors.filter(function(d){return d.status!=='pending'&&d.available!=='no'&&d.blood===blood&&d.city.toLowerCase()===city.toLowerCase();});
+    // Also try nearby if no exact match
+    var nearbyMatched = [];
+    if(!matched.length){
+      nearbyMatched = donors.filter(function(d){return d.status!=='pending'&&d.available!=='no'&&d.blood===blood;});
+    }
+    var allMatched = matched.length ? matched : nearbyMatched;
+
+    // ── SEND REAL NOTIFICATIONS ──────────────────────────
+    // 1. EmailJS — notify admin with full request + donor list
+    sendEmergencyEmail(req, allMatched);
+
+    // 2. Browser Notification (PWA)
+    sendBrowserNotification(blood, city, allMatched.length);
+
     form.style.display='none';
     var succ = document.getElementById('e-success'); succ.style.display='block';
     var matchDiv = document.getElementById('e-matched-donors');
-    if(matched.length){
-      matchDiv.innerHTML='<div style="background:#dcfce7;border:1px solid #86efac;border-radius:10px;padding:12px;margin-bottom:8px;"><div style="font-weight:700;color:#15803d;margin-bottom:6px;">✅ '+matched.length+' matching donor(s) found in '+city+':</div>'
-        +matched.slice(0,3).map(function(d){return '<div style="font-size:0.82rem;padding:4px 0;border-bottom:1px solid #bbf7d0;"><b>'+d.name+'</b> · '+d.blood+' · <a href="tel:'+d.phone+'" style="color:#15803d;font-weight:700;">Call Now</a></div>';}).join('')
+
+    if(allMatched.length){
+      var isNearby = matched.length === 0;
+      matchDiv.innerHTML='<div style="background:#dcfce7;border:1.5px solid #86efac;border-radius:12px;padding:14px;margin-bottom:10px;">'
+        +'<div style="font-weight:800;color:#15803d;margin-bottom:8px;font-size:0.95rem;">✅ '+(isNearby?'Nearby':'Matching')+' donors found'+(isNearby?' (other cities)':' in '+city)+' ('+allMatched.length+' total):</div>'
+        +allMatched.slice(0,5).map(function(d){
+          var waMsg = encodeURIComponent('🚨 Emergency Blood Request!\nBlood Group: '+blood+'\nPatient: '+name+'\nCity: '+city+(hospital?'\nHospital: '+hospital:'')+'\nContact: '+contact+'\n\nPlease respond ASAP. BloodLink Pro');
+          return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #bbf7d0;flex-wrap:wrap;">'
+            +'<div style="flex:1;min-width:120px;"><b style="font-size:0.88rem;">'+d.name+'</b> <span style="background:#e63946;color:#fff;padding:1px 7px;border-radius:8px;font-size:0.72rem;font-weight:800;">'+d.blood+'</span>'
+            +'<div style="font-size:0.75rem;color:#6b7280;">📍 '+d.city+'</div></div>'
+            +'<a href="tel:'+d.phone+'" style="background:#e63946;color:#fff;padding:6px 12px;border-radius:8px;font-size:0.78rem;font-weight:700;text-decoration:none;white-space:nowrap;">📞 Call</a>'
+            +'<a href="https://wa.me/91'+d.phone+'?text='+waMsg+'" target="_blank" style="background:#25d366;color:#fff;padding:6px 12px;border-radius:8px;font-size:0.78rem;font-weight:700;text-decoration:none;white-space:nowrap;">💬 WhatsApp</a>'
+            +'</div>';
+        }).join('')
+        +(allMatched.length>5?'<div style="font-size:0.78rem;color:#6b7280;margin-top:6px;">...and '+(allMatched.length-5)+' more donors</div>':'')
+        +'</div>'
+        // WhatsApp broadcast button
+        +'<div style="margin-bottom:8px;">'
+        +'<button onclick="sendWhatsAppBroadcast()" style="width:100%;background:#25d366;color:#fff;border:none;padding:10px;border-radius:10px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;">💬 Send WhatsApp to All Matching Donors</button>'
         +'</div>';
+      // Store matched for broadcast
+      window._emergencyMatched = allMatched;
+      window._emergencyReq = req;
     } else {
-      matchDiv.innerHTML='<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px;font-size:0.85rem;color:#92400e;"><b>No exact match in '+city+'</b> — try nearby cities or contact blood banks directly.</div>';
+      matchDiv.innerHTML='<div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:12px;padding:14px;font-size:0.85rem;color:#92400e;">'
+        +'<b>No donors found for '+blood+' in '+city+'</b><br>'
+        +'<span style="font-size:0.8rem;">Try contacting blood banks directly or call 1910.</span>'
+        +'</div>';
     }
     if(typeof playEmergencyHorn==='function') playEmergencyHorn();
-    showToast('🚨 Emergency request submitted!','error');
+    showToast('🚨 Emergency request submitted! Donors notified.','error');
   });
 });
 </script>

@@ -326,17 +326,35 @@ function setupHamburger() {
   const btn  = document.getElementById('nav-toggle') || document.getElementById('hamburger');
   const menu = document.getElementById('nav-links')  || document.getElementById('nav-menu');
   if (!btn || !menu) return;
+
+  function closeMenu() {
+    menu.classList.remove('open');
+    btn.classList.remove('open');
+  }
+
   btn.addEventListener('click', function(e){
     e.stopPropagation();
     menu.classList.toggle('open');
     btn.classList.toggle('open');
   });
-  document.addEventListener('click', function(e){
-    if (!menu.contains(e.target) && e.target !== btn) {
-      menu.classList.remove('open');
-      btn.classList.remove('open');
-    }
+
+  // Close when any nav link is clicked
+  menu.querySelectorAll('a').forEach(function(link) {
+    link.addEventListener('click', closeMenu);
   });
+
+  // Close on outside click
+  document.addEventListener('click', function(e){
+    if (!menu.contains(e.target) && e.target !== btn) closeMenu();
+  });
+
+  // Touch swipe to close (swipe right to close)
+  var touchStartX = 0;
+  menu.addEventListener('touchstart', function(e){ touchStartX = e.touches[0].clientX; }, { passive: true });
+  menu.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    if (dx > 60) closeMenu();
+  }, { passive: true });
 }
 
 function updateNavAuth() {
