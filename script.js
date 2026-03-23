@@ -343,8 +343,19 @@ function updateNavAuth() {
   var user = currentUser();
   var nu=document.getElementById('nav-user'), nl=document.getElementById('nav-login'), nr=document.getElementById('nav-register'), nd=document.getElementById('nav-dashboard'), no=document.getElementById('nav-logout'), np=document.getElementById('nav-profile');
   if (user) {
-    var adminBadge = isAdmin() ? ' <span style="background:#e63946;color:#fff;font-size:0.65rem;padding:2px 7px;border-radius:10px;font-weight:800;vertical-align:middle;">ADMIN</span>' : '';
-    if (nu) { nu.innerHTML='👤 '+user.name+adminBadge; nu.style.display='inline-block'; }
+    // Show only first name, max 10 chars
+    var firstName = (user.name || 'User').split(' ')[0];
+    if (firstName.length > 10) firstName = firstName.substring(0, 10) + '…';
+    var adminBadge = isAdmin() ? '<span style="background:#e63946;color:#fff;font-size:0.6rem;padding:1px 5px;border-radius:6px;font-weight:800;vertical-align:middle;margin-left:4px;">ADMIN</span>' : '';
+    if (nu) {
+      nu.innerHTML = '👤 ' + firstName + adminBadge;
+      nu.style.display = 'inline-flex';
+      nu.style.alignItems = 'center';
+      nu.style.gap = '4px';
+      nu.style.maxWidth = '130px';
+      nu.style.overflow = 'hidden';
+      nu.style.whiteSpace = 'nowrap';
+    }
     if (nl) nl.style.display='none';
     if (nr) nr.style.display='none';
     if (nd) nd.style.display='inline-flex';
