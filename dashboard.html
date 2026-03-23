@@ -39,7 +39,7 @@
     <button id="nav-logout" class="btn btn-ghost btn-sm" style="display:none;">Logout</button>
     <button id="lang-toggle" onclick="toggleLanguage()" title="Switch Language">हिं</button>
     <button id="dark-toggle" onclick="toggleDarkMode()" title="Dark Mode">🌙</button>
-    <button onclick="showQRCode()" title="QR Code" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:1rem;color:var(--text-muted);font-family:inherit;">📱</button>
+    <button onclick="showQRCode()" title="QR Code" class="nav-qr-btn">📱</button>
   </div>
 </nav>
 
@@ -51,7 +51,7 @@
       <p style="color:rgba(255,255,255,0.6);">Welcome back, <span id="user-name" style="color:#e63946;font-weight:700;">Guest</span></p>
       <p id="last-updated" style="font-size:0.78rem;color:rgba(255,255,255,0.35);">Loading...</p>
     </div>
-    <div style="display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;">
+    <div style="display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;margin-top:0.5rem;">
       <a href="donor.html" class="btn btn-primary btn-sm">+ Register Donor</a>
       <a href="search.html" class="btn btn-sm" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);">🔍 Search</a>
     </div>
