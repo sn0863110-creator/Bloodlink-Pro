@@ -349,7 +349,8 @@ function setupHamburger() {
     document.body.appendChild(overlay);
   }
 
-  var _ignoreNextBodyTouch = false;
+  // Track last touch time to prevent ghost click
+  var _lastTouchTime = 0;
 
   function openMenu() {
     menu.classList.add('open');
@@ -365,18 +366,23 @@ function setupHamburger() {
     document.body.style.overflow = '';
   }
 
-  // ── Hamburger button — support both click AND touch ──
+  // ── Hamburger button — touch handler (primary on mobile) ──
+  btn.addEventListener('touchstart', function(e) {
+    _lastTouchTime = Date.now();
+  }, { passive: true });
+
   btn.addEventListener('touchend', function(e) {
     e.preventDefault();          // prevent ghost click
     e.stopPropagation();
-    _ignoreNextBodyTouch = true; // don't let body touchend interfere
+    _lastTouchTime = Date.now();
     menu.classList.contains('open') ? closeMenu() : openMenu();
   }, { passive: false });
 
+  // ── Click handler — only fires on desktop (touch already handled above) ──
   btn.addEventListener('click', function(e) {
     e.stopPropagation();
-    // Only handle click if touchend didn't already handle it
-    if (_ignoreNextBodyTouch) { _ignoreNextBodyTouch = false; return; }
+    // If a touch event fired within 500ms, skip this click (it's a ghost click)
+    if (Date.now() - _lastTouchTime < 500) return;
     menu.classList.contains('open') ? closeMenu() : openMenu();
   });
 
@@ -419,7 +425,8 @@ function setupHamburger() {
     edgeStartY = e.touches[0].clientY;
   }, { passive: true });
   document.addEventListener('touchend', function(e) {
-    if (_ignoreNextBodyTouch) { _ignoreNextBodyTouch = false; return; }
+    // Skip if touch was on the hamburger button (already handled)
+    if (e.target === btn || btn.contains(e.target)) return;
     var dx = e.changedTouches[0].clientX - edgeStartX;
     var dy = Math.abs(e.changedTouches[0].clientY - edgeStartY);
     var startedFromRightEdge = edgeStartX > window.innerWidth - 30;
