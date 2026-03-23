@@ -830,36 +830,98 @@ var _lang = localStorage.getItem('blp_lang') || 'en';
 
 var _translations = {
   en: {
+    // Nav
+    'Home': 'Home',
     'Find Donors': 'Find Donors',
     'Emergency': '🚨 Emergency',
     'Blood Banks': 'Blood Banks',
+    'Market': 'Market',
+    'About Us': 'About Us',
     'Dashboard': 'Dashboard',
     'Login': 'Login',
     'Register': 'Register',
     'Logout': 'Logout',
     'Profile': '👤 Profile',
+    '+ Add Donor': '+ Add Donor',
+    // Index hero
+    'Every Drop': 'Every Drop',
+    'Saves a Life.': 'Saves a Life.',
     'Become a Donor': '🩸 Become a Donor',
     'Find Blood Now': '🔍 Find Blood Now',
+    'Registered Donors': 'Registered Donors',
+    'Available Now': 'Available Now',
+    'Cities Covered': 'Cities Covered',
+    // Search
+    'Search Donors': 'Search Donors',
+    'Search Donors →': 'Search Donors →',
+    'Blood Group': 'Blood Group',
+    'City': 'City',
+    'All Blood Groups': 'All Blood Groups',
+    'All Cities': 'All Cities',
+    // Emergency
     'Send Emergency SOS': '🆘 Send Emergency SOS Alert',
-    'Home': 'Home',
-    'About Us': 'About Us',
-    'Market': 'Market'
+    'Emergency Blood Needed?': '🚨 Emergency Blood Needed?',
+    // Donor form
+    'Register as Donor': 'Register as Donor',
+    'Full Name': 'Full Name',
+    'Phone Number': 'Phone Number',
+    'Submit': 'Submit',
+    // Common
+    'Loading...': 'Loading...',
+    'No donors found': 'No donors found',
+    'Available': 'Available',
+    'Not Available': 'Not Available',
+    'View All': 'View All →',
+    'Search': '🔍 Search',
+    'Call': '📞 Call',
+    'Get Directions': '🗺️ Directions'
   },
   hi: {
+    // Nav
+    'Home': 'होम',
     'Find Donors': 'डोनर खोजें',
     'Emergency': '🚨 आपातकाल',
     'Blood Banks': 'ब्लड बैंक',
+    'Market': 'मार्केट',
+    'About Us': 'हमारे बारे में',
     'Dashboard': 'डैशबोर्ड',
     'Login': 'लॉगिन',
     'Register': 'रजिस्टर',
     'Logout': 'लॉगआउट',
     'Profile': '👤 प्रोफाइल',
+    '+ Add Donor': '+ डोनर जोड़ें',
+    // Index hero
+    'Every Drop': 'हर बूंद',
+    'Saves a Life.': 'एक जीवन बचाती है।',
     'Become a Donor': '🩸 डोनर बनें',
     'Find Blood Now': '🔍 अभी खोजें',
+    'Registered Donors': 'पंजीकृत डोनर',
+    'Available Now': 'अभी उपलब्ध',
+    'Cities Covered': 'शहर कवर',
+    // Search
+    'Search Donors': 'डोनर खोजें',
+    'Search Donors →': 'डोनर खोजें →',
+    'Blood Group': 'ब्लड ग्रुप',
+    'City': 'शहर',
+    'All Blood Groups': 'सभी ब्लड ग्रुप',
+    'All Cities': 'सभी शहर',
+    // Emergency
     'Send Emergency SOS': '🆘 आपातकालीन SOS भेजें',
-    'Home': 'होम',
-    'About Us': 'हमारे बारे में',
-    'Market': 'मार्केट'
+    'Emergency Blood Needed?': '🚨 आपातकालीन रक्त चाहिए?',
+    // Donor form
+    'Register as Donor': 'डोनर के रूप में रजिस्टर करें',
+    'Full Name': 'पूरा नाम',
+    'Phone Number': 'फोन नंबर',
+    'Submit': 'जमा करें',
+    // Common
+    'Loading...': 'लोड हो रहा है...',
+    'No donors found': 'कोई डोनर नहीं मिला',
+    'Available': 'उपलब्ध',
+    'Not Available': 'अनुपलब्ध',
+    'View All': 'सभी देखें →',
+    'Search': '🔍 खोजें',
+    'Call': '📞 कॉल करें',
+    'Get Directions': '🗺️ दिशा-निर्देश'
   }
 };
 
@@ -868,13 +930,85 @@ function t(key) {
 }
 
 function applyLanguage() {
-  // Translate nav links by data-i18n attribute
+  // 1. Translate all elements with data-i18n attribute
   document.querySelectorAll('[data-i18n]').forEach(function(el) {
     var key = el.getAttribute('data-i18n');
-    el.textContent = t(key);
+    var translated = t(key);
+    if (translated !== key) el.textContent = translated;
   });
+
+  // 2. Auto-translate nav links by their text content
+  var navLinks = document.querySelectorAll('.nav-links a, .nav-links button:not(#lang-toggle):not(#dark-toggle):not(.nav-qr-btn)');
+  navLinks.forEach(function(el) {
+    // Skip elements with child elements (like nav-user with badge span)
+    if (el.children.length > 0) return;
+    var txt = el.textContent.trim();
+    if (!txt) return;
+    // Direct lookup
+    if (_translations[_lang][txt]) { el.textContent = _translations[_lang][txt]; return; }
+    // Strip leading emoji/symbols and try again
+    var stripped = txt.replace(/^[^\w\u0900-\u097F]+/, '').trim();
+    if (_translations[_lang][stripped]) { el.textContent = _translations[_lang][stripped]; return; }
+    // Try each key — if current text matches any translation value, find original key
+    var keys = Object.keys(_translations.en);
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i];
+      if (_translations.en[k] === txt || _translations.hi[k] === txt ||
+          _translations.en[k].replace(/^[^\w]+/, '').trim() === stripped ||
+          _translations.hi[k].replace(/^[^\w\u0900-\u097F]+/, '').trim() === stripped) {
+        el.textContent = _translations[_lang][k] || txt;
+        return;
+      }
+    }
+  });
+
+  // 3. Update lang button label
   var btn = document.getElementById('lang-toggle');
   if (btn) btn.textContent = _lang === 'en' ? 'हिं' : 'EN';
+
+  // 4. Update html lang attribute
+  document.documentElement.lang = _lang === 'hi' ? 'hi' : 'en';
+
+  // 5. Translate page-specific elements by selector
+  var pageTranslations = {
+    hi: [
+      // Search page
+      { sel: '.search-hero h1',        text: '🔍 डोनर खोजें' },
+      { sel: '.search-hero p',         text: 'ब्लड ग्रुप और शहर से तुरंत डोनर खोजें' },
+      { sel: '#search-btn',            text: '🔍 खोजें' },
+      // Emergency panel
+      { sel: '.emergency-panel h2',    text: '🚨 आपातकालीन रक्त अनुरोध' },
+      { sel: '.emergency-panel p',     text: 'गंभीर स्थिति? अपने नेटवर्क के सभी उपलब्ध डोनर को तुरंत SOS भेजें।' },
+      { sel: '#sos-btn',               text: '🆘 आपातकालीन SOS भेजें' },
+      // Index hero
+      { sel: '.hero-badge',            text: '🏥 भारत का #1 ब्लड डोनेशन नेटवर्क' },
+      { sel: '.hero p:first-of-type',  text: 'BloodLink Pro के साथ पूरे भारत में तुरंत वेरिफाइड ब्लड डोनर से जुड़ें।' },
+      // Stats bar
+      { sel: '.sbs-item:nth-child(1) .sbs-lbl', text: 'ब्लड टाइप' },
+      { sel: '.sbs-item:nth-child(3) .sbs-lbl', text: 'उपलब्ध' },
+      { sel: '.sbs-item:nth-child(5) .sbs-lbl', text: 'मुफ्त सेवा' },
+      // Dashboard
+      { sel: '.dash-header h1',        text: '📊 डैशबोर्ड' },
+      // Footer
+      { sel: '.footer-bottom span:first-child', text: '© 2025 BloodLink Pro — ❤️ से बनाया गया Satish Kumar Nishad · Team HackForce द्वारा' }
+    ],
+    en: [
+      { sel: '.search-hero h1',        text: '🔍 Find Blood Donors' },
+      { sel: '.search-hero p',         text: 'Search by blood group and city. Results are instant.' },
+      { sel: '#search-btn',            text: '🔍 Search' },
+      { sel: '.emergency-panel h2',    text: '🚨 Emergency Blood Request' },
+      { sel: '.emergency-panel p',     text: 'Critical situation? Send an instant SOS to all available donors in your network.' },
+      { sel: '#sos-btn',               text: '🆘 Send Emergency SOS' },
+      { sel: '.hero-badge',            text: '🏥 India\'s #1 Blood Donation Network' },
+      { sel: '.dash-header h1',        text: '📊 Dashboard' }
+    ]
+  };
+
+  var rules = pageTranslations[_lang] || [];
+  rules.forEach(function(rule) {
+    var el = document.querySelector(rule.sel);
+    if (el) el.textContent = rule.text;
+  });
 }
 
 function toggleLanguage() {
