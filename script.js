@@ -418,7 +418,22 @@ function updateNavAuth() {
     if (nr) nr.style.display='none';
     if (nd) nd.style.display='inline-flex';
     if (np) np.style.display='inline-flex';
-    if (no) { no.style.display='inline-flex'; no.addEventListener('click', logout); }
+    if (no) {
+      no.style.display='inline-flex';
+      // Remove old listener before adding new one (prevents duplicate logout calls)
+      if (!no._logoutAttached) {
+        no._logoutAttached = true;
+        no.addEventListener('click', logout);
+      }
+    }
+  } else {
+    // Not logged in — ensure login/register visible
+    if (nl) nl.style.display='inline-flex';
+    if (nr) nr.style.display='inline-flex';
+    if (nd) nd.style.display='none';
+    if (np) np.style.display='none';
+    if (no) no.style.display='none';
+    if (nu) nu.style.display='none';
   }
 }
 

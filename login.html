@@ -24,9 +24,15 @@
     <a href="about.html">About Us</a>
     <span id="nav-user" style="display:none;font-size:0.85rem;font-weight:600;color:var(--primary);padding:0.4rem 0.8rem;background:var(--bg-soft);border-radius:8px;"></span>
     <a href="dashboard.html" id="nav-dashboard" class="btn btn-ghost btn-sm" style="display:none;">Dashboard</a>
+    <a href="profile.html" id="nav-profile" class="btn btn-ghost btn-sm" style="display:none;">👤 Profile</a>
     <a href="login.html" class="active btn btn-outline btn-sm" id="nav-login">Login</a>
     <a href="register.html" class="btn btn-primary btn-sm" id="nav-register">Register</a>
     <button id="nav-logout" class="btn btn-ghost btn-sm" style="display:none;">Logout</button>
+    <div class="nav-util-row">
+      <button id="lang-toggle" onclick="toggleLanguage()" title="Switch Language">हिं</button>
+      <button id="dark-toggle" onclick="toggleDarkMode()" title="Dark Mode">🌙</button>
+      <button onclick="showQRCode()" title="QR Code" class="nav-qr-btn">📱</button>
+    </div>
   </div>
 </nav>
 
