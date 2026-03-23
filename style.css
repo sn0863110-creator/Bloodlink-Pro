@@ -60,7 +60,10 @@ body {
 @keyframes pulse-drop {
   0%,100%{transform:scale(1);} 50%{transform:scale(1.15);}
 }
-.nav-links { display: flex; align-items: center; gap: 0.4rem; flex-wrap: nowrap; overflow: hidden; }
+.nav-links { display: flex; align-items: center; gap: 0.4rem; flex-wrap: nowrap; overflow: visible; }
+
+/* Drawer header — hidden on desktop, shown only in mobile drawer */
+.nav-drawer-header { display: none; }
 .nav-links a {
   text-decoration: none; color: var(--text-muted);
   padding: 0.4rem 0.8rem; border-radius: 8px;
