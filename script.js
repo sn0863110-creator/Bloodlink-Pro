@@ -323,16 +323,20 @@ function showToast(msg, type) {
 }
 
 function setupHamburger() {
-  const btn  = document.getElementById('nav-toggle') || document.getElementById('hamburger');
-  const menu = document.getElementById('nav-links')  || document.getElementById('nav-menu');
+  var btn  = document.getElementById('nav-toggle') || document.getElementById('hamburger');
+  var menu = document.getElementById('nav-links')  || document.getElementById('nav-menu');
   if (!btn || !menu) return;
 
-  // ── Inject drawer header (first child of nav-links) ──
+  // Prevent double-init
+  if (btn._hamburgerInit) return;
+  btn._hamburgerInit = true;
+
+  // ── Inject drawer header as first child ──
   if (!menu.querySelector('.nav-drawer-header')) {
     var header = document.createElement('div');
     header.className = 'nav-drawer-header';
     header.innerHTML = '<span>🩸 BloodLink<span style="font-weight:400">Pro</span></span>'
-      + '<button class="close-btn" id="drawer-close" aria-label="Close menu">✕</button>';
+      + '<button class="close-btn" id="drawer-close" aria-label="Close menu" type="button">✕</button>';
     menu.insertBefore(header, menu.firstChild);
   }
 
@@ -344,6 +348,8 @@ function setupHamburger() {
     overlay.className = 'drawer-overlay';
     document.body.appendChild(overlay);
   }
+
+  var _ignoreNextBodyTouch = false;
 
   function openMenu() {
     menu.classList.add('open');
@@ -359,42 +365,73 @@ function setupHamburger() {
     document.body.style.overflow = '';
   }
 
-  btn.addEventListener('click', function(e){
+  // ── Hamburger button — support both click AND touch ──
+  btn.addEventListener('touchend', function(e) {
+    e.preventDefault();          // prevent ghost click
     e.stopPropagation();
+    _ignoreNextBodyTouch = true; // don't let body touchend interfere
+    menu.classList.contains('open') ? closeMenu() : openMenu();
+  }, { passive: false });
+
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    // Only handle click if touchend didn't already handle it
+    if (_ignoreNextBodyTouch) { _ignoreNextBodyTouch = false; return; }
     menu.classList.contains('open') ? closeMenu() : openMenu();
   });
 
-  // Close button inside drawer
-  menu.addEventListener('click', function(e){
-    if (e.target && (e.target.id === 'drawer-close' || e.target.closest('#drawer-close'))) closeMenu();
+  // ── Close button & link clicks inside drawer ──
+  menu.addEventListener('click', function(e) {
+    // Close button
+    if (e.target && (e.target.id === 'drawer-close' || (e.target.closest && e.target.closest('#drawer-close')))) {
+      closeMenu(); return;
+    }
+    // Any nav link
+    var link = e.target.closest('a');
+    if (link && menu.contains(link)) {
+      setTimeout(closeMenu, 120); // small delay so page navigation feels smooth
+    }
   });
 
-  // Close when any nav link is clicked
-  menu.querySelectorAll('a').forEach(function(link) {
-    link.addEventListener('click', closeMenu);
-  });
-
-  // Close on overlay click
+  // ── Overlay tap closes drawer ──
+  overlay.addEventListener('touchend', function(e) {
+    e.preventDefault();
+    closeMenu();
+  }, { passive: false });
   overlay.addEventListener('click', closeMenu);
 
-  // Touch swipe right-to-close on drawer
-  var touchStartX = 0;
-  menu.addEventListener('touchstart', function(e){ touchStartX = e.touches[0].clientX; }, { passive: true });
-  menu.addEventListener('touchend', function(e){
-    var dx = e.changedTouches[0].clientX - touchStartX;
-    if (dx > 60) closeMenu();
+  // ── Swipe right on drawer → close ──
+  var swipeStartX = 0, swipeStartY = 0;
+  menu.addEventListener('touchstart', function(e) {
+    swipeStartX = e.touches[0].clientX;
+    swipeStartY = e.touches[0].clientY;
+  }, { passive: true });
+  menu.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - swipeStartX;
+    var dy = Math.abs(e.changedTouches[0].clientY - swipeStartY);
+    if (dx > 60 && dy < 100) closeMenu();
   }, { passive: true });
 
-  // Touch swipe left-to-open (from right edge of screen)
-  var bodyTouchStartX = 0;
-  document.addEventListener('touchstart', function(e){
-    bodyTouchStartX = e.touches[0].clientX;
+  // ── Swipe left from right edge of screen → open drawer ──
+  var edgeStartX = 0, edgeStartY = 0;
+  document.addEventListener('touchstart', function(e) {
+    edgeStartX = e.touches[0].clientX;
+    edgeStartY = e.touches[0].clientY;
   }, { passive: true });
-  document.addEventListener('touchend', function(e){
-    var dx = e.changedTouches[0].clientX - bodyTouchStartX;
-    var startedFromRight = bodyTouchStartX > window.innerWidth - 40;
-    if (dx < -50 && startedFromRight && !menu.classList.contains('open')) openMenu();
+  document.addEventListener('touchend', function(e) {
+    if (_ignoreNextBodyTouch) { _ignoreNextBodyTouch = false; return; }
+    var dx = e.changedTouches[0].clientX - edgeStartX;
+    var dy = Math.abs(e.changedTouches[0].clientY - edgeStartY);
+    var startedFromRightEdge = edgeStartX > window.innerWidth - 30;
+    if (dx < -50 && dy < 80 && startedFromRightEdge && !menu.classList.contains('open')) {
+      openMenu();
+    }
   }, { passive: true });
+
+  // ── Escape key ──
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeMenu();
+  });
 }
 
 function updateNavAuth() {

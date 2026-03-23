@@ -461,6 +461,9 @@ body {
   display: none; flex-direction: column; justify-content: center;
   gap: 5px; background: none; border: none; cursor: pointer;
   padding: 6px; border-radius: 8px; transition: var(--transition);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 .nav-toggle:hover { background: var(--bg-soft); }
 .nav-toggle span {
@@ -471,6 +474,23 @@ body {
 .nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
 .nav-toggle.open span:nth-child(2) { opacity: 0; }
 .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ===== DRAWER OVERLAY (global — JS injects this on all screen sizes) ===== */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 9998;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
+  display: none;
+}
+.drawer-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+  display: block;
+}
 
 /* ===== RESPONSIVE ===== */
 
@@ -614,20 +634,7 @@ body {
     align-items: center !important;
   }
 
-  /* Overlay behind drawer */
-  .drawer-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.45);
-    z-index: 9998;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.28s ease;
-  }
-  .drawer-overlay.open {
-    opacity: 1;
-    pointer-events: all;
-  }
+  /* Overlay behind drawer — handled globally above */
 
   /* Hero */
   .hero { padding: 2rem 1rem; overflow: hidden; }
