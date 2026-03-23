@@ -1,38 +1,63 @@
-.hamburger-menu {
+.hamburger {
   display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  cursor: pointer;
 }
 
-.hamburger-menu .line {
+.hamburger div {
   width: 30px;
   height: 3px;
   background-color: #333;
-  margin: 5px;
-  transition: all 0.3s;
+  margin: 6px 0;
+  transition: 0.4s;
 }
 
 @media (max-width: 768px) {
-  .hamburger-menu {
-    display: flex;
+  .navbar {
+    display: none;
   }
-}
-
-/* Responsive grid fixes */
-@media (max-width: 768px) {
-  .grid {
-    display: flex;
+  .hamburger {
+    display: block;
+  }
+  .hamburger.active + .navbar {
+    display: block;
+  }
+  .navbar ul {
     flex-direction: column;
+    width: 100%;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: white;
+    padding: 0;
+  }
+
+  .navbar ul li {
+    display: block;
+    width: 100%;
   }
 }
 
-/* Mobile optimizations */
+/* Responsive fixes for overflow and layout issues */
 body {
   overflow-x: hidden;
-  font-size: 16px;
 }
 
 .container {
-  padding: 15px;
+  max-width: 100%;
+  padding: 0 15px;
+}
+
+/* Further specific responsive design fixes */
+.header,.footer {
+  padding: 10px 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.footer {
+  text-align: center;
 }
