@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terms & Conditions — BloodLink Pro</title>
+  <meta name="description" content="BloodLink Pro Terms & Conditions — Rules and guidelines for using India's blood donation network platform." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://sn0863110-creator.github.io/BloodLink-Pro/terms.html" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩸</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#e63946" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BloodLink Pro" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <style>
+    .legal-page { max-width: 820px; margin: 0 auto; padding: 3rem 2rem; }
+    .legal-hero { background: linear-gradient(135deg, #1a1a2e, #2d1b69); color: #fff; padding: 3rem 2rem; text-align: center; }
+    .legal-hero h1 { font-size: 2rem; font-weight: 900; margin-bottom: 0.4rem; }
+    .legal-hero p { opacity: 0.85; font-size: 0.95rem; }
+    .legal-toc { background: var(--bg-soft); border: 1.5px solid var(--border); border-radius: 14px; padding: 1.5rem; margin-bottom: 2rem; }
+    .legal-toc h3 { font-size: 0.9rem; font-weight: 800; margin-bottom: 0.8rem; color: var(--primary); }
+    .legal-toc ol { padding-left: 1.2rem; }
+    .legal-toc li { font-size: 0.85rem; margin-bottom: 0.4rem; }
+    .legal-toc a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    .legal-toc a:hover { text-decoration: underline; }
+    .legal-section { margin-bottom: 2.5rem; }
+    .legal-section h2 { font-size: 1.2rem; font-weight: 800; color: var(--primary); margin-bottom: 0.8rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); }
+    .legal-section p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.8; margin-bottom: 0.8rem; }
+    .legal-section ul, .legal-section ol { padding-left: 1.4rem; margin-bottom: 0.8rem; }
+    .legal-section li { font-size: 0.88rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 0.3rem; }
+    .legal-section strong { color: var(--text); }
+    .legal-highlight { background: #fff5f5; border-left: 4px solid var(--primary); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 1rem 0; font-size: 0.88rem; color: var(--text); }
+    .legal-highlight.warning { background: #fffbeb; border-left-color: #f59e0b; }
+    .legal-updated { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: #15803d; margin-bottom: 2rem; font-weight: 600; }
+    @media (max-width: 768px) { .legal-page { padding: 1.5rem 1rem; } .legal-hero { padding: 2rem 1rem; } .legal-hero h1 { font-size: 1.5rem; } }
+  </style>
+</head>
+<body data-page="terms">
+
+<nav class="navbar">
+  <a href="index.html" class="nav-brand"><span class="drop-icon">🩸</span> BloodLink<span style="color:#1a1a2e;font-weight:400">Pro</span></a>
+  <div class="nav-links" id="nav-links">
+    <a href="index.html">Home</a>
+    <a href="search.html">Find Donors</a>
+    <a href="emergency.html" style="color:#e63946;font-weight:700;">🚨 Emergency</a>
+    <a href="banks.html">Blood Banks</a>
+    <a href="pricing.html">Market</a>
+    <a href="about.html">About Us</a>
+    <span id="nav-user" style="display:none;"></span>
+    <a href="dashboard.html" id="nav-dashboard" class="btn btn-ghost btn-sm" style="display:none;">Dashboard</a>
+    <a href="profile.html" id="nav-profile" class="btn btn-ghost btn-sm" style="display:none;">👤 Profile</a>
+    <a href="login.html" id="nav-login" class="btn btn-outline btn-sm">Login</a>
+    <a href="register.html" id="nav-register" class="btn btn-primary btn-sm">Register</a>
+    <button id="nav-logout" class="btn btn-ghost btn-sm" style="display:none;">Logout</button>
+  </div>
+  <div class="nav-util-row">
+    <button id="lang-toggle" onclick="toggleLanguage()" title="Switch Language">हिं</button>
+    <button id="dark-toggle" onclick="toggleDarkMode()" title="Dark Mode">🌙</button>
+    <button onclick="showQRCode()" title="QR Code" class="nav-qr-btn">📱</button>
+  </div>
+  <button class="nav-toggle" id="nav-toggle" type="button" aria-label="Open navigation menu"><span></span><span></span><span></span></button>
+</nav>
+
+<div class="legal-hero">
+  <div style="font-size:2.5rem;margin-bottom:0.5rem;">📄</div>
+  <h1>Terms &amp; Conditions</h1>
+  <p>Please read these terms carefully before using BloodLink Pro</p>
+</div>
+
+<div class="legal-page">
+
+  <div class="legal-updated">
+    📅 Last Updated: March 2025 &nbsp;|&nbsp; Effective Date: January 2025
+  </div>
+
+  <div class="legal-highlight warning">
+    <strong>⚠️ Medical Disclaimer:</strong> BloodLink Pro is a donor-matching platform ONLY. We are NOT a medical service provider. Always consult qualified medical professionals for blood transfusion decisions. In emergencies, call <strong>108</strong> (Ambulance) or <strong>1910</strong> (Blood Bank Helpline) immediately.
+  </div>
+
+  <!-- Table of Contents -->
+  <div class="legal-toc">
+    <h3>📋 Table of Contents</h3>
+    <ol>
+      <li><a href="#acceptance">Acceptance of Terms</a></li>
+      <li><a href="#platform-desc">Platform Description</a></li>
+      <li><a href="#eligibility">Eligibility</a></li>
+      <li><a href="#user-accounts">User Accounts</a></li>
+      <li><a href="#donor-rules">Donor Registration Rules</a></li>
+      <li><a href="#emergency-use">Emergency Request Rules</a></li>
+      <li><a href="#prohibited">Prohibited Activities</a></li>
+      <li><a href="#disclaimer">Disclaimer of Warranties</a></li>
+      <li><a href="#liability">Limitation of Liability</a></li>
+      <li><a href="#termination">Account Termination</a></li>
+      <li><a href="#governing-law">Governing Law</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ol>
+  </div>
+
+  <!-- Section 1 -->
+  <div class="legal-section" id="acceptance">
+    <h2>1. Acceptance of Terms</h2>
+    <p>By accessing or using BloodLink Pro ("the Platform", "we", "us"), you agree to be bound by these Terms & Conditions. If you do not agree to these terms, please do not use the platform.</p>
+    <p>These terms apply to all users including donors, patients, visitors, and administrators.</p>
+  </div>
+
+  <!-- Section 2 -->
+  <div class="legal-section" id="platform-desc">
+    <h2>2. Platform Description</h2>
+    <p>BloodLink Pro is a <strong>free, non-commercial blood donor-matching platform</strong> built for educational and humanitarian purposes. The platform:</p>
+    <ul>
+      <li>Connects blood donors with patients in need</li>
+      <li>Provides a searchable database of registered blood donors</li>
+      <li>Facilitates emergency blood request notifications</li>
+      <li>Lists blood banks and their contact information</li>
+      <li>Provides blood compatibility reference information</li>
+    </ul>
+    <div class="legal-highlight">
+      BloodLink Pro does <strong>NOT</strong> provide medical services, guarantee blood availability, arrange blood transfusions, or employ medical professionals. We are a technology platform only.
+    </div>
+  </div>
+
+  <!-- Section 3 -->
+  <div class="legal-section" id="eligibility">
+    <h2>3. Eligibility</h2>
+    <p>To use BloodLink Pro, you must:</p>
+    <ul>
+      <li>Be at least 18 years of age</li>
+      <li>Be a resident of India</li>
+      <li>Provide accurate and truthful information</li>
+      <li>Have a valid mobile number and email address</li>
+    </ul>
+    <p>To register as a blood donor, you must additionally:</p>
+    <ul>
+      <li>Be between 18–65 years of age</li>
+      <li>Weigh at least 45 kg</li>
+      <li>Be in good health at the time of donation</li>
+      <li>Not have donated blood in the last 56 days (whole blood)</li>
+      <li>Meet all medical eligibility criteria as per Indian blood donation guidelines</li>
+    </ul>
+  </div>
+
+  <!-- Section 4 -->
+  <div class="legal-section" id="user-accounts">
+    <h2>4. User Accounts</h2>
+    <p>When you create an account on BloodLink Pro:</p>
+    <ul>
+      <li>You are responsible for maintaining the confidentiality of your password</li>
+      <li>You are responsible for all activities that occur under your account</li>
+      <li>You must notify us immediately of any unauthorized use of your account</li>
+      <li>You may not share your account credentials with others</li>
+      <li>You may not create multiple accounts for the same person</li>
+    </ul>
+    <p>We reserve the right to suspend or terminate accounts that violate these terms.</p>
+  </div>
+
+  <!-- Section 5 -->
+  <div class="legal-section" id="donor-rules">
+    <h2>5. Donor Registration Rules</h2>
+    <p>By registering as a blood donor, you agree to:</p>
+    <ul>
+      <li>Provide accurate information about your blood group, health status, and availability</li>
+      <li>Update your availability status promptly when it changes</li>
+      <li>Respond to genuine blood requests in good faith</li>
+      <li>Not register with false information or someone else's details</li>
+      <li>Understand that your contact information will be visible to users searching for blood</li>
+      <li>Consult a doctor before donating if you have any health concerns</li>
+    </ul>
+    <div class="legal-highlight warning">
+      <strong>Fake Entries:</strong> Registering with false information, fake phone numbers, or impersonating another person is strictly prohibited and may result in permanent account ban and legal action.
+    </div>
+    <p>All donor registrations are subject to admin verification before appearing in search results.</p>
+  </div>
+
+  <!-- Section 6 -->
+  <div class="legal-section" id="emergency-use">
+    <h2>6. Emergency Request Rules</h2>
+    <p>The emergency blood request feature is for genuine medical emergencies only. By submitting an emergency request, you agree that:</p>
+    <ul>
+      <li>The request is for a real, genuine medical emergency</li>
+      <li>You will not submit fake or test emergency requests</li>
+      <li>You are limited to 3 emergency requests per day per device</li>
+      <li>You will also contact your nearest hospital and call 108 simultaneously</li>
+      <li>BloodLink Pro is not a substitute for professional medical emergency services</li>
+    </ul>
+    <p>Misuse of the emergency system (fake requests, spam) will result in immediate account termination.</p>
+  </div>
+
+  <!-- Section 7 -->
+  <div class="legal-section" id="prohibited">
+    <h2>7. Prohibited Activities</h2>
+    <p>You must NOT use BloodLink Pro to:</p>
+    <ul>
+      <li>Submit false, misleading, or fraudulent information</li>
+      <li>Harass, threaten, or abuse other users or donors</li>
+      <li>Sell or commercially exploit blood or donor information</li>
+      <li>Scrape, crawl, or systematically extract data from the platform</li>
+      <li>Attempt to hack, disrupt, or damage the platform</li>
+      <li>Create fake donor profiles or emergency requests</li>
+      <li>Use the platform for any commercial purpose without written permission</li>
+      <li>Violate any applicable Indian laws or regulations</li>
+      <li>Impersonate any person or organization</li>
+    </ul>
+  </div>
+
+  <!-- Section 8 -->
+  <div class="legal-section" id="disclaimer">
+    <h2>8. Disclaimer of Warranties</h2>
+    <p>BloodLink Pro is provided <strong>"as is"</strong> without any warranties, express or implied. We do not warrant that:</p>
+    <ul>
+      <li>The platform will be available 24/7 without interruption</li>
+      <li>Donor information is always accurate or up-to-date</li>
+      <li>Any donor will respond to a blood request</li>
+      <li>Blood will be available when needed</li>
+      <li>The platform is free from errors or security vulnerabilities</li>
+    </ul>
+    <div class="legal-highlight warning">
+      <strong>Critical:</strong> Never rely solely on BloodLink Pro in a medical emergency. Always simultaneously contact hospitals, blood banks (1910), and ambulance services (108).
+    </div>
+  </div>
+
+  <!-- Section 9 -->
+  <div class="legal-section" id="liability">
+    <h2>9. Limitation of Liability</h2>
+    <p>To the maximum extent permitted by Indian law, BloodLink Pro, its creators, and contributors shall not be liable for:</p>
+    <ul>
+      <li>Any medical outcomes resulting from blood donation or transfusion</li>
+      <li>Failure to find a blood donor in time</li>
+      <li>Inaccurate donor information provided by users</li>
+      <li>Any direct, indirect, incidental, or consequential damages</li>
+      <li>Loss of data, revenue, or goodwill</li>
+      <li>Actions or omissions of donors or patients</li>
+    </ul>
+    <p>This platform is built as a student project for the UP State Hackathon 2025 and is provided as a free public service.</p>
+  </div>
+
+  <!-- Section 10 -->
+  <div class="legal-section" id="termination">
+    <h2>10. Account Termination</h2>
+    <p>We reserve the right to suspend or permanently terminate your account if you:</p>
+    <ul>
+      <li>Violate any of these Terms & Conditions</li>
+      <li>Submit fake or fraudulent information</li>
+      <li>Misuse the emergency request system</li>
+      <li>Harass or abuse other users</li>
+      <li>Engage in any prohibited activities</li>
+    </ul>
+    <p>You may also delete your own account by contacting us at <a href="mailto:sn0863110@gmail.com" style="color:var(--primary);font-weight:600;">sn0863110@gmail.com</a></p>
+  </div>
+
+  <!-- Section 11 -->
+  <div class="legal-section" id="governing-law">
+    <h2>11. Governing Law</h2>
+    <p>These Terms & Conditions are governed by the laws of India. Any disputes arising from the use of BloodLink Pro shall be subject to the jurisdiction of courts in Unnao, Uttar Pradesh, India.</p>
+    <p>These terms comply with the Information Technology Act, 2000 and the Information Technology (Amendment) Act, 2008 of India.</p>
+  </div>
+
+  <!-- Section 12 -->
+  <div class="legal-section" id="contact">
+    <h2>12. Contact</h2>
+    <p>For questions about these Terms & Conditions:</p>
+    <ul>
+      <li><strong>Email:</strong> <a href="mailto:sn0863110@gmail.com" style="color:var(--primary);font-weight:600;">sn0863110@gmail.com</a></li>
+      <li><strong>Phone:</strong> <a href="tel:+919335857482" style="color:var(--primary);font-weight:600;">+91 93358 57482</a></li>
+      <li><strong>Address:</strong> Allenhouse Business School, Unnao, Uttar Pradesh, India</li>
+    </ul>
+  </div>
+
+  <div style="text-align:center;padding:2rem 0;border-top:1px solid var(--border);margin-top:1rem;">
+    <a href="privacy.html" class="btn btn-outline" style="margin-right:1rem;">🔒 Privacy Policy</a>
+    <a href="index.html" class="btn btn-primary">🏠 Back to Home</a>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div style="font-size:1.4rem;font-weight:900;color:#fff;margin-bottom:0.3rem;">🩸 BloodLink<span style="color:#e63946;">Pro</span></div>
+      <div style="font-size:0.8rem;color:#9ca3af;max-width:260px;line-height:1.6;">India's smart blood donation network. Connecting donors to those in need, 24/7.</div>
+    </div>
+    <div class="footer-links">
+      <div class="fl-col">
+        <div class="fl-head">Platform</div>
+        <a href="search.html">Find Donors</a>
+        <a href="donor.html">Become a Donor</a>
+        <a href="banks.html">Blood Banks</a>
+        <a href="pricing.html">Market</a>
+      </div>
+      <div class="fl-col">
+        <div class="fl-head">Account</div>
+        <a href="login.html">Login</a>
+        <a href="register.html">Register</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="about.html">About Us</a>
+      </div>
+      <div class="fl-col">
+        <div class="fl-head">Legal</div>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="terms.html">Terms &amp; Conditions</a>
+        <a href="mailto:sn0863110@gmail.com">sn0863110@gmail.com</a>
+        <a href="tel:+919335857482">+91 93358 57482</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 BloodLink Pro — Built with ❤️ by <strong style="color:#e63946;">Satish Kumar Nishad · Team HackForce</strong></span>
+    <span style="color:#4b5563;font-size:0.78rem;">Allenhouse Business School · UP State Hackathon 2025 &nbsp;|&nbsp; <a href="privacy.html" style="color:#6b7280;">Privacy</a> · <a href="terms.html" style="color:#6b7280;">Terms</a></span>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

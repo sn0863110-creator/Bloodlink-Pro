@@ -158,11 +158,13 @@
       <span id="last-updated" style="font-size:0.78rem;color:var(--text-muted);"></span>
     </div>
     <div id="search-results">
-      <div class="empty-state">
-        <div class="icon">🩸</div>
-        <h3>Search for Donors</h3>
-        <p>Select a blood group or city above and click Search to find available donors.</p>
+      <!-- Skeleton loading cards shown while data loads -->
+      <div id="skeleton-loader" class="results-grid">
+        <div class="skeleton-card"><div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;"><div class="skeleton skeleton-avatar"></div><div style="flex:1;"><div class="skeleton skeleton-line medium"></div><div class="skeleton skeleton-line short" style="margin-top:6px;"></div></div><div class="skeleton" style="width:48px;height:24px;border-radius:12px;"></div></div><div class="skeleton skeleton-line long"></div><div class="skeleton skeleton-line medium" style="margin-top:6px;"></div><div class="skeleton skeleton-btn"></div></div>
+        <div class="skeleton-card"><div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;"><div class="skeleton skeleton-avatar"></div><div style="flex:1;"><div class="skeleton skeleton-line medium"></div><div class="skeleton skeleton-line short" style="margin-top:6px;"></div></div><div class="skeleton" style="width:48px;height:24px;border-radius:12px;"></div></div><div class="skeleton skeleton-line long"></div><div class="skeleton skeleton-line medium" style="margin-top:6px;"></div><div class="skeleton skeleton-btn"></div></div>
+        <div class="skeleton-card"><div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;"><div class="skeleton skeleton-avatar"></div><div style="flex:1;"><div class="skeleton skeleton-line medium"></div><div class="skeleton skeleton-line short" style="margin-top:6px;"></div></div><div class="skeleton" style="width:48px;height:24px;border-radius:12px;"></div></div><div class="skeleton skeleton-line long"></div><div class="skeleton skeleton-line medium" style="margin-top:6px;"></div><div class="skeleton skeleton-btn"></div></div>
       </div>
+      <div id="donor-results-inner"></div>
     </div>
 
     <!-- Nearby Blood Banks -->
@@ -206,7 +208,7 @@
   </div>
   <div class="footer-bottom">
     <span>© 2025 BloodLink Pro — Built with ❤️ by <strong style="color:#e63946;">Satish Kumar Nishad · Team HackForce</strong></span>
-    <span style="color:#4b5563;font-size:0.78rem;">Allenhouse Business School · UP State Hackathon 2025</span>
+    <span style="color:#4b5563;font-size:0.78rem;">Allenhouse Business School · UP State Hackathon 2025 &nbsp;|&nbsp; <a href="privacy.html" style="color:#6b7280;">Privacy</a> · <a href="terms.html" style="color:#6b7280;">Terms</a></span>
   </div>
 </footer>
 
@@ -246,6 +248,10 @@ async function performSearch(){
   const blood=(document.getElementById('filter-blood')||{value:''}).value;
   const city=(document.getElementById('filter-city')||{value:''}).value.trim().toLowerCase();
   const results=document.getElementById('search-results');
+  // Hide skeleton, show results
+  var skel=document.getElementById('skeleton-loader');
+  if(skel) skel.style.display='none';
+  var inner=document.getElementById('donor-results-inner');
   // Only show approved donors to public, all to admin
   const admin = (typeof isAdmin==='function') && isAdmin();
   const allDonors=await getDonors();
@@ -260,10 +266,10 @@ async function performSearch(){
       var nearby=nearbyCities[city.toLowerCase()];
       if(nearby) suggestion='<p style="margin-top:8px;font-size:0.82rem;color:#6b7280;">Try nearby cities: '+nearby.map(function(c){return '<a href="#" onclick="document.getElementById(\'filter-city\').value=\''+c+'\';performSearch();return false;" style="color:#e63946;font-weight:600;">'+c+'</a>';}).join(', ')+'</p>';
     }
-    results.innerHTML='<div class="empty-state"><div class="icon">🩸</div><h3>No donors found</h3><p>No '+(blood||'')+(city?' donors in '+city:' donors')+' right now.</p>'+suggestion+'<div style="margin-top:1rem;"><a href="donor.html" class="btn btn-primary btn-sm">+ Register as Donor</a></div><div style="margin-top:0.8rem;font-size:0.78rem;color:#9ca3af;">Or call emergency helpline: <a href="tel:108" style="color:#e63946;font-weight:700;">108</a></div></div>';
+    if(inner) inner.innerHTML='<div class="empty-state"><div class="icon">🩸</div><h3>No donors found</h3><p>No '+(blood||'')+(city?' donors in '+city:' donors')+' right now.</p>'+suggestion+'<div style="margin-top:1rem;"><a href="donor.html" class="btn btn-primary btn-sm">+ Register as Donor</a></div><div style="margin-top:0.8rem;font-size:0.78rem;color:#9ca3af;">Or call emergency helpline: <a href="tel:108" style="color:#e63946;font-weight:700;">108</a></div></div>';
     return;
   }
-  results.innerHTML='<div class="results-grid">'+found.map(function(d){
+  if(inner) inner.innerHTML='<div class="results-grid">'+found.map(function(d){
     var avail=d.available!=='no';
     var initials=d.name?d.name.charAt(0).toUpperCase():'?';
     var isVerified=d.status==='approved';
@@ -346,6 +352,15 @@ async function reportDonor(id, name) {
 }
 
 document.getElementById('search-form').addEventListener('submit',function(e){e.preventDefault();performSearch();});
+// Auto-hide skeleton after initial load (show empty state)
+window.addEventListener('load', function() {
+  var skel = document.getElementById('skeleton-loader');
+  var inner = document.getElementById('donor-results-inner');
+  if (skel) skel.style.display = 'none';
+  if (inner && !inner.innerHTML.trim()) {
+    inner.innerHTML = '<div class="empty-state"><div class="icon">🩸</div><h3>Search for Donors</h3><p>Select a blood group or city above and click Search to find available donors.</p></div>';
+  }
+});
 // SOS button
 var sosBtn=document.getElementById('sos-btn');
 if(sosBtn) sosBtn.addEventListener('click',function(){if(typeof triggerSOS==='function')triggerSOS();});
