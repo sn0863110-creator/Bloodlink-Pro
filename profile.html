@@ -172,42 +172,6 @@
 </footer>
 <script src="script.js"></script>
 <script>
-// ── Inline Hamburger (cache-independent) ──
-(function(){
-  var DONE=false;
-  function _init(){
-    if(DONE)return; DONE=true;
-    var btn=document.getElementById('nav-toggle');
-    var menu=document.getElementById('nav-links');
-    if(!btn||!menu)return;
-    menu.classList.add('mobile-drawer');
-    menu.classList.remove('open');
-    document.body.style.overflow='';
-    var ov=document.getElementById('drawer-overlay');
-    if(!ov){ov=document.createElement('div');ov.id='drawer-overlay';ov.className='drawer-overlay';document.body.appendChild(ov);}
-    ov.style.display='none';ov.classList.remove('open');
-    if(!menu.querySelector('.nav-drawer-header')){
-      var hdr=document.createElement('div');hdr.className='nav-drawer-header';
-      hdr.innerHTML='<span>🩸 BloodLink<span style="font-weight:400">Pro</span></span><button class="close-btn" type="button" aria-label="Close">✕</button>';
-      hdr.querySelector('.close-btn').addEventListener('click',function(e){e.stopPropagation();_close();});
-      menu.insertBefore(hdr,menu.firstChild);
-    }
-    function _close(){menu.classList.remove('open');btn.classList.remove('open');ov.classList.remove('open');setTimeout(function(){if(!ov.classList.contains('open'))ov.style.display='none';},300);document.body.style.overflow='';}
-    function _open(){menu.classList.add('open');btn.classList.add('open');ov.style.display='block';setTimeout(function(){ov.classList.add('open');},10);document.body.style.overflow='hidden';}
-    var nb=btn.cloneNode(true);btn.parentNode.replaceChild(nb,btn);
-    nb.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();menu.classList.contains('open')?_close():_open();});
-    ov.addEventListener('click',_close);
-    menu.addEventListener('click',function(e){if(e.target.closest('.nav-drawer-header'))return;if(e.target.closest('.nav-util-row'))return;if(e.target.closest('a'))setTimeout(_close,150);});
-    document.addEventListener('keydown',function(e){if(e.key==='Escape')_close();});
-    window.addEventListener('resize',function(){if(window.innerWidth>768)_close();});
-    var sx=0,sy=0;
-    menu.addEventListener('touchstart',function(e){sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
-    menu.addEventListener('touchend',function(e){var dx=e.changedTouches[0].clientX-sx;if(dx>50&&Math.abs(e.changedTouches[0].clientY-sy)<100)_close();},{passive:true});
-  }
-  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',_init);}else{_init();}
-})();
-</script>
-<script>
 function calcTrustScore(user,donorRecord){
   var score=0;
   if(user.email) score+=20;

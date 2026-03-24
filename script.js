@@ -326,80 +326,119 @@ function showToast(msg, type) {
 var _drawerReady = false;
 
 function blpCloseMenu() {
-  var menu = document.getElementById('nav-links');
-  var btn  = document.getElementById('nav-toggle');
-  var ov   = document.getElementById('drawer-overlay');
-  if (menu) menu.classList.remove('open');
-  if (btn)  btn.classList.remove('open');
-  if (ov)   {
-    ov.classList.remove('open');
-    setTimeout(function(){ if (!ov.classList.contains('open')) ov.style.display = 'none'; }, 300);
-  }
+  var drawer = document.getElementById('blp-drawer');
+  var btn    = document.getElementById('nav-toggle');
+  var ov     = document.getElementById('blp-overlay');
+  if (drawer) drawer.classList.remove('blp-open');
+  if (btn)    btn.classList.remove('open');
+  if (ov)     ov.classList.remove('blp-open');
   document.body.style.overflow = '';
 }
 
 function blpOpenMenu() {
-  var menu = document.getElementById('nav-links');
-  var btn  = document.getElementById('nav-toggle');
-  var ov   = document.getElementById('drawer-overlay');
-  if (menu) menu.classList.add('open');
-  if (btn)  btn.classList.add('open');
-  if (ov)   { ov.style.display = 'block'; setTimeout(function(){ ov.classList.add('open'); }, 10); }
+  var drawer = document.getElementById('blp-drawer');
+  var btn    = document.getElementById('nav-toggle');
+  var ov     = document.getElementById('blp-overlay');
+  if (drawer) drawer.classList.add('blp-open');
+  if (btn)    btn.classList.add('open');
+  if (ov)     ov.classList.add('blp-open');
   document.body.style.overflow = 'hidden';
 }
 
 function blpToggleMenu() {
-  var menu = document.getElementById('nav-links');
-  if (!menu) return;
-  if (menu.classList.contains('open')) { blpCloseMenu(); } else { blpOpenMenu(); }
+  var drawer = document.getElementById('blp-drawer');
+  if (!drawer) return;
+  drawer.classList.contains('blp-open') ? blpCloseMenu() : blpOpenMenu();
 }
 
 function setupHamburger() {
-  var btn  = document.getElementById('nav-toggle');
-  var menu = document.getElementById('nav-links');
-  if (!btn || !menu) return;
+  if (_drawerReady) return;
 
-  // Always ensure drawer starts closed
-  menu.classList.remove('open');
-  document.body.style.overflow = '';
+  var btn = document.getElementById('nav-toggle');
+  if (!btn) return;
 
-  // Mark as drawer (idempotent)
-  menu.classList.add('mobile-drawer');
-
-  // Overlay — create once
-  var ov = document.getElementById('drawer-overlay');
-  if (!ov) {
-    ov = document.createElement('div');
-    ov.id = 'drawer-overlay';
-    ov.className = 'drawer-overlay';
-    document.body.appendChild(ov);
-  }
-  ov.style.display = 'none';
-  ov.classList.remove('open');
-
-  // If already initialized, just re-attach overlay listener and return
-  if (_drawerReady) {
-    ov.onclick = blpCloseMenu;
-    return;
-  }
   _drawerReady = true;
 
-  ov.addEventListener('click', blpCloseMenu);
+  // Build the drawer from scratch — completely independent of #nav-links
+  var user = currentUser ? currentUser() : null;
 
-  // Drawer header — insert ONCE at top
-  if (!menu.querySelector('.nav-drawer-header')) {
-    var hdr = document.createElement('div');
-    hdr.className = 'nav-drawer-header';
-    hdr.innerHTML = '<span>🩸 BloodLink<span style="font-weight:400">Pro</span></span>'
-      + '<button class="close-btn" type="button" aria-label="Close">✕</button>';
-    hdr.querySelector('.close-btn').addEventListener('click', function(e) {
-      e.stopPropagation();
-      blpCloseMenu();
-    });
-    menu.insertBefore(hdr, menu.firstChild);
+  // Overlay
+  var ov = document.getElementById('blp-overlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'blp-overlay';
+    document.body.appendChild(ov);
+    ov.addEventListener('click', blpCloseMenu);
   }
 
-  // Hamburger toggle — remove old listeners by cloning
+  // Drawer
+  var drawer = document.getElementById('blp-drawer');
+  if (!drawer) {
+    drawer = document.createElement('nav');
+    drawer.id = 'blp-drawer';
+    document.body.appendChild(drawer);
+  }
+
+  // Build drawer HTML
+  var page = location.pathname.split('/').pop() || 'index.html';
+  function isActive(p) { return page === p ? ' class="active"' : ''; }
+
+  var userHTML = '';
+  if (user) {
+    var firstName = (user.name || 'User').split(' ')[0];
+    if (firstName.length > 12) firstName = firstName.substring(0, 12) + '…';
+    userHTML = '<div class="blp-drawer-user">👤 ' + firstName + '</div>';
+  }
+
+  var authHTML = '';
+  if (user) {
+    authHTML = '<a href="dashboard.html"' + isActive('dashboard.html') + '>📊 Dashboard</a>'
+             + '<a href="profile.html"' + isActive('profile.html') + '>👤 Profile</a>'
+             + '<button id="blp-drawer-logout">🚪 Logout</button>';
+  } else {
+    authHTML = '<a href="login.html"' + isActive('login.html') + '>🔑 Login</a>'
+             + '<a href="register.html"' + isActive('register.html') + '>📝 Register</a>';
+  }
+
+  drawer.innerHTML =
+    '<div class="blp-drawer-head">'
+    + '<span>🩸 BloodLink<span style="font-weight:400">Pro</span></span>'
+    + '<button class="blp-close" aria-label="Close">✕</button>'
+    + '</div>'
+    + userHTML
+    + '<a href="index.html"' + isActive('index.html') + '>🏠 Home</a>'
+    + '<a href="search.html"' + isActive('search.html') + '>🔍 Find Donors</a>'
+    + '<a href="emergency.html"' + isActive('emergency.html') + ' style="color:#e63946;font-weight:700;">🚨 Emergency</a>'
+    + '<a href="banks.html"' + isActive('banks.html') + '>🏥 Blood Banks</a>'
+    + '<a href="pricing.html"' + isActive('pricing.html') + '>📊 Market</a>'
+    + '<a href="about.html"' + isActive('about.html') + '>ℹ️ About</a>'
+    + authHTML
+    + '<div class="blp-drawer-utils">'
+    + '<button id="blp-drawer-lang" onclick="toggleLanguage && toggleLanguage()">हिं/EN</button>'
+    + '<button id="blp-drawer-dark" onclick="toggleDarkMode && toggleDarkMode()">🌙</button>'
+    + '</div>';
+
+  // Close button
+  drawer.querySelector('.blp-close').addEventListener('click', function(e) {
+    e.stopPropagation();
+    blpCloseMenu();
+  });
+
+  // Logout
+  var logoutBtn = drawer.querySelector('#blp-drawer-logout');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', function() {
+      blpCloseMenu();
+      if (typeof logout === 'function') logout();
+    });
+  }
+
+  // Close on link tap
+  drawer.addEventListener('click', function(e) {
+    if (e.target.tagName === 'A') setTimeout(blpCloseMenu, 120);
+  });
+
+  // Hamburger button
   var newBtn = btn.cloneNode(true);
   btn.parentNode.replaceChild(newBtn, btn);
   newBtn.addEventListener('click', function(e) {
@@ -408,25 +447,18 @@ function setupHamburger() {
     blpToggleMenu();
   });
 
-  // Close when a nav link is tapped
-  menu.addEventListener('click', function(e) {
-    if (e.target.closest('.nav-drawer-header')) return;
-    if (e.target.closest('.nav-util-row')) return;
-    if (e.target.closest('a')) setTimeout(blpCloseMenu, 150);
-  });
-
   // Swipe right to close
   var _sx = 0, _sy = 0;
-  menu.addEventListener('touchstart', function(e) {
+  drawer.addEventListener('touchstart', function(e) {
     _sx = e.touches[0].clientX; _sy = e.touches[0].clientY;
   }, { passive: true });
-  menu.addEventListener('touchend', function(e) {
+  drawer.addEventListener('touchend', function(e) {
     var dx = e.changedTouches[0].clientX - _sx;
     var dy = Math.abs(e.changedTouches[0].clientY - _sy);
-    if (dx > 50 && dy < 100) blpCloseMenu();
+    if (dx > 60 && dy < 80) blpCloseMenu();
   }, { passive: true });
 
-  // ESC key
+  // ESC
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') blpCloseMenu();
   });
@@ -434,6 +466,14 @@ function setupHamburger() {
   // Desktop resize
   window.addEventListener('resize', function() {
     if (window.innerWidth > 768) blpCloseMenu();
+  });
+
+  // bfcache fix
+  window.addEventListener('pageshow', function(e) {
+    if (e.persisted) {
+      blpCloseMenu();
+      document.body.style.overflow = '';
+    }
   });
 }
 
