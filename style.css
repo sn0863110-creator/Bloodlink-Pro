@@ -490,20 +490,22 @@ body {
   align-items: center;
   gap: 5px;
   background: none;
-  border: none;
+  border: 2px solid var(--border);
   cursor: pointer;
-  padding: 8px;
+  padding: 7px;
   border-radius: 8px;
   min-width: 44px;
   min-height: 44px;
   position: relative;
-  z-index: 10002;
+  z-index: 10010;
   flex-shrink: 0;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
+  background: var(--bg);
 }
+.nav-toggle:active { background: var(--bg-soft); }
 .nav-toggle:hover { background: var(--bg-soft); }
 .nav-toggle span {
   display: block;
@@ -564,8 +566,13 @@ body {
 /* ===== RESPONSIVE 768px ===== */
 @media (max-width: 768px) {
   .nav-toggle { display: flex; }
-  .navbar { padding: 0 1rem; height: 56px; }
-  .nav-brand { font-size: 1.1rem; }
+  .navbar {
+    padding: 0 1rem;
+    height: 56px;
+    /* Brand left, toggle right — nothing else visible */
+    justify-content: space-between;
+  }
+  .nav-brand { font-size: 1.1rem; margin-right: 0; }
   .nav-brand .drop-icon { font-size: 1.2rem; }
 
   /* ── RIGHT SLIDE DRAWER ── */
@@ -584,12 +591,13 @@ body {
     box-shadow: -6px 0 40px rgba(0,0,0,0.22);
     overflow-y: auto;
     overflow-x: hidden;
+    /* Hidden: slide off to the right */
     transform: translateX(110%);
     transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
     will-change: transform;
     -webkit-overflow-scrolling: touch;
     display: flex !important;
-    visibility: visible !important;
+    /* pointer-events none when closed so toggle button is always clickable */
     pointer-events: none;
   }
   .nav-links.open {
@@ -697,7 +705,7 @@ body {
     min-height: 48px;
   }
 
-  /* Utility row — inside drawer on mobile */
+  /* Utility row — JS moves this inside drawer on mobile */
   .nav-util-row {
     padding: 1rem 1.2rem;
     border-top: 1px solid var(--border);
@@ -707,6 +715,7 @@ body {
     width: 100%;
     background: var(--bg-card);
     margin-top: auto;
+    flex-shrink: 0;
   }
   .nav-util-row button {
     flex: 1 !important;
@@ -1026,7 +1035,7 @@ body.dark-mode .nav-util-row button {
 }
 
 
-/* ===== NAV UTILITY ROW (desktop: inline after nav-links, mobile: stays in navbar) ===== */
+/* ===== NAV UTILITY ROW (desktop: inline, mobile: hidden from navbar — JS moves into drawer) ===== */
 .nav-util-row {
   display: flex;
   align-items: center;
@@ -1034,17 +1043,9 @@ body.dark-mode .nav-util-row button {
   flex-shrink: 0;
   margin-left: 4px;
 }
-/* On mobile, show util-row in navbar (before hamburger button) */
 @media (max-width: 768px) {
   .navbar > .nav-util-row {
-    display: flex !important;
-    gap: 4px;
-    margin-left: auto;
-    margin-right: 4px;
-  }
-  .navbar > .nav-util-row button {
-    padding: 5px 8px !important;
-    font-size: 0.8rem !important;
+    display: none !important;
   }
 }
 .nav-util-row button {

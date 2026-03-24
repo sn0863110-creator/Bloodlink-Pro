@@ -322,7 +322,7 @@ function showToast(msg, type) {
   t._timer = setTimeout(function(){ t.style.opacity='0'; }, 3000);
 }
 
-// ── HAMBURGER MENU — Clean Implementation ──────────────────
+// ── HAMBURGER MENU ─────────────────────────────────────────
 function blpCloseMenu() {
   var menu = document.getElementById('nav-links');
   var btn  = document.getElementById('nav-toggle');
@@ -354,7 +354,7 @@ function setupHamburger() {
   var menu = document.getElementById('nav-links');
   if (!btn || !menu) return;
 
-  // Overlay — create once
+  // ── Overlay ──
   var ov = document.getElementById('drawer-overlay');
   if (!ov) {
     ov = document.createElement('div');
@@ -364,7 +364,7 @@ function setupHamburger() {
   }
   ov.onclick = blpCloseMenu;
 
-  // Drawer header — create once
+  // ── Drawer header ──
   if (!menu.querySelector('.nav-drawer-header')) {
     var hdr = document.createElement('div');
     hdr.className = 'nav-drawer-header';
@@ -374,21 +374,35 @@ function setupHamburger() {
     menu.insertBefore(hdr, menu.firstChild);
   }
 
-  // Hamburger button — single click handler
+  // ── Move util-row into drawer on mobile ──
+  function moveUtilRow() {
+    var utilRow = document.querySelector('.navbar > .nav-util-row') || document.querySelector('.nav-util-row');
+    if (!utilRow) return;
+    if (window.innerWidth <= 768) {
+      if (!menu.contains(utilRow)) {
+        menu.appendChild(utilRow);
+      }
+      utilRow.style.cssText = 'display:flex!important;padding:1rem 1.2rem;border-top:1px solid #f0d0d0;gap:8px;flex-wrap:wrap;width:100%;margin-top:auto;';
+    }
+  }
+  moveUtilRow();
+  window.addEventListener('resize', moveUtilRow);
+
+  // ── Hamburger button ──
   btn.onclick = function(e) {
     e.stopPropagation();
     blpToggleMenu();
   };
 
-  // Close on nav link click
+  // ── Close on nav link tap ──
   menu.addEventListener('click', function(e) {
+    if (e.target.closest('.nav-drawer-header')) return;
+    if (e.target.closest('.nav-util-row')) return;
     var link = e.target.closest('a');
-    if (link && !e.target.closest('.nav-drawer-header')) {
-      setTimeout(blpCloseMenu, 80);
-    }
+    if (link) setTimeout(blpCloseMenu, 80);
   });
 
-  // Swipe right to close
+  // ── Swipe right to close ──
   var _sx = 0;
   menu.addEventListener('touchstart', function(e) {
     _sx = e.touches[0].clientX;
@@ -397,7 +411,7 @@ function setupHamburger() {
     if (e.changedTouches[0].clientX - _sx > 60) blpCloseMenu();
   }, { passive: true });
 
-  // ESC key
+  // ── ESC key ──
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') blpCloseMenu();
   });
