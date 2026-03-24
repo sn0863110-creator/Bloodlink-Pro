@@ -361,6 +361,11 @@ function setupHamburger() {
   // ── Add mobile-drawer class ──
   menu.classList.add('mobile-drawer');
 
+  // ── ENSURE closed on init ──
+  menu.classList.remove('open');
+  btn.classList.remove('open');
+  document.body.style.overflow = '';
+
   // ── Overlay ──
   var ov = document.getElementById('drawer-overlay');
   if (!ov) {
@@ -369,6 +374,8 @@ function setupHamburger() {
     ov.className = 'drawer-overlay';
     document.body.appendChild(ov);
   }
+  // Ensure overlay is closed on init
+  ov.classList.remove('open');
   ov.onclick = blpCloseMenu;
 
   // ── Drawer header ──
@@ -549,6 +556,7 @@ function triggerSOS() {
 document.addEventListener('DOMContentLoaded', function() {
   initFirebase();
   setupHamburger();
+  blpCloseMenu(); // ensure drawer is always closed on page load
   updateNavAuth();
   initDarkMode();
   applyLanguage();
