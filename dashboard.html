@@ -22,7 +22,6 @@
 
 <nav class="navbar">
   <a href="index.html" class="nav-brand"><span class="drop-icon">🩸</span> BloodLink<span style="color:#1a1a2e;font-weight:400">Pro</span></a>
-  <button class="nav-toggle" id="nav-toggle" type="button" aria-label="Open navigation menu"><span></span><span></span><span></span></button>
   <div class="nav-links" id="nav-links">
     <a href="index.html">Home</a>
     <a href="search.html">Find Donors</a>
@@ -37,12 +36,13 @@
     <a href="login.html" id="nav-login" class="btn btn-outline btn-sm">Login</a>
     <a href="register.html" id="nav-register" class="btn btn-primary btn-sm">Register</a>
     <button id="nav-logout" class="btn btn-ghost btn-sm" style="display:none;">Logout</button>
-    <div class="nav-util-row">
-      <button id="lang-toggle" onclick="toggleLanguage()" title="Switch Language">हिं</button>
-      <button id="dark-toggle" onclick="toggleDarkMode()" title="Dark Mode">🌙</button>
-      <button onclick="showQRCode()" title="QR Code" class="nav-qr-btn">📱</button>
-    </div>
   </div>
+  <div class="nav-util-row">
+    <button id="lang-toggle" onclick="toggleLanguage()" title="Switch Language">हिं</button>
+    <button id="dark-toggle" onclick="toggleDarkMode()" title="Dark Mode">🌙</button>
+    <button onclick="showQRCode()" title="QR Code" class="nav-qr-btn">📱</button>
+  </div>
+  <button class="nav-toggle" id="nav-toggle" type="button" aria-label="Open navigation menu"><span></span><span></span><span></span></button>
 </nav>
 
 <div class="dashboard">

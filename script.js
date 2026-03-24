@@ -340,6 +340,18 @@ function setupHamburger() {
     menu.insertBefore(header, menu.firstChild);
   }
 
+  // ── On mobile: move nav-util-row inside drawer (at bottom) ──
+  function moveUtilRowToDrawer() {
+    if (window.innerWidth <= 768) {
+      var utilRow = document.querySelector('.nav-util-row');
+      if (utilRow && !menu.contains(utilRow)) {
+        menu.appendChild(utilRow);
+      }
+    }
+  }
+  moveUtilRowToDrawer();
+  window.addEventListener('resize', moveUtilRowToDrawer);
+
   // ── Inject overlay ──
   var overlay = document.getElementById('drawer-overlay');
   if (!overlay) {
@@ -382,7 +394,6 @@ function setupHamburger() {
   // ── Click handler — only fires on desktop (touch already handled above) ──
   btn.addEventListener('click', function(e) {
     e.stopPropagation();
-    // If a touch event fired within 500ms, skip this click (it's a ghost click)
     if (Date.now() - _lastTouchTime < 500) return;
     menu.classList.contains('open') ? closeMenu() : openMenu();
   });
@@ -399,14 +410,15 @@ function setupHamburger() {
 
   // ── Close button & link clicks inside drawer ──
   menu.addEventListener('click', function(e) {
-    // Close button
     if (e.target && (e.target.id === 'drawer-close' || (e.target.closest && e.target.closest('#drawer-close')))) {
       closeMenu(); return;
     }
+    // Nav util row buttons — don't close drawer
+    if (e.target.closest && e.target.closest('.nav-util-row')) return;
     // Any nav link
     var link = e.target.closest('a');
     if (link && menu.contains(link)) {
-      setTimeout(closeMenu, 120); // small delay so page navigation feels smooth
+      setTimeout(closeMenu, 120);
     }
   });
 
@@ -416,14 +428,6 @@ function setupHamburger() {
     closeMenu();
   }, { passive: false });
   overlay.addEventListener('click', closeMenu);
-
-  // ── Nav util row buttons (lang/dark/qr) — keep drawer open ──
-  var utilRow = menu.querySelector('.nav-util-row');
-  if (utilRow) {
-    utilRow.addEventListener('click', function(e) {
-      e.stopPropagation(); // don't close drawer when tapping util buttons
-    });
-  }
 
   // ── Swipe right on drawer → close ──
   var swipeStartX = 0, swipeStartY = 0;
@@ -437,14 +441,13 @@ function setupHamburger() {
     if (dx > 60 && dy < 100) closeMenu();
   }, { passive: true });
 
-  // ── Swipe left from right edge of screen → open drawer ──
+  // ── Swipe left from right edge → open drawer ──
   var edgeStartX = 0, edgeStartY = 0;
   document.addEventListener('touchstart', function(e) {
     edgeStartX = e.touches[0].clientX;
     edgeStartY = e.touches[0].clientY;
   }, { passive: true });
   document.addEventListener('touchend', function(e) {
-    // Skip if touch was on the hamburger button (already handled)
     if (e.target === btn || btn.contains(e.target)) return;
     var dx = e.changedTouches[0].clientX - edgeStartX;
     var dy = Math.abs(e.changedTouches[0].clientY - edgeStartY);

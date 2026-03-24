@@ -40,34 +40,46 @@ body {
   background: rgba(255,255,255,0.97);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
-  padding: 0 2rem;
-  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.5rem;
+  display: flex; align-items: center; gap: 0.5rem;
   height: 64px;
   box-shadow: 0 2px 12px rgba(230,57,70,0.06);
   width: 100%;
   max-width: 100vw;
+  overflow: hidden;
 }
 .nav-brand {
   display: flex; align-items: center; gap: 8px;
   text-decoration: none;
-  font-size: 1.25rem; font-weight: 800;
+  font-size: 1.2rem; font-weight: 800;
   color: var(--primary);
   letter-spacing: -0.5px;
   flex-shrink: 0;
   white-space: nowrap;
+  margin-right: auto;
 }
-.nav-brand .drop-icon { font-size: 1.4rem; animation: pulse-drop 2s infinite; }
+.nav-brand .drop-icon { font-size: 1.3rem; animation: pulse-drop 2s infinite; }
 @keyframes pulse-drop {
   0%,100%{transform:scale(1);} 50%{transform:scale(1.15);}
 }
-.nav-links { display: flex; align-items: center; gap: 0.4rem; flex-wrap: nowrap; overflow: visible; }
+
+/* Desktop nav links */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  flex-wrap: nowrap;
+  overflow: visible;
+  flex-shrink: 1;
+}
 
 /* Drawer header — hidden on desktop, shown only in mobile drawer */
 .nav-drawer-header { display: none; }
+
 .nav-links a {
   text-decoration: none; color: var(--text-muted);
-  padding: 0.4rem 0.8rem; border-radius: 8px;
-  font-size: 0.88rem; font-weight: 500;
+  padding: 0.4rem 0.65rem; border-radius: 8px;
+  font-size: 0.82rem; font-weight: 500;
   transition: var(--transition);
   white-space: nowrap;
 }
@@ -469,7 +481,6 @@ body {
   padding: 8px;
   border-radius: 8px;
   transition: background var(--transition);
-  /* Critical mobile touch fixes */
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
@@ -478,8 +489,7 @@ body {
   min-height: 44px;
   position: relative;
   z-index: 10001;
-  order: 3;
-  margin-left: auto;
+  flex-shrink: 0;
 }
 .nav-toggle:hover { background: var(--bg-soft); }
 .nav-toggle span {
@@ -669,7 +679,7 @@ body {
     min-height: 48px;
   }
 
-  /* Utility row at bottom of drawer */
+  /* Utility row — inside drawer on mobile */
   .nav-util-row {
     padding: 1rem 1.2rem;
     border-top: 1px solid var(--border);
@@ -677,11 +687,8 @@ body {
     flex-wrap: wrap;
     display: flex !important;
     width: 100%;
-    margin-top: 1rem;
-    position: sticky;
-    bottom: 0;
     background: var(--bg-card);
-    z-index: 1;
+    margin-top: auto;
   }
   .nav-util-row button {
     flex: 1 !important;
@@ -1001,12 +1008,19 @@ body.dark-mode .nav-util-row button {
 }
 
 
-/* ===== NAV UTILITY ROW (desktop: inline, mobile: full-width row) ===== */
+/* ===== NAV UTILITY ROW (desktop: inline after nav-links, mobile: inside drawer via JS) ===== */
 .nav-util-row {
   display: flex;
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
+  margin-left: 4px;
+}
+/* On mobile, hide the original position — JS moves it inside drawer */
+@media (max-width: 768px) {
+  .navbar > .nav-util-row {
+    display: none !important;
+  }
 }
 .nav-util-row button {
   background: none;
