@@ -584,12 +584,10 @@ body {
     box-shadow: -6px 0 40px rgba(0,0,0,0.22);
     overflow-y: auto;
     overflow-x: hidden;
-    /* Hidden by default — slide off screen to the right */
     transform: translateX(110%);
     transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
     will-change: transform;
     -webkit-overflow-scrolling: touch;
-    /* Always in DOM, controlled by transform */
     display: flex !important;
     visibility: visible !important;
     pointer-events: none;
@@ -1028,7 +1026,7 @@ body.dark-mode .nav-util-row button {
 }
 
 
-/* ===== NAV UTILITY ROW (desktop: inline after nav-links, mobile: inside drawer via JS) ===== */
+/* ===== NAV UTILITY ROW (desktop: inline after nav-links, mobile: stays in navbar) ===== */
 .nav-util-row {
   display: flex;
   align-items: center;
@@ -1036,10 +1034,17 @@ body.dark-mode .nav-util-row button {
   flex-shrink: 0;
   margin-left: 4px;
 }
-/* On mobile, hide the original position — JS moves it inside drawer */
+/* On mobile, show util-row in navbar (before hamburger button) */
 @media (max-width: 768px) {
   .navbar > .nav-util-row {
-    display: none !important;
+    display: flex !important;
+    gap: 4px;
+    margin-left: auto;
+    margin-right: 4px;
+  }
+  .navbar > .nav-util-row button {
+    padding: 5px 8px !important;
+    font-size: 0.8rem !important;
   }
 }
 .nav-util-row button {

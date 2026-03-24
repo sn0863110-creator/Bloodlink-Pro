@@ -322,7 +322,7 @@ function showToast(msg, type) {
   t._timer = setTimeout(function(){ t.style.opacity='0'; }, 3000);
 }
 
-// ── Global hamburger close function (called from inline onclick) ──
+// ── HAMBURGER MENU — Clean Implementation ──────────────────
 function blpCloseMenu() {
   var menu = document.getElementById('nav-links');
   var btn  = document.getElementById('nav-toggle');
@@ -346,66 +346,61 @@ function blpOpenMenu() {
 function blpToggleMenu() {
   var menu = document.getElementById('nav-links');
   if (!menu) return;
-  menu.classList.contains('open') ? blpCloseMenu() : blpOpenMenu();
+  if (menu.classList.contains('open')) { blpCloseMenu(); } else { blpOpenMenu(); }
 }
 
 function setupHamburger() {
   var btn  = document.getElementById('nav-toggle');
   var menu = document.getElementById('nav-links');
   if (!btn || !menu) return;
-  if (menu._hamburgerInit) return;
-  menu._hamburgerInit = true;
 
-  // ── Drawer header with close button ──
-  if (!menu.querySelector('.nav-drawer-header')) {
-    var header = document.createElement('div');
-    header.className = 'nav-drawer-header';
-    header.innerHTML = '<span>🩸 BloodLink<span style="font-weight:400">Pro</span></span>'
-      + '<button class="close-btn" id="drawer-close" type="button" onclick="blpCloseMenu()">✕</button>';
-    menu.insertBefore(header, menu.firstChild);
-  }
-
-  // ── Overlay ──
-  if (!document.getElementById('drawer-overlay')) {
-    var ov = document.createElement('div');
+  // Overlay — create once
+  var ov = document.getElementById('drawer-overlay');
+  if (!ov) {
+    ov = document.createElement('div');
     ov.id = 'drawer-overlay';
     ov.className = 'drawer-overlay';
-    ov.onclick = blpCloseMenu;
     document.body.appendChild(ov);
   }
+  ov.onclick = blpCloseMenu;
 
-  // ── Move util-row into drawer on mobile ──
-  function moveUtilRow() {
-    var utilRow = document.querySelector('.nav-util-row');
-    if (!utilRow) return;
-    if (window.innerWidth <= 768) {
-      if (!menu.contains(utilRow)) menu.appendChild(utilRow);
-      utilRow.style.cssText = 'display:flex!important;padding:1rem 1.2rem;border-top:1px solid #f0d0d0;gap:8px;flex-wrap:wrap;width:100%;';
-    }
+  // Drawer header — create once
+  if (!menu.querySelector('.nav-drawer-header')) {
+    var hdr = document.createElement('div');
+    hdr.className = 'nav-drawer-header';
+    hdr.innerHTML = '<span>🩸 BloodLink<span style="font-weight:400">Pro</span></span>'
+      + '<button class="close-btn" type="button">✕</button>';
+    hdr.querySelector('.close-btn').onclick = blpCloseMenu;
+    menu.insertBefore(hdr, menu.firstChild);
   }
-  moveUtilRow();
-  window.addEventListener('resize', moveUtilRow);
 
-  // ── Hamburger button click ──
-  btn.onclick = blpToggleMenu;
+  // Hamburger button — single click handler
+  btn.onclick = function(e) {
+    e.stopPropagation();
+    blpToggleMenu();
+  };
 
-  // ── Nav link tap closes drawer ──
+  // Close on nav link click
   menu.addEventListener('click', function(e) {
-    if (e.target.closest && e.target.closest('.nav-util-row')) return;
-    if (e.target.closest && e.target.closest('.nav-drawer-header')) return;
-    var link = e.target.closest && e.target.closest('a');
-    if (link) setTimeout(blpCloseMenu, 100);
+    var link = e.target.closest('a');
+    if (link && !e.target.closest('.nav-drawer-header')) {
+      setTimeout(blpCloseMenu, 80);
+    }
   });
 
-  // ── Swipe right to close ──
+  // Swipe right to close
   var _sx = 0;
-  menu.addEventListener('touchstart', function(e) { _sx = e.touches[0].clientX; }, { passive: true });
+  menu.addEventListener('touchstart', function(e) {
+    _sx = e.touches[0].clientX;
+  }, { passive: true });
   menu.addEventListener('touchend', function(e) {
     if (e.changedTouches[0].clientX - _sx > 60) blpCloseMenu();
   }, { passive: true });
 
-  // ── ESC key ──
-  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') blpCloseMenu(); });
+  // ESC key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') blpCloseMenu();
+  });
 }
 
 function updateNavAuth() {
