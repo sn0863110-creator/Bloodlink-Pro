@@ -600,8 +600,8 @@ body {
     gap: 0;
   }
 
-  /* Hide nav-links from normal navbar flow on mobile */
-  .navbar > .nav-links { display: none !important; }
+  /* Hide nav-links from normal navbar flow on mobile — but NOT the drawer */
+  .navbar > .nav-links:not(.mobile-drawer) { display: none !important; }
   .navbar > .nav-util-row { display: none !important; }
   .nav-brand { font-size: 1.05rem; margin-right: 0; }
   .nav-brand .drop-icon { font-size: 1.1rem; }
