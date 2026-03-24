@@ -368,6 +368,7 @@ function setupHamburger() {
 
   // ── Hamburger button — touch handler (primary on mobile) ──
   btn.addEventListener('touchstart', function(e) {
+    e.stopPropagation();
     _lastTouchTime = Date.now();
   }, { passive: true });
 
@@ -385,6 +386,16 @@ function setupHamburger() {
     if (Date.now() - _lastTouchTime < 500) return;
     menu.classList.contains('open') ? closeMenu() : openMenu();
   });
+
+  // ── Close button — touch + click ──
+  menu.addEventListener('touchend', function(e) {
+    var tgt = e.target;
+    if (tgt && (tgt.id === 'drawer-close' || (tgt.closest && tgt.closest('#drawer-close')))) {
+      e.preventDefault();
+      e.stopPropagation();
+      closeMenu();
+    }
+  }, { passive: false });
 
   // ── Close button & link clicks inside drawer ──
   menu.addEventListener('click', function(e) {
@@ -405,6 +416,14 @@ function setupHamburger() {
     closeMenu();
   }, { passive: false });
   overlay.addEventListener('click', closeMenu);
+
+  // ── Nav util row buttons (lang/dark/qr) — keep drawer open ──
+  var utilRow = menu.querySelector('.nav-util-row');
+  if (utilRow) {
+    utilRow.addEventListener('click', function(e) {
+      e.stopPropagation(); // don't close drawer when tapping util buttons
+    });
+  }
 
   // ── Swipe right on drawer → close ──
   var swipeStartX = 0, swipeStartY = 0;

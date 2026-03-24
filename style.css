@@ -458,23 +458,38 @@ body {
 }
 .nav-qr-btn:hover { background: var(--bg-soft); border-color: var(--primary); }
 .nav-toggle {
-  display: none; flex-direction: column; justify-content: center;
-  gap: 5px; background: none; border: none; cursor: pointer;
-  padding: 8px; border-radius: 8px; transition: var(--transition);
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background var(--transition);
+  /* Critical mobile touch fixes */
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
   user-select: none;
-  min-width: 40px; min-height: 40px;
-  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  position: relative;
+  z-index: 10001;
+  order: 3;
+  margin-left: auto;
 }
 .nav-toggle:hover { background: var(--bg-soft); }
 .nav-toggle span {
   display: block; width: 22px; height: 2px;
   background: var(--text); border-radius: 2px;
-  transition: var(--transition);
+  transition: transform 0.22s ease, opacity 0.22s ease;
+  pointer-events: none;
 }
 .nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-.nav-toggle.open span:nth-child(2) { opacity: 0; }
+.nav-toggle.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
 .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
 /* ===== PROFILE AVAIL TOGGLE CARD ===== */
@@ -503,17 +518,18 @@ body {
 .drawer-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0,0,0,0.5);
   z-index: 9998;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.28s ease;
-  display: none;
+  /* Use visibility instead of display:none so transition works */
+  visibility: hidden;
 }
 .drawer-overlay.open {
   opacity: 1;
   pointer-events: all;
-  display: block;
+  visibility: visible;
 }
 
 /* ===== RESPONSIVE ===== */
@@ -521,7 +537,7 @@ body {
 
 /* ===== RESPONSIVE 768px ===== */
 @media (max-width: 768px) {
-  .nav-toggle { display: flex; z-index: 10000; position: relative; }
+  .nav-toggle { display: flex; }
   .navbar { padding: 0 1rem; height: 56px; }
   .nav-brand { font-size: 1.1rem; }
   .nav-brand .drop-icon { font-size: 1.2rem; }
@@ -529,28 +545,33 @@ body {
   /* ── RIGHT SLIDE DRAWER ── */
   .nav-links {
     position: fixed;
-    top: 0; right: 0; bottom: 0;
-    width: min(80vw, 300px);
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(82vw, 300px);
     background: var(--bg-card);
     flex-direction: column;
     align-items: stretch;
     padding: 0 0 2rem 0;
     gap: 0;
     z-index: 9999;
-    box-shadow: -4px 0 32px rgba(0,0,0,0.18);
+    box-shadow: -6px 0 40px rgba(0,0,0,0.22);
     overflow-y: auto;
     overflow-x: hidden;
-    transform: translateX(110%);
-    transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
-    display: flex !important; /* always in DOM, just hidden via transform */
+    /* Hidden by default — slide off screen to the right */
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Always in DOM, controlled by transform */
+    display: flex !important;
+    visibility: visible !important;
   }
   .nav-links.open {
-    transform: translateX(0);
+    transform: translateX(0) !important;
   }
 
   /* Drawer header */
   .nav-drawer-header {
-    display: flex;
+    display: flex !important;
     align-items: center;
     gap: 8px;
     padding: 1rem 1.2rem;
@@ -561,18 +582,24 @@ body {
     letter-spacing: -0.3px;
     margin-bottom: 0.5rem;
     flex-shrink: 0;
+    min-height: 60px;
   }
   .nav-drawer-header .close-btn {
     margin-left: auto;
     background: rgba(255,255,255,0.2);
     border: none;
     color: #fff;
-    width: 30px; height: 30px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
-    font-size: 1rem;
+    font-size: 1.1rem;
     cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
 
   /* All nav links full width */
@@ -581,7 +608,7 @@ body {
     width: 100% !important;
     justify-content: flex-start !important;
     text-align: left !important;
-    padding: 0.75rem 1.2rem !important;
+    padding: 0.8rem 1.2rem !important;
     font-size: 0.92rem !important;
     border-radius: 0 !important;
     margin: 0 !important;
@@ -589,11 +616,12 @@ body {
     display: flex !important;
     align-items: center !important;
     border-bottom: 1px solid var(--border) !important;
-    color: var(--text) !important;
-    background: transparent !important;
     border-left: none !important;
     border-right: none !important;
     border-top: none !important;
+    color: var(--text) !important;
+    background: transparent !important;
+    min-height: 48px;
   }
   .nav-links a:hover,
   .nav-links a.active {
@@ -602,7 +630,9 @@ body {
     border-left: 3px solid var(--primary) !important;
     padding-left: calc(1.2rem - 3px) !important;
   }
-  .nav-links a[style*="color:#e63946"] {
+  /* Emergency link stays red */
+  .nav-links a[style*="color:#e63946"],
+  .nav-links a[style*="color: #e63946"] {
     color: #e63946 !important;
   }
 
@@ -611,39 +641,47 @@ body {
     width: 100% !important;
     justify-content: flex-start !important;
     text-align: left !important;
-    padding: 0.75rem 1.2rem !important;
+    padding: 0.8rem 1.2rem !important;
     font-size: 0.92rem !important;
     border-radius: 0 !important;
     margin: 0 !important;
     border-bottom: 1px solid var(--border) !important;
-    border-left: none !important; border-right: none !important; border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-top: none !important;
     background: transparent !important;
     color: #e63946 !important;
+    min-height: 48px;
   }
 
-  /* User badge */
+  /* User badge in drawer */
   #nav-user {
     width: 100% !important;
     max-width: 100% !important;
     text-align: left !important;
     justify-content: flex-start !important;
-    padding: 0.75rem 1.2rem !important;
+    padding: 0.8rem 1.2rem !important;
     font-size: 0.88rem !important;
     border-radius: 0 !important;
     display: flex !important;
     border-bottom: 1px solid var(--border) !important;
     background: var(--bg-soft) !important;
+    min-height: 48px;
   }
 
   /* Utility row at bottom of drawer */
   .nav-util-row {
-    margin-top: auto;
-    padding: 1rem 1.2rem 0;
+    padding: 1rem 1.2rem;
     border-top: 1px solid var(--border);
     gap: 8px !important;
     flex-wrap: wrap;
     display: flex !important;
     width: 100%;
+    margin-top: 1rem;
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-card);
+    z-index: 1;
   }
   .nav-util-row button {
     flex: 1 !important;
@@ -656,9 +694,9 @@ body {
     justify-content: center !important;
     display: flex !important;
     align-items: center !important;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
-
-  /* Overlay behind drawer — handled globally above */
 
   /* Hero */
   .hero { padding: 2rem 1rem; overflow: hidden; }
