@@ -331,11 +331,10 @@ function blpCloseMenu() {
   var ov   = document.getElementById('drawer-overlay');
   if (menu) {
     menu.classList.remove('open');
-    menu.style.transform = 'translateX(110%)';
     menu.style.pointerEvents = 'none';
   }
   if (btn)  btn.classList.remove('open');
-  if (ov)   { ov.classList.remove('open'); ov.style.display = 'none'; }
+  if (ov)   { ov.classList.remove('open'); setTimeout(function(){ ov.style.display = 'none'; }, 300); }
   document.body.style.overflow = '';
 }
 
@@ -345,7 +344,6 @@ function blpOpenMenu() {
   var ov   = document.getElementById('drawer-overlay');
   if (menu) {
     menu.classList.add('open');
-    menu.style.transform = 'translateX(0)';
     menu.style.pointerEvents = 'all';
   }
   if (btn)  btn.classList.add('open');
@@ -366,11 +364,9 @@ function setupHamburger() {
   if (_drawerReady) return;
   _drawerReady = true;
 
-  // Add mobile-drawer class
+  // Add mobile-drawer class — CSS handles transform/transition
   menu.classList.add('mobile-drawer');
-
-  // Force closed state via inline styles (overrides any CSS conflict)
-  menu.style.transform = 'translateX(110%)';
+  menu.classList.remove('open');
   menu.style.pointerEvents = 'none';
   document.body.style.overflow = '';
 
@@ -396,12 +392,13 @@ function setupHamburger() {
     menu.insertBefore(hdr, menu.firstChild);
   }
 
-  // Hamburger button click
-  btn.onclick = function(e) {
+  // Hamburger button click — remove old listener first
+  btn.onclick = null;
+  btn.addEventListener('click', function(e) {
     e.preventDefault();
     e.stopPropagation();
     blpToggleMenu();
-  };
+  });
 
   // Close on nav link tap
   menu.addEventListener('click', function(e) {
@@ -432,8 +429,6 @@ function setupHamburger() {
   window.addEventListener('resize', function() {
     if (window.innerWidth > 768) {
       blpCloseMenu();
-      // Remove inline styles on desktop so CSS takes over
-      menu.style.transform = '';
       menu.style.pointerEvents = '';
     }
   });
@@ -578,7 +573,12 @@ document.addEventListener('DOMContentLoaded', function() {
   window.addEventListener('pageshow', function(e) {
     if (e.persisted) {
       document.body.style.overflow = '';
-      blpCloseMenu();
+      var menu = document.getElementById('nav-links');
+      if (menu) { menu.classList.remove('open'); menu.style.pointerEvents = 'none'; }
+      var btn = document.getElementById('nav-toggle');
+      if (btn) btn.classList.remove('open');
+      var ov = document.getElementById('drawer-overlay');
+      if (ov) { ov.classList.remove('open'); ov.style.display = 'none'; }
     }
   });
   var page=location.pathname.split('/').pop()||'index.html';

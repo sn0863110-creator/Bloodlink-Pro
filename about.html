@@ -290,7 +290,15 @@
   document.addEventListener('keydown',function(e){if(e.key==='Escape'){forceCloseStory();forceCloseQR();}});
   // Fix bfcache: reset overflow when navigating back to this page
   window.addEventListener('pageshow', function(e) {
-    if (e.persisted) { document.body.style.overflow = ''; blpCloseMenu(); }
+    if (e.persisted) {
+      document.body.style.overflow = '';
+      var menu = document.getElementById('nav-links');
+      if (menu) { menu.classList.remove('open'); menu.style.pointerEvents = 'none'; }
+      var btn = document.getElementById('nav-toggle');
+      if (btn) btn.classList.remove('open');
+      var ov = document.getElementById('drawer-overlay');
+      if (ov) { ov.classList.remove('open'); ov.style.display = 'none'; }
+    }
   });
 </script>
 </body>

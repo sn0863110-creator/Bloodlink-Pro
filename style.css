@@ -611,7 +611,7 @@ body {
     box-shadow: -8px 0 40px rgba(0,0,0,0.25) !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    transform: translateX(110%) !important;
+    transform: translateX(110%);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     will-change: transform !important;
     pointer-events: none !important;
