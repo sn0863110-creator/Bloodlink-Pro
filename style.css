@@ -35,7 +35,18 @@ body {
 }
 
 /* ===== NAV HIDDEN CLASS ===== */
+/* On desktop: hide auth-only items by default */
 .nav-hidden { display: none !important; }
+
+/* In mobile drawer: ALWAYS show everything — nav-hidden is overridden */
+.nav-links.mobile-drawer .nav-hidden,
+.nav-links.mobile-drawer > .nav-hidden {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  height: auto !important;
+  overflow: visible !important;
+}
 
 /* ===== NAVBAR ===== */
 .navbar {
@@ -622,10 +633,18 @@ body {
     pointer-events: all !important;
   }
 
-  /* Show ALL children in drawer — override nav-hidden */
+  /* Show ALL children in drawer — override nav-hidden with maximum specificity */
   .nav-links.mobile-drawer > *,
-  .nav-links.mobile-drawer .nav-hidden {
+  .nav-links.mobile-drawer .nav-hidden,
+  .nav-links.mobile-drawer > .nav-hidden,
+  #nav-links.mobile-drawer > .nav-hidden,
+  #nav-links.mobile-drawer .nav-hidden {
     display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
   }
 
   /* Drawer header */

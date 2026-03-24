@@ -359,17 +359,14 @@ function setupHamburger() {
   var menu = document.getElementById('nav-links');
   if (!btn || !menu) return;
 
-  // Always close on every call (handles bfcache, re-init)
+  // Always ensure drawer starts closed
   menu.classList.remove('open');
   document.body.style.overflow = '';
 
-  if (_drawerReady) return;
-  _drawerReady = true;
-
-  // Mark as drawer
+  // Mark as drawer (idempotent)
   menu.classList.add('mobile-drawer');
 
-  // Overlay
+  // Overlay — create once
   var ov = document.getElementById('drawer-overlay');
   if (!ov) {
     ov = document.createElement('div');
@@ -379,6 +376,14 @@ function setupHamburger() {
   }
   ov.style.display = 'none';
   ov.classList.remove('open');
+
+  // If already initialized, just re-attach overlay listener and return
+  if (_drawerReady) {
+    ov.onclick = blpCloseMenu;
+    return;
+  }
+  _drawerReady = true;
+
   ov.addEventListener('click', blpCloseMenu);
 
   // Drawer header — insert ONCE at top
@@ -394,8 +399,10 @@ function setupHamburger() {
     menu.insertBefore(hdr, menu.firstChild);
   }
 
-  // Hamburger toggle
-  btn.addEventListener('click', function(e) {
+  // Hamburger toggle — remove old listeners by cloning
+  var newBtn = btn.cloneNode(true);
+  btn.parentNode.replaceChild(newBtn, btn);
+  newBtn.addEventListener('click', function(e) {
     e.preventDefault();
     e.stopPropagation();
     blpToggleMenu();
