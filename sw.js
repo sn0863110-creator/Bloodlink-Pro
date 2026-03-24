@@ -1,11 +1,11 @@
-// BloodLink Pro — Service Worker v2 (Phase 12: Performance)
-const CACHE = 'blp-v3';
+// BloodLink Pro — Service Worker v3 (Production Ready)
+const CACHE = 'blp-v4';
 const OFFLINE_URL = 'offline.html';
 const ASSETS = [
   'index.html', 'search.html', 'donor.html', 'login.html',
   'register.html', 'banks.html', 'dashboard.html', 'about.html',
-  'pricing.html', 'emergency.html', 'profile.html',
-  'style.css', 'script.js', 'offline.html', 'manifest.json',
+  'pricing.html', 'emergency.html', 'profile.html', 'offline.html',
+  'style.css', 'script.js', 'manifest.json',
   'firebase-config.js', 'firebase-db.js'
 ];
 

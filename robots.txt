@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /dashboard.html
+Disallow: /profile.html
 
+# Sitemap
 Sitemap: https://sn0863110-creator.github.io/BloodLink-Pro/sitemap.xml

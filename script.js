@@ -474,11 +474,6 @@ function updateNavAuth() {
     if (nu) {
       nu.innerHTML = '👤 ' + firstName + adminBadge;
       nu.style.display = 'inline-flex';
-      nu.style.alignItems = 'center';
-      nu.style.gap = '4px';
-      nu.style.maxWidth = '130px';
-      nu.style.overflow = 'hidden';
-      nu.style.whiteSpace = 'nowrap';
     }
     if (nl) nl.style.display='none';
     if (nr) nr.style.display='none';
@@ -624,7 +619,23 @@ document.addEventListener('DOMContentLoaded', function() {
   if(sosBtnGlobal && !sosBtnGlobal._sosAttached) {
     sosBtnGlobal._sosAttached=true;
     sosBtnGlobal.addEventListener('click', triggerSOS);
-  }});
+  }
+  // Register Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(function(reg) {
+      reg.addEventListener('updatefound', function() {
+        var newWorker = reg.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', function() {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              showToast('🔄 Update available — refresh to get latest version', 'info');
+            }
+          });
+        }
+      });
+    }).catch(function(){});
+  }
+});
 
 async function initLogin() {
   var form=document.getElementById('login-form'); if (!form) return;

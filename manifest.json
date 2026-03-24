@@ -31,8 +31,8 @@
     },
     {
       "name": "Emergency SOS",
-      "url": "./search.html#sos",
-      "description": "Send emergency alert"
+      "url": "./emergency.html",
+      "description": "Send emergency blood request"
     }
   ]
 }

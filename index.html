@@ -21,6 +21,9 @@
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#e63946" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BloodLink Pro" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23e63946'/%3E%3Ctext y='140' x='96' text-anchor='middle' font-size='120'%3E%F0%9F%A9%B8%3C/text%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <!-- Firebase Compat SDK -->
@@ -305,20 +308,19 @@
 </footer>
 
 <script src="script.js"></script>
-<script>
-// Register Service Worker (PWA)
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(function(){});
-}
-</script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebSite",
   "name": "BloodLink Pro",
   "url": "https://sn0863110-creator.github.io/BloodLink-Pro/",
-  "description": "India's smart blood donation network",
-  "author": { "@type": "Person", "name": "Satish Kumar Nishad" }
+  "description": "India's smart blood donation network — find verified blood donors instantly across India",
+  "author": { "@type": "Person", "name": "Satish Kumar Nishad" },
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://sn0863110-creator.github.io/BloodLink-Pro/search.html?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
 }
 </script>
 </body>
