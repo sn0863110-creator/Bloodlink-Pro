@@ -764,7 +764,7 @@ body {
   .how-grid { grid-template-columns: 1fr; }
   .hero-stats { flex-wrap: wrap; gap: 1rem; }
   .hero-stat .num { font-size: 1.5rem; }
-  .toast { min-width: unset; max-width: 90vw; }
+  .toast { min-width: unset; max-width: 90vw; font-size: 0.82rem; }
   .toast-container { right: 5vw; left: 5vw; bottom: 16px; }
   .btn-lg { padding: 0.6rem 1.2rem; font-size: 0.9rem; }
   .section { padding: 1.5rem 0.8rem; }
@@ -1070,3 +1070,45 @@ body.dark-mode .nav-util-row button {
 #qr-modal-box h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text); }
 #qr-modal-box p  { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem; }
 #qr-canvas { border-radius: 12px; border: 3px solid var(--border); }
+
+/* ===== DARK MODE ADDITIONAL FIXES ===== */
+body.dark-mode .tx-item {
+  background: #1e293b;
+  border-color: #334155;
+}
+body.dark-mode .modal-box {
+  background: #1e293b;
+  color: #f1f5f9;
+}
+body.dark-mode .blood-unit-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+body.dark-mode .profit-card {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+}
+body.dark-mode .pricing-hero {
+  background: linear-gradient(135deg, #7f1d1d, #991b1b);
+}
+body.dark-mode .bank-card h3 { color: #f87171; }
+body.dark-mode .form-group label { color: #e2e8f0; }
+body.dark-mode .role-tab { background: #1e293b; color: #94a3b8; border-color: #334155; }
+body.dark-mode .role-tab.active { background: #e63946; color: #fff; }
+body.dark-mode .city-tab { background: #1e293b; color: #94a3b8; border-color: #334155; }
+body.dark-mode .city-tab.active, body.dark-mode .city-tab:hover { background: #e63946; color: #fff; border-color: #e63946; }
+body.dark-mode #map, body.dark-mode #donor-map { filter: brightness(0.85) saturate(0.9); }
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .navbar, .emergency-ticker, .nav-toggle, .sos-btn, footer { display: none !important; }
+  body { background: #fff !important; color: #000 !important; }
+}
+
+/* ===== FOCUS ACCESSIBILITY ===== */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ===== SMOOTH SCROLL OFFSET FOR STICKY NAV ===== */
+html { scroll-padding-top: 70px; }
