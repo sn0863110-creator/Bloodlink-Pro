@@ -621,7 +621,6 @@ body {
     transform: translateX(0) !important;
     pointer-events: all !important;
   }
-
   /* Drawer header */
   .nav-drawer-header {
     display: flex !important;

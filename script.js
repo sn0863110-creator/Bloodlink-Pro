@@ -329,9 +329,13 @@ function blpCloseMenu() {
   var menu = document.getElementById('nav-links');
   var btn  = document.getElementById('nav-toggle');
   var ov   = document.getElementById('drawer-overlay');
-  if (menu) menu.classList.remove('open');
+  if (menu) {
+    menu.classList.remove('open');
+    menu.style.transform = 'translateX(110%)';
+    menu.style.pointerEvents = 'none';
+  }
   if (btn)  btn.classList.remove('open');
-  if (ov)   ov.classList.remove('open');
+  if (ov)   { ov.classList.remove('open'); ov.style.display = 'none'; }
   document.body.style.overflow = '';
 }
 
@@ -339,9 +343,13 @@ function blpOpenMenu() {
   var menu = document.getElementById('nav-links');
   var btn  = document.getElementById('nav-toggle');
   var ov   = document.getElementById('drawer-overlay');
-  if (menu) menu.classList.add('open');
+  if (menu) {
+    menu.classList.add('open');
+    menu.style.transform = 'translateX(0)';
+    menu.style.pointerEvents = 'all';
+  }
   if (btn)  btn.classList.add('open');
-  if (ov)   ov.classList.add('open');
+  if (ov)   { ov.style.display = 'block'; setTimeout(function(){ ov.classList.add('open'); }, 10); }
   document.body.style.overflow = 'hidden';
 }
 
@@ -358,15 +366,15 @@ function setupHamburger() {
   if (_drawerReady) return;
   _drawerReady = true;
 
-  // ── Add mobile-drawer class ──
+  // Add mobile-drawer class
   menu.classList.add('mobile-drawer');
 
-  // ── ENSURE closed on init ──
-  menu.classList.remove('open');
-  btn.classList.remove('open');
+  // Force closed state via inline styles (overrides any CSS conflict)
+  menu.style.transform = 'translateX(110%)';
+  menu.style.pointerEvents = 'none';
   document.body.style.overflow = '';
 
-  // ── Overlay ──
+  // Overlay
   var ov = document.getElementById('drawer-overlay');
   if (!ov) {
     ov = document.createElement('div');
@@ -374,11 +382,11 @@ function setupHamburger() {
     ov.className = 'drawer-overlay';
     document.body.appendChild(ov);
   }
-  // Ensure overlay is closed on init
+  ov.style.display = 'none';
   ov.classList.remove('open');
   ov.onclick = blpCloseMenu;
 
-  // ── Drawer header ──
+  // Drawer header
   if (!menu.querySelector('.nav-drawer-header')) {
     var hdr = document.createElement('div');
     hdr.className = 'nav-drawer-header';
@@ -388,22 +396,22 @@ function setupHamburger() {
     menu.insertBefore(hdr, menu.firstChild);
   }
 
-  // ── Hamburger button ──
+  // Hamburger button click
   btn.onclick = function(e) {
     e.preventDefault();
     e.stopPropagation();
     blpToggleMenu();
   };
 
-  // ── Close on nav link tap ──
+  // Close on nav link tap
   menu.addEventListener('click', function(e) {
     if (e.target.closest('.nav-drawer-header')) return;
     if (e.target.closest('.nav-util-row')) return;
     var link = e.target.closest('a');
-    if (link) setTimeout(blpCloseMenu, 100);
+    if (link) setTimeout(blpCloseMenu, 120);
   });
 
-  // ── Swipe right to close ──
+  // Swipe right to close
   var _sx = 0, _sy = 0;
   menu.addEventListener('touchstart', function(e) {
     _sx = e.touches[0].clientX;
@@ -415,14 +423,19 @@ function setupHamburger() {
     if (dx > 60 && dy < 80) blpCloseMenu();
   }, { passive: true });
 
-  // ── ESC key ──
+  // ESC key
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') blpCloseMenu();
   });
 
-  // ── Reset on desktop resize ──
+  // Reset on desktop resize
   window.addEventListener('resize', function() {
-    if (window.innerWidth > 768) blpCloseMenu();
+    if (window.innerWidth > 768) {
+      blpCloseMenu();
+      // Remove inline styles on desktop so CSS takes over
+      menu.style.transform = '';
+      menu.style.pointerEvents = '';
+    }
   });
 }
 
@@ -560,6 +573,14 @@ document.addEventListener('DOMContentLoaded', function() {
   updateNavAuth();
   initDarkMode();
   applyLanguage();
+
+  // Fix bfcache: when user navigates back, reset overflow and close drawer
+  window.addEventListener('pageshow', function(e) {
+    if (e.persisted) {
+      document.body.style.overflow = '';
+      blpCloseMenu();
+    }
+  });
   var page=location.pathname.split('/').pop()||'index.html';
   if (page==='login.html')     initLogin();
   if (page==='register.html')  initRegister();
