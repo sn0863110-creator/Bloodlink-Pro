@@ -34,6 +34,16 @@ body {
   width: 100%;
 }
 
+/* ===== NAV HIDDEN CLASS (used by updateNavAuth instead of inline style) ===== */
+/* On desktop: hide element normally */
+.nav-hidden { display: none !important; }
+
+/* In mobile drawer: show ALL nav items regardless of nav-hidden */
+/* This overrides the nav-hidden class so drawer always shows all links */
+.nav-links.mobile-drawer .nav-hidden {
+  display: flex !important;
+}
+
 /* ===== NAVBAR ===== */
 .navbar {
   position: sticky; top: 0; z-index: 1000;
@@ -614,7 +624,7 @@ body {
     transform: translateX(110%);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     will-change: transform !important;
-    pointer-events: none !important;
+    pointer-events: none;
   }
   /* When open: slide in */
   .nav-links.mobile-drawer.open {
@@ -658,7 +668,9 @@ body {
 
   /* All nav links full width in drawer */
   .nav-links.mobile-drawer a,
-  .nav-links.mobile-drawer .btn {
+  .nav-links.mobile-drawer .btn,
+  .nav-links.mobile-drawer span#nav-user,
+  .nav-links.mobile-drawer button#nav-logout {
     width: 100% !important;
     justify-content: flex-start !important;
     text-align: left !important;

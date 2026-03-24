@@ -329,12 +329,9 @@ function blpCloseMenu() {
   var menu = document.getElementById('nav-links');
   var btn  = document.getElementById('nav-toggle');
   var ov   = document.getElementById('drawer-overlay');
-  if (menu) {
-    menu.classList.remove('open');
-    menu.style.pointerEvents = 'none';
-  }
+  if (menu) menu.classList.remove('open');
   if (btn)  btn.classList.remove('open');
-  if (ov)   { ov.classList.remove('open'); setTimeout(function(){ ov.style.display = 'none'; }, 300); }
+  if (ov)   { ov.classList.remove('open'); setTimeout(function(){ if (!ov.classList.contains('open')) ov.style.display = 'none'; }, 300); }
   document.body.style.overflow = '';
 }
 
@@ -342,10 +339,7 @@ function blpOpenMenu() {
   var menu = document.getElementById('nav-links');
   var btn  = document.getElementById('nav-toggle');
   var ov   = document.getElementById('drawer-overlay');
-  if (menu) {
-    menu.classList.add('open');
-    menu.style.pointerEvents = 'all';
-  }
+  if (menu) menu.classList.add('open');
   if (btn)  btn.classList.add('open');
   if (ov)   { ov.style.display = 'block'; setTimeout(function(){ ov.classList.add('open'); }, 10); }
   document.body.style.overflow = 'hidden';
@@ -361,14 +355,16 @@ function setupHamburger() {
   var btn  = document.getElementById('nav-toggle');
   var menu = document.getElementById('nav-links');
   if (!btn || !menu) return;
-  if (_drawerReady) return;
+
+  // Always ensure drawer is closed on setup
+  menu.classList.remove('open');
+  document.body.style.overflow = '';
+
+  if (_drawerReady) return; // already wired up
   _drawerReady = true;
 
   // Add mobile-drawer class — CSS handles transform/transition
   menu.classList.add('mobile-drawer');
-  menu.classList.remove('open');
-  menu.style.pointerEvents = 'none';
-  document.body.style.overflow = '';
 
   // Overlay
   var ov = document.getElementById('drawer-overlay');
@@ -382,25 +378,27 @@ function setupHamburger() {
   ov.classList.remove('open');
   ov.onclick = blpCloseMenu;
 
-  // Drawer header
+  // Drawer header — insert only once
   if (!menu.querySelector('.nav-drawer-header')) {
     var hdr = document.createElement('div');
     hdr.className = 'nav-drawer-header';
     hdr.innerHTML = '<span>🩸 BloodLink<span style="font-weight:400">Pro</span></span>'
       + '<button class="close-btn" type="button" aria-label="Close menu">✕</button>';
-    hdr.querySelector('.close-btn').onclick = blpCloseMenu;
+    hdr.querySelector('.close-btn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      blpCloseMenu();
+    });
     menu.insertBefore(hdr, menu.firstChild);
   }
 
-  // Hamburger button click — remove old listener first
-  btn.onclick = null;
+  // Hamburger button click
   btn.addEventListener('click', function(e) {
     e.preventDefault();
     e.stopPropagation();
     blpToggleMenu();
   });
 
-  // Close on nav link tap
+  // Close on nav link tap (not on util row or header)
   menu.addEventListener('click', function(e) {
     if (e.target.closest('.nav-drawer-header')) return;
     if (e.target.closest('.nav-util-row')) return;
@@ -427,47 +425,50 @@ function setupHamburger() {
 
   // Reset on desktop resize
   window.addEventListener('resize', function() {
-    if (window.innerWidth > 768) {
-      blpCloseMenu();
-      menu.style.pointerEvents = '';
-    }
+    if (window.innerWidth > 768) blpCloseMenu();
   });
 }
 
 function updateNavAuth() {
   var user = currentUser();
-  var nu=document.getElementById('nav-user'), nl=document.getElementById('nav-login'), nr=document.getElementById('nav-register'), nd=document.getElementById('nav-dashboard'), no=document.getElementById('nav-logout'), np=document.getElementById('nav-profile');
+  var nu=document.getElementById('nav-user'),
+      nl=document.getElementById('nav-login'),
+      nr=document.getElementById('nav-register'),
+      nd=document.getElementById('nav-dashboard'),
+      no=document.getElementById('nav-logout'),
+      np=document.getElementById('nav-profile');
+
+  // IMPORTANT: Use CSS class 'nav-hidden' instead of inline style.display
+  // so that the mobile drawer CSS (display:flex !important) can override it
+  function navShow(el) {
+    if (!el) return;
+    el.classList.remove('nav-hidden');
+  }
+  function navHide(el) {
+    if (!el) return;
+    el.classList.add('nav-hidden');
+  }
+
   if (user) {
-    // Show only first name, max 10 chars
     var firstName = (user.name || 'User').split(' ')[0];
-    if (firstName.length > 10) firstName = firstName.substring(0, 10) + '…';
+    if (firstName.length > 10) firstName = firstName.substring(0, 10) + '\u2026';
     var adminBadge = isAdmin() ? '<span style="background:#e63946;color:#fff;font-size:0.6rem;padding:1px 5px;border-radius:6px;font-weight:800;vertical-align:middle;margin-left:4px;">ADMIN</span>' : '';
-    if (nu) {
-      nu.innerHTML = '👤 ' + firstName + adminBadge;
-      nu.style.display = 'inline-flex';
-    }
-    if (nl) nl.style.display='none';
-    if (nr) nr.style.display='none';
-    if (nd) nd.style.display='inline-flex';
-    if (np) np.style.display='inline-flex';
+    if (nu) { nu.innerHTML = '\uD83D\uDC64 ' + firstName + adminBadge; navShow(nu); }
+    navHide(nl); navHide(nr);
+    navShow(nd); navShow(np);
     if (no) {
-      no.style.display='inline-flex';
-      // Remove old listener before adding new one (prevents duplicate logout calls)
+      navShow(no);
       if (!no._logoutAttached) {
         no._logoutAttached = true;
         no.addEventListener('click', logout);
       }
     }
   } else {
-    // Not logged in — ensure login/register visible
-    if (nl) nl.style.display='inline-flex';
-    if (nr) nr.style.display='inline-flex';
-    if (nd) nd.style.display='none';
-    if (np) np.style.display='none';
-    if (no) no.style.display='none';
-    if (nu) nu.style.display='none';
+    navShow(nl); navShow(nr);
+    navHide(nd); navHide(np); navHide(no); navHide(nu);
   }
 }
+
 
 function getDeviceFingerprint() {
   const sig = [navigator.userAgent, navigator.language, screen.width+'x'+screen.height, screen.colorDepth, new Date().getTimezoneOffset(), navigator.hardwareConcurrency||0].join('|');
@@ -574,7 +575,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e.persisted) {
       document.body.style.overflow = '';
       var menu = document.getElementById('nav-links');
-      if (menu) { menu.classList.remove('open'); menu.style.pointerEvents = 'none'; }
+      if (menu) menu.classList.remove('open');
       var btn = document.getElementById('nav-toggle');
       if (btn) btn.classList.remove('open');
       var ov = document.getElementById('drawer-overlay');

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -120,12 +120,12 @@
     <a href="banks.html">🏥 Blood Banks</a>
     <a href="pricing.html">📊 Market</a>
     <a href="about.html" class="active">ℹ️ About</a>
-    <span id="nav-user" style="display:none;"></span>
-    <a href="dashboard.html" id="nav-dashboard" class="btn btn-ghost btn-sm" style="display:none;">📊 Dashboard</a>
-    <a href="profile.html" id="nav-profile" class="btn btn-ghost btn-sm" style="display:none;">👤 Profile</a>
+    <span id="nav-user" class="nav-hidden"></span>
+    <a href="dashboard.html" id="nav-dashboard" class="nav-hidden btn btn-ghost btn-sm">📊 Dashboard</a>
+    <a href="profile.html" id="nav-profile" class="nav-hidden btn btn-ghost btn-sm">👤 Profile</a>
     <a href="login.html" id="nav-login" class="btn btn-outline btn-sm">Login</a>
     <a href="register.html" id="nav-register" class="btn btn-primary btn-sm">Register</a>
-    <button id="nav-logout" class="btn btn-ghost btn-sm" style="display:none;">🚪 Logout</button>
+    <button id="nav-logout" class="nav-hidden btn btn-ghost btn-sm">🚪 Logout</button>
     <div class="nav-util-row">
       <button id="lang-toggle" onclick="toggleLanguage()" title="हिं/EN">हिं</button>
       <button id="dark-toggle" onclick="toggleDarkMode()" title="Dark Mode">🌙</button>
@@ -282,9 +282,16 @@
 <script src="script.js"></script>
 <script>
   var svTimer;
-  function openStory(){var sv=document.getElementById('story-viewer');sv.classList.add('open');document.body.style.overflow='hidden';var p=document.getElementById('sv-prog');p.style.animation='none';p.offsetHeight;p.style.animation='sv-prog 5s linear forwards';clearTimeout(svTimer);svTimer=setTimeout(forceCloseStory,5000);}
+  function openStory(){
+    // Close drawer first if open
+    if(typeof blpCloseMenu==='function') blpCloseMenu();
+    var sv=document.getElementById('story-viewer');sv.classList.add('open');document.body.style.overflow='hidden';var p=document.getElementById('sv-prog');p.style.animation='none';p.offsetHeight;p.style.animation='sv-prog 5s linear forwards';clearTimeout(svTimer);svTimer=setTimeout(forceCloseStory,5000);
+  }
   function forceCloseStory(){document.getElementById('story-viewer').classList.remove('open');document.body.style.overflow='';clearTimeout(svTimer);}function closeStory(e){if(e&&e.target!==document.getElementById('story-viewer'))return;document.getElementById('story-viewer').classList.remove('open');document.body.style.overflow='';clearTimeout(svTimer);}
-  function openQR(src,title){document.getElementById('qr-viewer-img').src=src;document.getElementById('qr-viewer-title').textContent=title;document.getElementById('qr-viewer').classList.add('open');document.body.style.overflow='hidden';}
+  function openQR(src,title){
+    if(typeof blpCloseMenu==='function') blpCloseMenu();
+    document.getElementById('qr-viewer-img').src=src;document.getElementById('qr-viewer-title').textContent=title;document.getElementById('qr-viewer').classList.add('open');document.body.style.overflow='hidden';
+  }
   function forceCloseQR(){document.getElementById('qr-viewer').classList.remove('open');document.body.style.overflow='';}function closeQR(e){if(e&&e.target!==document.getElementById('qr-viewer'))return;document.getElementById('qr-viewer').classList.remove('open');document.body.style.overflow='';}
   function copyUPI(){navigator.clipboard.writeText('sn0863110-2@okhdfcbank').then(function(){var b=document.getElementById('upi-copy-btn'),ic=document.getElementById('upi-icon-copy'),ik=document.getElementById('upi-icon-check');b.classList.add('copied');ic.style.display='none';ik.style.display='inline';setTimeout(function(){b.classList.remove('copied');ic.style.display='inline';ik.style.display='none';},2000);});}
   document.addEventListener('keydown',function(e){if(e.key==='Escape'){forceCloseStory();forceCloseQR();}});
@@ -292,8 +299,9 @@
   window.addEventListener('pageshow', function(e) {
     if (e.persisted) {
       document.body.style.overflow = '';
+      // Close drawer manually without calling blpCloseMenu (which may not be ready)
       var menu = document.getElementById('nav-links');
-      if (menu) { menu.classList.remove('open'); menu.style.pointerEvents = 'none'; }
+      if (menu) menu.classList.remove('open');
       var btn = document.getElementById('nav-toggle');
       if (btn) btn.classList.remove('open');
       var ov = document.getElementById('drawer-overlay');
