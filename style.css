@@ -499,15 +499,17 @@ body {
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   user-select: none;
+  -webkit-user-select: none;
   min-width: 44px;
   min-height: 44px;
   position: relative;
   z-index: 10002;
   flex-shrink: 0;
-  /* Force GPU layer for reliable touch on mobile */
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   pointer-events: all;
+  /* Ensure it's always on top and tappable */
+  isolation: isolate;
 }
 .nav-toggle:hover { background: var(--bg-soft); }
 .nav-toggle span {

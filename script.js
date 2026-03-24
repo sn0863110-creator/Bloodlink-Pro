@@ -326,11 +326,10 @@ function setupHamburger() {
   var btn  = document.getElementById('nav-toggle') || document.getElementById('hamburger');
   var menu = document.getElementById('nav-links')  || document.getElementById('nav-menu');
   if (!btn || !menu) return;
-
   if (btn._hamburgerInit) return;
   btn._hamburgerInit = true;
 
-  // ── Inject drawer header ──
+  // ── Drawer header ──
   if (!menu.querySelector('.nav-drawer-header')) {
     var header = document.createElement('div');
     header.className = 'nav-drawer-header';
@@ -338,35 +337,6 @@ function setupHamburger() {
       + '<button class="close-btn" id="drawer-close" aria-label="Close menu" type="button">✕</button>';
     menu.insertBefore(header, menu.firstChild);
   }
-
-  // ── Move util-row into drawer on mobile ──
-  var _utilRowMoved = false;
-  function moveUtilRow() {
-    var utilRow = document.querySelector('.nav-util-row');
-    if (!utilRow) return;
-    if (window.innerWidth <= 768) {
-      if (!menu.contains(utilRow)) {
-        menu.appendChild(utilRow);
-        _utilRowMoved = true;
-      }
-      // Force show — override any CSS hiding
-      utilRow.setAttribute('style', 'display:flex!important;padding:1rem 1.2rem;border-top:1px solid var(--border);gap:8px;flex-wrap:wrap;width:100%;background:var(--bg-card);margin-top:auto;');
-    } else {
-      // Move back to navbar on desktop
-      if (_utilRowMoved && menu.contains(utilRow)) {
-        var navbar = document.querySelector('.navbar');
-        if (navbar) {
-          var toggle = navbar.querySelector('.nav-toggle');
-          if (toggle) navbar.insertBefore(utilRow, toggle);
-          else navbar.appendChild(utilRow);
-        }
-        utilRow.removeAttribute('style');
-        _utilRowMoved = false;
-      }
-    }
-  }
-  moveUtilRow();
-  window.addEventListener('resize', moveUtilRow);
 
   // ── Overlay ──
   var overlay = document.getElementById('drawer-overlay');
@@ -377,6 +347,19 @@ function setupHamburger() {
     document.body.appendChild(overlay);
   }
 
+  // ── Move util-row into drawer on mobile ──
+  function moveUtilRow() {
+    var utilRow = document.querySelector('.nav-util-row');
+    if (!utilRow) return;
+    if (window.innerWidth <= 768) {
+      if (!menu.contains(utilRow)) menu.appendChild(utilRow);
+      utilRow.style.cssText = 'display:flex!important;padding:1rem 1.2rem;border-top:1px solid #f0d0d0;gap:8px;flex-wrap:wrap;width:100%;';
+    }
+  }
+  moveUtilRow();
+  window.addEventListener('resize', moveUtilRow);
+
+  // ── Open / Close ──
   function openMenu() {
     menu.classList.add('open');
     btn.classList.add('open');
@@ -389,54 +372,50 @@ function setupHamburger() {
     overlay.classList.remove('open');
     document.body.style.overflow = '';
   }
-
-  // ── Touch handler (most reliable on Android/iOS) ──
-  var _touched = false;
-  var _touchTimer = null;
-
-  btn.addEventListener('touchend', function(e) {
-    e.preventDefault(); // block ghost click
-    _touched = true;
-    clearTimeout(_touchTimer);
-    _touchTimer = setTimeout(function(){ _touched = false; }, 800);
+  function toggleMenu() {
     menu.classList.contains('open') ? closeMenu() : openMenu();
-  }, { passive: false });
+  }
 
-  // ── Click fallback (desktop + browsers without touch) ──
-  btn.addEventListener('click', function(e) {
-    if (_touched) { return; } // already handled by touchend
-    menu.classList.contains('open') ? closeMenu() : openMenu();
+  // ── Single unified handler — works on ALL devices ──
+  // Using pointerdown which fires reliably on both touch and mouse
+  btn.addEventListener('pointerdown', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleMenu();
   });
 
-  // ── Close button & nav links inside drawer ──
-  menu.addEventListener('touchend', function(e) {
+  // ── Close button ──
+  menu.addEventListener('pointerdown', function(e) {
     var tgt = e.target;
     if (tgt && (tgt.id === 'drawer-close' || (tgt.closest && tgt.closest('#drawer-close')))) {
       e.preventDefault();
       closeMenu();
     }
-  }, { passive: false });
+  });
 
+  // ── Nav link click closes drawer ──
   menu.addEventListener('click', function(e) {
-    var tgt = e.target;
-    if (tgt && (tgt.id === 'drawer-close' || (tgt.closest && tgt.closest('#drawer-close')))) {
-      closeMenu(); return;
-    }
-    if (tgt.closest && tgt.closest('.nav-util-row')) return;
-    var link = tgt.closest && tgt.closest('a');
-    if (link && menu.contains(link)) setTimeout(closeMenu, 100);
+    if (e.target.closest && e.target.closest('.nav-util-row')) return;
+    if (e.target.closest && e.target.closest('#drawer-close')) { closeMenu(); return; }
+    var link = e.target.closest && e.target.closest('a');
+    if (link && menu.contains(link)) setTimeout(closeMenu, 120);
   });
 
   // ── Overlay closes drawer ──
-  overlay.addEventListener('touchend', function(e) { e.preventDefault(); closeMenu(); }, { passive: false });
-  overlay.addEventListener('click', closeMenu);
+  overlay.addEventListener('pointerdown', function(e) {
+    e.preventDefault();
+    closeMenu();
+  });
 
   // ── Swipe right to close ──
-  var sx = 0, sy = 0;
-  menu.addEventListener('touchstart', function(e) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+  var _sx = 0, _sy = 0;
+  menu.addEventListener('touchstart', function(e) {
+    _sx = e.touches[0].clientX;
+    _sy = e.touches[0].clientY;
+  }, { passive: true });
   menu.addEventListener('touchend', function(e) {
-    var dx = e.changedTouches[0].clientX - sx;
-    var dy = Math.abs(e.changedTouches[0].clientY - sy);
+    var dx = e.changedTouches[0].clientX - _sx;
+    var dy = Math.abs(e.changedTouches[0].clientY - _sy);
     if (dx > 60 && dy < 80) closeMenu();
   }, { passive: true });
 
