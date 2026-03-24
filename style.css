@@ -507,6 +507,7 @@ body {
   /* Force GPU layer for reliable touch on mobile */
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
+  pointer-events: all;
 }
 .nav-toggle:hover { background: var(--bg-soft); }
 .nav-toggle span {
@@ -593,9 +594,11 @@ body {
     /* Always in DOM, controlled by transform */
     display: flex !important;
     visibility: visible !important;
+    pointer-events: none;
   }
   .nav-links.open {
     transform: translateX(0) !important;
+    pointer-events: all;
   }
 
   /* Drawer header */

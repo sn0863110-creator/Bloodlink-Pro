@@ -327,11 +327,10 @@ function setupHamburger() {
   var menu = document.getElementById('nav-links')  || document.getElementById('nav-menu');
   if (!btn || !menu) return;
 
-  // Prevent double-init
   if (btn._hamburgerInit) return;
   btn._hamburgerInit = true;
 
-  // ── Inject drawer header as first child ──
+  // ── Inject drawer header ──
   if (!menu.querySelector('.nav-drawer-header')) {
     var header = document.createElement('div');
     header.className = 'nav-drawer-header';
@@ -340,21 +339,36 @@ function setupHamburger() {
     menu.insertBefore(header, menu.firstChild);
   }
 
-  // ── On mobile: move nav-util-row inside drawer (at bottom) ──
-  function moveUtilRowToDrawer() {
+  // ── Move util-row into drawer on mobile ──
+  var _utilRowMoved = false;
+  function moveUtilRow() {
+    var utilRow = document.querySelector('.nav-util-row');
+    if (!utilRow) return;
     if (window.innerWidth <= 768) {
-      var utilRow = document.querySelector('.navbar > .nav-util-row') || document.querySelector('.nav-util-row');
-      if (utilRow && !menu.contains(utilRow)) {
+      if (!menu.contains(utilRow)) {
         menu.appendChild(utilRow);
-        // Make sure it's visible inside drawer
-        utilRow.style.display = 'flex';
+        _utilRowMoved = true;
+      }
+      // Force show — override any CSS hiding
+      utilRow.setAttribute('style', 'display:flex!important;padding:1rem 1.2rem;border-top:1px solid var(--border);gap:8px;flex-wrap:wrap;width:100%;background:var(--bg-card);margin-top:auto;');
+    } else {
+      // Move back to navbar on desktop
+      if (_utilRowMoved && menu.contains(utilRow)) {
+        var navbar = document.querySelector('.navbar');
+        if (navbar) {
+          var toggle = navbar.querySelector('.nav-toggle');
+          if (toggle) navbar.insertBefore(utilRow, toggle);
+          else navbar.appendChild(utilRow);
+        }
+        utilRow.removeAttribute('style');
+        _utilRowMoved = false;
       }
     }
   }
-  moveUtilRowToDrawer();
-  window.addEventListener('resize', moveUtilRowToDrawer);
+  moveUtilRow();
+  window.addEventListener('resize', moveUtilRow);
 
-  // ── Inject overlay ──
+  // ── Overlay ──
   var overlay = document.getElementById('drawer-overlay');
   if (!overlay) {
     overlay = document.createElement('div');
@@ -369,7 +383,6 @@ function setupHamburger() {
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
   }
-
   function closeMenu() {
     menu.classList.remove('open');
     btn.classList.remove('open');
@@ -377,78 +390,58 @@ function setupHamburger() {
     document.body.style.overflow = '';
   }
 
-  // ── Single unified handler — works on both touch and click ──
-  // Using pointerdown/pointerup for maximum mobile compatibility
-  var _pointerDown = false;
-  var _pointerMoved = false;
-  var _startX = 0, _startY = 0;
+  // ── Touch handler (most reliable on Android/iOS) ──
+  var _touched = false;
+  var _touchTimer = null;
 
-  btn.addEventListener('pointerdown', function(e) {
-    _pointerDown = true;
-    _pointerMoved = false;
-    _startX = e.clientX;
-    _startY = e.clientY;
-  }, { passive: true });
-
-  btn.addEventListener('pointermove', function(e) {
-    if (!_pointerDown) return;
-    var dx = Math.abs(e.clientX - _startX);
-    var dy = Math.abs(e.clientY - _startY);
-    if (dx > 8 || dy > 8) _pointerMoved = true;
-  }, { passive: true });
-
-  btn.addEventListener('pointerup', function(e) {
-    if (!_pointerDown || _pointerMoved) { _pointerDown = false; return; }
-    _pointerDown = false;
-    e.preventDefault();
+  btn.addEventListener('touchend', function(e) {
+    e.preventDefault(); // block ghost click
+    _touched = true;
+    clearTimeout(_touchTimer);
+    _touchTimer = setTimeout(function(){ _touched = false; }, 800);
     menu.classList.contains('open') ? closeMenu() : openMenu();
-  });
+  }, { passive: false });
 
-  // Fallback click for browsers without pointer events
+  // ── Click fallback (desktop + browsers without touch) ──
   btn.addEventListener('click', function(e) {
-    // Only fire if pointerup didn't already handle it
-    if (e.pointerType) return; // already handled by pointerup
+    if (_touched) { return; } // already handled by touchend
     menu.classList.contains('open') ? closeMenu() : openMenu();
   });
 
-  // ── Close button inside drawer ──
+  // ── Close button & nav links inside drawer ──
+  menu.addEventListener('touchend', function(e) {
+    var tgt = e.target;
+    if (tgt && (tgt.id === 'drawer-close' || (tgt.closest && tgt.closest('#drawer-close')))) {
+      e.preventDefault();
+      closeMenu();
+    }
+  }, { passive: false });
+
   menu.addEventListener('click', function(e) {
     var tgt = e.target;
     if (tgt && (tgt.id === 'drawer-close' || (tgt.closest && tgt.closest('#drawer-close')))) {
       closeMenu(); return;
     }
-    // Nav util row buttons — don't close drawer
     if (tgt.closest && tgt.closest('.nav-util-row')) return;
-    // Any nav link
-    var link = tgt.closest('a');
-    if (link && menu.contains(link)) {
-      setTimeout(closeMenu, 120);
-    }
+    var link = tgt.closest && tgt.closest('a');
+    if (link && menu.contains(link)) setTimeout(closeMenu, 100);
   });
 
-  // ── Overlay tap closes drawer ──
+  // ── Overlay closes drawer ──
+  overlay.addEventListener('touchend', function(e) { e.preventDefault(); closeMenu(); }, { passive: false });
   overlay.addEventListener('click', closeMenu);
-  overlay.addEventListener('touchend', function(e) {
-    e.preventDefault();
-    closeMenu();
-  }, { passive: false });
 
-  // ── Swipe right on drawer → close ──
-  var swipeStartX = 0, swipeStartY = 0;
-  menu.addEventListener('touchstart', function(e) {
-    swipeStartX = e.touches[0].clientX;
-    swipeStartY = e.touches[0].clientY;
-  }, { passive: true });
+  // ── Swipe right to close ──
+  var sx = 0, sy = 0;
+  menu.addEventListener('touchstart', function(e) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
   menu.addEventListener('touchend', function(e) {
-    var dx = e.changedTouches[0].clientX - swipeStartX;
-    var dy = Math.abs(e.changedTouches[0].clientY - swipeStartY);
-    if (dx > 60 && dy < 100) closeMenu();
+    var dx = e.changedTouches[0].clientX - sx;
+    var dy = Math.abs(e.changedTouches[0].clientY - sy);
+    if (dx > 60 && dy < 80) closeMenu();
   }, { passive: true });
 
-  // ── Escape key ──
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeMenu();
-  });
+  // ── ESC key ──
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeMenu(); });
 }
 
 function updateNavAuth() {
