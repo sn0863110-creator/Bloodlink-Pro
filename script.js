@@ -343,9 +343,11 @@ function setupHamburger() {
   // ── On mobile: move nav-util-row inside drawer (at bottom) ──
   function moveUtilRowToDrawer() {
     if (window.innerWidth <= 768) {
-      var utilRow = document.querySelector('.nav-util-row');
+      var utilRow = document.querySelector('.navbar > .nav-util-row') || document.querySelector('.nav-util-row');
       if (utilRow && !menu.contains(utilRow)) {
         menu.appendChild(utilRow);
+        // Make sure it's visible inside drawer
+        utilRow.style.display = 'flex';
       }
     }
   }
@@ -361,9 +363,6 @@ function setupHamburger() {
     document.body.appendChild(overlay);
   }
 
-  // Track last touch time to prevent ghost click
-  var _lastTouchTime = 0;
-
   function openMenu() {
     menu.classList.add('open');
     btn.classList.add('open');
@@ -378,56 +377,61 @@ function setupHamburger() {
     document.body.style.overflow = '';
   }
 
-  // ── Hamburger button — touch handler (primary on mobile) ──
-  btn.addEventListener('touchstart', function(e) {
-    e.stopPropagation();
-    _lastTouchTime = Date.now();
+  // ── Single unified handler — works on both touch and click ──
+  // Using pointerdown/pointerup for maximum mobile compatibility
+  var _pointerDown = false;
+  var _pointerMoved = false;
+  var _startX = 0, _startY = 0;
+
+  btn.addEventListener('pointerdown', function(e) {
+    _pointerDown = true;
+    _pointerMoved = false;
+    _startX = e.clientX;
+    _startY = e.clientY;
   }, { passive: true });
 
-  btn.addEventListener('touchend', function(e) {
-    e.preventDefault();          // prevent ghost click
-    e.stopPropagation();
-    _lastTouchTime = Date.now();
-    menu.classList.contains('open') ? closeMenu() : openMenu();
-  }, { passive: false });
+  btn.addEventListener('pointermove', function(e) {
+    if (!_pointerDown) return;
+    var dx = Math.abs(e.clientX - _startX);
+    var dy = Math.abs(e.clientY - _startY);
+    if (dx > 8 || dy > 8) _pointerMoved = true;
+  }, { passive: true });
 
-  // ── Click handler — only fires on desktop (touch already handled above) ──
-  btn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    if (Date.now() - _lastTouchTime < 500) return;
+  btn.addEventListener('pointerup', function(e) {
+    if (!_pointerDown || _pointerMoved) { _pointerDown = false; return; }
+    _pointerDown = false;
+    e.preventDefault();
     menu.classList.contains('open') ? closeMenu() : openMenu();
   });
 
-  // ── Close button — touch + click ──
-  menu.addEventListener('touchend', function(e) {
+  // Fallback click for browsers without pointer events
+  btn.addEventListener('click', function(e) {
+    // Only fire if pointerup didn't already handle it
+    if (e.pointerType) return; // already handled by pointerup
+    menu.classList.contains('open') ? closeMenu() : openMenu();
+  });
+
+  // ── Close button inside drawer ──
+  menu.addEventListener('click', function(e) {
     var tgt = e.target;
     if (tgt && (tgt.id === 'drawer-close' || (tgt.closest && tgt.closest('#drawer-close')))) {
-      e.preventDefault();
-      e.stopPropagation();
-      closeMenu();
-    }
-  }, { passive: false });
-
-  // ── Close button & link clicks inside drawer ──
-  menu.addEventListener('click', function(e) {
-    if (e.target && (e.target.id === 'drawer-close' || (e.target.closest && e.target.closest('#drawer-close')))) {
       closeMenu(); return;
     }
     // Nav util row buttons — don't close drawer
-    if (e.target.closest && e.target.closest('.nav-util-row')) return;
+    if (tgt.closest && tgt.closest('.nav-util-row')) return;
     // Any nav link
-    var link = e.target.closest('a');
+    var link = tgt.closest('a');
     if (link && menu.contains(link)) {
       setTimeout(closeMenu, 120);
     }
   });
 
   // ── Overlay tap closes drawer ──
+  overlay.addEventListener('click', closeMenu);
   overlay.addEventListener('touchend', function(e) {
     e.preventDefault();
     closeMenu();
   }, { passive: false });
-  overlay.addEventListener('click', closeMenu);
 
   // ── Swipe right on drawer → close ──
   var swipeStartX = 0, swipeStartY = 0;
@@ -439,22 +443,6 @@ function setupHamburger() {
     var dx = e.changedTouches[0].clientX - swipeStartX;
     var dy = Math.abs(e.changedTouches[0].clientY - swipeStartY);
     if (dx > 60 && dy < 100) closeMenu();
-  }, { passive: true });
-
-  // ── Swipe left from right edge → open drawer ──
-  var edgeStartX = 0, edgeStartY = 0;
-  document.addEventListener('touchstart', function(e) {
-    edgeStartX = e.touches[0].clientX;
-    edgeStartY = e.touches[0].clientY;
-  }, { passive: true });
-  document.addEventListener('touchend', function(e) {
-    if (e.target === btn || btn.contains(e.target)) return;
-    var dx = e.changedTouches[0].clientX - edgeStartX;
-    var dy = Math.abs(e.changedTouches[0].clientY - edgeStartY);
-    var startedFromRightEdge = edgeStartX > window.innerWidth - 30;
-    if (dx < -50 && dy < 80 && startedFromRightEdge && !menu.classList.contains('open')) {
-      openMenu();
-    }
   }, { passive: true });
 
   // ── Escape key ──
@@ -673,6 +661,14 @@ async function initDashboard() {
     var reqs = await getEmergencyRequests();
     var sr = document.getElementById('stat-requests'); if(sr) sr.textContent = reqs.length;
   } catch(e) {}
+  // Auto-refresh every 30 seconds
+  if (!window._dashRefreshTimer) {
+    window._dashRefreshTimer = setInterval(function() {
+      var luEl = document.getElementById('last-updated');
+      if (luEl) luEl.textContent = 'Refreshing...';
+      initDashboard();
+    }, 30000);
+  }
 }
 
 function renderDashCharts(donors) {

@@ -209,7 +209,9 @@ window.addEventListener('DOMContentLoaded', function() {
     btn.disabled = true; btn.textContent = 'Submitting...';
     const name      = document.getElementById('d-name').value.trim();
     const blood     = document.getElementById('d-blood').value;
-    const city      = document.getElementById('d-city').value.trim();
+    const rawCity   = document.getElementById('d-city').value.trim();
+    // Normalize city: capitalize each word
+    const city      = rawCity.replace(/\b\w/g, function(c){ return c.toUpperCase(); });
     const phone     = document.getElementById('d-contact').value.trim();
     const available = document.getElementById('d-available').value || 'yes';
     const lastDon   = document.getElementById('d-lastdon').value || '';

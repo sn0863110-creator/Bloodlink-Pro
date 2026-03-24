@@ -121,6 +121,12 @@
           </div>
           <button type="submit" class="btn btn-primary btn-lg" style="align-self:flex-end;">Search</button>
         </div>
+        <div style="margin-top:0.8rem;display:flex;align-items:center;gap:8px;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.83rem;font-weight:600;color:var(--text-muted);">
+            <input type="checkbox" id="filter-available" onchange="performSearch()" style="width:16px;height:16px;accent-color:#e63946;cursor:pointer;" />
+            Show Available Donors Only
+          </label>
+        </div>
       </form>
     </div>
 
@@ -247,6 +253,7 @@
 async function performSearch(){
   const blood=(document.getElementById('filter-blood')||{value:''}).value;
   const city=(document.getElementById('filter-city')||{value:''}).value.trim().toLowerCase();
+  const availOnly=document.getElementById('filter-available')&&document.getElementById('filter-available').checked;
   const results=document.getElementById('search-results');
   // Hide skeleton, show results
   var skel=document.getElementById('skeleton-loader');
@@ -256,7 +263,15 @@ async function performSearch(){
   const admin = (typeof isAdmin==='function') && isAdmin();
   const allDonors=await getDonors();
   const donors=allDonors.filter(function(d){return admin || d.status!=='pending';});
-  const found=donors.filter(function(d){return(!blood||d.blood===blood)&&(!city||d.city.toLowerCase().includes(city));});
+  var found=donors.filter(function(d){return(!blood||d.blood===blood)&&(!city||d.city.toLowerCase().includes(city));});
+  if(availOnly) found=found.filter(function(d){return d.available!=='no';});
+  // Sort: available first, then by name
+  found.sort(function(a,b){
+    var aAvail = a.available !== 'no' ? 0 : 1;
+    var bAvail = b.available !== 'no' ? 0 : 1;
+    if (aAvail !== bAvail) return aAvail - bAvail;
+    return (a.name||'').localeCompare(b.name||'');
+  });
   const ce=document.getElementById('results-count');if(ce)ce.textContent=found.length+' donor(s) found';
   if(!found.length){
     // Suggest nearby cities if city filter was used
@@ -352,14 +367,9 @@ async function reportDonor(id, name) {
 }
 
 document.getElementById('search-form').addEventListener('submit',function(e){e.preventDefault();performSearch();});
-// Auto-hide skeleton after initial load (show empty state)
+// Auto-load all donors on page load
 window.addEventListener('load', function() {
-  var skel = document.getElementById('skeleton-loader');
-  var inner = document.getElementById('donor-results-inner');
-  if (skel) skel.style.display = 'none';
-  if (inner && !inner.innerHTML.trim()) {
-    inner.innerHTML = '<div class="empty-state"><div class="icon">🩸</div><h3>Search for Donors</h3><p>Select a blood group or city above and click Search to find available donors.</p></div>';
-  }
+  performSearch();
 });
 // SOS button
 var sosBtn=document.getElementById('sos-btn');
