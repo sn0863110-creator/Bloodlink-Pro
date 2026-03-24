@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <!-- Background -->
+  <rect width="192" height="192" rx="40" fill="#e63946"/>
+  <!-- Blood drop shape -->
+  <path d="M96 32 C96 32 52 88 52 116 C52 140.3 72 156 96 156 C120 156 140 140.3 140 116 C140 88 96 32 96 32Z" fill="white" opacity="0.95"/>
+  <!-- Plus sign inside drop -->
+  <rect x="86" y="90" width="20" height="48" rx="4" fill="#e63946"/>
+  <rect x="72" y="104" width="48" height="20" rx="4" fill="#e63946"/>
+</svg>

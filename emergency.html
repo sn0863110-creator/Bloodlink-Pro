@@ -15,6 +15,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩸</text></svg>" />
   <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.svg" />
   <meta name="theme-color" content="#e63946" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -49,7 +50,7 @@
     <button id="dark-toggle" onclick="toggleDarkMode()" title="Dark Mode">🌙</button>
     <button onclick="showQRCode()" title="QR Code" class="nav-qr-btn">📱</button>
   </div>
-  <button class="nav-toggle" id="nav-toggle" type="button" aria-label="Open navigation menu"><span></span><span></span><span></span></button>
+  <button class="nav-toggle" id="nav-toggle" type="button" aria-label="Open navigation menu" onclick="(function(btn){var menu=document.getElementById('nav-links');var ov=document.getElementById('drawer-overlay');if(!menu)return;var open=menu.classList.contains('open');if(open){menu.classList.remove('open');btn.classList.remove('open');if(ov)ov.classList.remove('open');document.body.style.overflow='';}else{menu.classList.add('open');btn.classList.add('open');if(ov)ov.classList.add('open');document.body.style.overflow='hidden';}})(this)"><span></span><span></span><span></span></button>
 </nav>
 
 <div class="emergency-ticker">
