@@ -331,7 +331,10 @@ function blpCloseMenu() {
   var ov   = document.getElementById('drawer-overlay');
   if (menu) menu.classList.remove('open');
   if (btn)  btn.classList.remove('open');
-  if (ov)   { ov.classList.remove('open'); setTimeout(function(){ if (!ov.classList.contains('open')) ov.style.display = 'none'; }, 300); }
+  if (ov)   {
+    ov.classList.remove('open');
+    setTimeout(function(){ if (!ov.classList.contains('open')) ov.style.display = 'none'; }, 300);
+  }
   document.body.style.overflow = '';
 }
 
@@ -356,14 +359,14 @@ function setupHamburger() {
   var menu = document.getElementById('nav-links');
   if (!btn || !menu) return;
 
-  // Always ensure drawer is closed on setup
+  // Always close on every call (handles bfcache, re-init)
   menu.classList.remove('open');
   document.body.style.overflow = '';
 
-  if (_drawerReady) return; // already wired up
+  if (_drawerReady) return;
   _drawerReady = true;
 
-  // Add mobile-drawer class — CSS handles transform/transition
+  // Mark as drawer
   menu.classList.add('mobile-drawer');
 
   // Overlay
@@ -376,14 +379,14 @@ function setupHamburger() {
   }
   ov.style.display = 'none';
   ov.classList.remove('open');
-  ov.onclick = blpCloseMenu;
+  ov.addEventListener('click', blpCloseMenu);
 
-  // Drawer header — insert only once
+  // Drawer header — insert ONCE at top
   if (!menu.querySelector('.nav-drawer-header')) {
     var hdr = document.createElement('div');
     hdr.className = 'nav-drawer-header';
     hdr.innerHTML = '<span>🩸 BloodLink<span style="font-weight:400">Pro</span></span>'
-      + '<button class="close-btn" type="button" aria-label="Close menu">✕</button>';
+      + '<button class="close-btn" type="button" aria-label="Close">✕</button>';
     hdr.querySelector('.close-btn').addEventListener('click', function(e) {
       e.stopPropagation();
       blpCloseMenu();
@@ -391,31 +394,29 @@ function setupHamburger() {
     menu.insertBefore(hdr, menu.firstChild);
   }
 
-  // Hamburger button click
+  // Hamburger toggle
   btn.addEventListener('click', function(e) {
     e.preventDefault();
     e.stopPropagation();
     blpToggleMenu();
   });
 
-  // Close on nav link tap (not on util row or header)
+  // Close when a nav link is tapped
   menu.addEventListener('click', function(e) {
     if (e.target.closest('.nav-drawer-header')) return;
     if (e.target.closest('.nav-util-row')) return;
-    var link = e.target.closest('a');
-    if (link) setTimeout(blpCloseMenu, 120);
+    if (e.target.closest('a')) setTimeout(blpCloseMenu, 150);
   });
 
   // Swipe right to close
   var _sx = 0, _sy = 0;
   menu.addEventListener('touchstart', function(e) {
-    _sx = e.touches[0].clientX;
-    _sy = e.touches[0].clientY;
+    _sx = e.touches[0].clientX; _sy = e.touches[0].clientY;
   }, { passive: true });
   menu.addEventListener('touchend', function(e) {
     var dx = e.changedTouches[0].clientX - _sx;
     var dy = Math.abs(e.changedTouches[0].clientY - _sy);
-    if (dx > 60 && dy < 80) blpCloseMenu();
+    if (dx > 50 && dy < 100) blpCloseMenu();
   }, { passive: true });
 
   // ESC key
@@ -423,7 +424,7 @@ function setupHamburger() {
     if (e.key === 'Escape') blpCloseMenu();
   });
 
-  // Reset on desktop resize
+  // Desktop resize
   window.addEventListener('resize', function() {
     if (window.innerWidth > 768) blpCloseMenu();
   });
