@@ -372,23 +372,15 @@ function setupHamburger() {
     overlay.classList.remove('open');
     document.body.style.overflow = '';
   }
-  function toggleMenu() {
-    menu.classList.contains('open') ? closeMenu() : openMenu();
-  }
 
-  // ── Single unified handler — works on ALL devices ──
-  // Using pointerdown which fires reliably on both touch and mouse
-  btn.addEventListener('pointerdown', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleMenu();
+  // ── Hamburger button — simple click only, no preventDefault ──
+  btn.addEventListener('click', function() {
+    menu.classList.contains('open') ? closeMenu() : openMenu();
   });
 
-  // ── Close button ──
-  menu.addEventListener('pointerdown', function(e) {
-    var tgt = e.target;
-    if (tgt && (tgt.id === 'drawer-close' || (tgt.closest && tgt.closest('#drawer-close')))) {
-      e.preventDefault();
+  // ── Close button inside drawer ──
+  document.addEventListener('click', function(e) {
+    if (e.target && (e.target.id === 'drawer-close' || (e.target.closest && e.target.closest('#drawer-close')))) {
       closeMenu();
     }
   });
@@ -396,16 +388,12 @@ function setupHamburger() {
   // ── Nav link click closes drawer ──
   menu.addEventListener('click', function(e) {
     if (e.target.closest && e.target.closest('.nav-util-row')) return;
-    if (e.target.closest && e.target.closest('#drawer-close')) { closeMenu(); return; }
     var link = e.target.closest && e.target.closest('a');
     if (link && menu.contains(link)) setTimeout(closeMenu, 120);
   });
 
-  // ── Overlay closes drawer ──
-  overlay.addEventListener('pointerdown', function(e) {
-    e.preventDefault();
-    closeMenu();
-  });
+  // ── Overlay click closes drawer ──
+  overlay.addEventListener('click', closeMenu);
 
   // ── Swipe right to close ──
   var _sx = 0, _sy = 0;

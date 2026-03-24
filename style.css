@@ -517,6 +517,8 @@ body {
   background: var(--text); border-radius: 2px;
   transition: transform 0.22s ease, opacity 0.22s ease;
   pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
 .nav-toggle.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
