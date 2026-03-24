@@ -628,6 +628,9 @@ async function initDashboard() {
   renderDashCharts(approved);
   renderRecentActivity(approved, market);
   renderCityStats(approved);
+  // chart badge
+  var cb = document.getElementById('chart-total-badge');
+  if (cb) cb.textContent = approved.length + ' donors';
   // Admin panel
   if (isAdmin()) renderAdminPanel(pending, donors, market);
   // Load emergency requests for admin
@@ -674,36 +677,71 @@ function renderCityStats(donors) {
   if (!el) return;
   var cities = {};
   donors.forEach(function(d) {
-    var c = d.city || 'Unknown';
+    var c = (d.city || 'Unknown').trim();
     if (!cities[c]) cities[c] = { total: 0, avail: 0 };
     cities[c].total++;
     if (d.available !== 'no') cities[c].avail++;
   });
   var sorted = Object.keys(cities).sort(function(a,b){ return cities[b].total - cities[a].total; });
-  if (!sorted.length) { el.innerHTML = '<div style="color:#9ca3af;text-align:center;padding:1rem;grid-column:1/-1;">No data yet</div>'; return; }
+  var badge = document.getElementById('city-count-badge');
+  if (badge) badge.textContent = sorted.length + ' cities';
+  if (!sorted.length) {
+    el.innerHTML = '<div style="color:#9ca3af;text-align:center;padding:1.5rem;grid-column:1/-1;font-size:0.88rem;">No city data yet</div>';
+    return;
+  }
   el.innerHTML = sorted.slice(0, 12).map(function(city) {
     var d = cities[city];
-    var pct = d.total ? Math.round((d.avail/d.total)*100) : 0;
+    var pct = d.total ? Math.round((d.avail / d.total) * 100) : 0;
     var color = pct >= 60 ? '#16a34a' : pct >= 30 ? '#f59e0b' : '#e63946';
-    return '<div style="background:#f9fafb;border-radius:10px;padding:0.9rem;text-align:center;border:1.5px solid #f0d0d0;">'
-      + '<div style="font-weight:800;font-size:0.88rem;color:#1a1a2e;margin-bottom:4px;">'+city+'</div>'
-      + '<div style="font-size:1.4rem;font-weight:900;color:'+color+';">'+d.total+'</div>'
-      + '<div style="font-size:0.68rem;color:#9ca3af;font-weight:600;">donors</div>'
-      + '<div style="font-size:0.72rem;color:'+color+';font-weight:700;margin-top:4px;">'+d.avail+' available</div>'
-      + '<div style="background:#e5e7eb;border-radius:4px;height:4px;margin-top:6px;overflow:hidden;">'
-      + '<div style="background:'+color+';height:100%;width:'+pct+'%;border-radius:4px;transition:width 0.8s;"></div>'
-      + '</div>'
+    return '<div class="city-card">'
+      + '<div class="city-name">' + city + '</div>'
+      + '<div class="city-num" style="color:' + color + ';">' + d.total + '</div>'
+      + '<div class="city-sub">' + d.avail + ' available</div>'
+      + '<div class="city-bar"><div class="city-bar-fill" style="width:' + pct + '%;background:' + color + ';"></div></div>'
       + '</div>';
   }).join('');
 }
 
 function renderRecentActivity(donors, market) {
-  var el=document.getElementById('recent-activity')||document.getElementById('recent-list'); if(!el) return;
-  var acts=[];
-  donors.slice(-5).forEach(function(d){acts.push({t:new Date(d.date||Date.now()),h:'<div style="padding:8px 0;border-bottom:1px solid #f0f0f0"><span style="background:#fef2f2;color:#e74c3c;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:700">DONOR</span> <b>'+d.name+'</b> ('+d.blood+') from '+d.city+'</div>'});});
-  market.slice(-5).forEach(function(t){acts.push({t:new Date(t.ts||t.date||Date.now()),h:'<div style="padding:8px 0;border-bottom:1px solid #f0f0f0"><span style="background:#f0fdf4;color:#27ae60;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:700">'+t.type.toUpperCase()+'</span> '+(t.qty||1)+' unit(s) <b>'+t.blood+'</b></div>'});});
-  acts.sort(function(a,b){return b.t-a.t;});
-  el.innerHTML=acts.length?acts.slice(0,8).map(function(a){return a.h;}).join(''):'<p style="text-align:center;color:#999;padding:2rem">No recent activity yet.</p>';
+  var el = document.getElementById('recent-activity') || document.getElementById('recent-list');
+  if (!el) return;
+  var acts = [];
+  var now = Date.now();
+  function timeAgo(ts) {
+    var diff = Math.floor((now - ts) / 1000);
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+    return Math.floor(diff/86400) + 'd ago';
+  }
+  donors.slice(-6).forEach(function(d) {
+    var ts = d.ts || d.date || now;
+    acts.push({ t: ts, html:
+      '<div class="activity-item">'
+      + '<div class="activity-dot" style="background:#e63946;"></div>'
+      + '<div class="activity-text"><strong>' + (d.name||'Unknown') + '</strong> registered as donor'
+      + ' &nbsp;<span class="blood-pill">' + (d.blood||'?') + '</span>'
+      + ' &nbsp;<span style="font-size:0.72rem;color:#6b7280;">📍 ' + (d.city||'—') + '</span></div>'
+      + '<span class="activity-time">' + timeAgo(ts) + '</span>'
+      + '</div>'
+    });
+  });
+  market.slice(-4).forEach(function(tx) {
+    var ts = tx.ts || tx.date || now;
+    acts.push({ t: ts, html:
+      '<div class="activity-item">'
+      + '<div class="activity-dot" style="background:#16a34a;"></div>'
+      + '<div class="activity-text"><strong>' + (tx.qty||1) + ' unit(s)</strong> '
+      + (tx.blood||'') + ' — ' + (tx.type||'transaction')
+      + '</div>'
+      + '<span class="activity-time">' + timeAgo(ts) + '</span>'
+      + '</div>'
+    });
+  });
+  acts.sort(function(a,b){ return b.t - a.t; });
+  el.innerHTML = acts.length
+    ? acts.slice(0, 8).map(function(a){ return a.html; }).join('')
+    : '<div style="text-align:center;padding:2rem;color:#9ca3af;font-size:0.88rem;">No recent activity yet.</div>';
 }
 
 // ── ADMIN PANEL ───────────────────────────────────────────
@@ -715,48 +753,42 @@ function renderAdminPanel(pending, allDonors, market) {
 
   var panel = document.createElement('div');
   panel.id = 'admin-panel';
-  panel.style.cssText = 'background:#fff;border-radius:14px;padding:1.5rem;box-shadow:0 4px 24px rgba(230,57,70,0.08);border:2px solid #e63946;margin-bottom:2rem;';
+  panel.className = 'admin-panel';
 
   var pendingHTML = pending.length ? pending.map(function(d){
-    return '<div style="display:flex;align-items:center;gap:12px;padding:10px;background:#fff5f5;border-radius:10px;margin-bottom:8px;flex-wrap:wrap;">'
-      +'<div style="flex:1;min-width:180px;"><b>'+d.name+'</b> &nbsp;<span style="background:#e63946;color:#fff;padding:2px 8px;border-radius:8px;font-size:0.72rem;font-weight:700;">'+d.blood+'</span><br>'
-      +'<span style="font-size:0.78rem;color:#6b7280;">📍 '+d.city+' &nbsp;📞 '+d.phone+'</span></div>'
-      +'<button onclick="adminApproveDonor('+d.id+')" style="background:#16a34a;color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;">✅ Approve</button>'
-      +'<button onclick="adminDeleteDonor('+d.id+')" style="background:#e63946;color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;">🗑️ Delete</button>'
+    return '<div class="donor-row">'
+      +'<div class="donor-row-info"><div class="dname">'+d.name+' &nbsp;<span class="blood-pill">'+d.blood+'</span></div>'
+      +'<div class="dmeta">📍 '+d.city+' &nbsp;📞 '+d.phone+'</div></div>'
+      +'<button class="btn-approve" onclick="adminApproveDonor('+d.id+')">✅ Approve</button>'
+      +'<button class="btn-del" onclick="adminDeleteDonor('+d.id+')">🗑️ Delete</button>'
       +'</div>';
-  }).join('') : '<p style="color:#9ca3af;font-size:0.88rem;text-align:center;padding:1rem;">No pending donors</p>';
+  }).join('') : '<p style="color:#9ca3af;font-size:0.85rem;text-align:center;padding:0.8rem;">No pending donors</p>';
 
   var approvedHTML = allDonors.filter(function(d){return d.status!=='pending';}).map(function(d){
-    return '<div style="display:flex;align-items:center;gap:12px;padding:8px 10px;background:#f9fafb;border-radius:8px;margin-bottom:6px;flex-wrap:wrap;">'
-      +'<div style="flex:1;min-width:180px;"><b>'+d.name+'</b> &nbsp;<span style="background:#e63946;color:#fff;padding:2px 8px;border-radius:8px;font-size:0.72rem;font-weight:700;">'+d.blood+'</span><br>'
-      +'<span style="font-size:0.78rem;color:#6b7280;">📍 '+d.city+' &nbsp;📞 '+d.phone+'</span></div>'
-      +'<button onclick="adminDeleteDonor('+d.id+')" style="background:#fee2e2;color:#e63946;border:1.5px solid #fca5a5;padding:5px 12px;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;">🗑️ Delete</button>'
+    return '<div class="donor-row">'
+      +'<div class="donor-row-info"><div class="dname">'+d.name+' &nbsp;<span class="blood-pill">'+d.blood+'</span></div>'
+      +'<div class="dmeta">📍 '+d.city+' &nbsp;📞 '+d.phone+'</div></div>'
+      +'<button class="btn-del" onclick="adminDeleteDonor('+d.id+')">🗑️ Delete</button>'
       +'</div>';
-  }).join('') || '<p style="color:#9ca3af;font-size:0.88rem;text-align:center;padding:1rem;">No approved donors</p>';
+  }).join('') || '<p style="color:#9ca3af;font-size:0.85rem;text-align:center;padding:0.8rem;">No approved donors</p>';
 
-  panel.innerHTML = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;">'
-    +'<span style="font-size:1.4rem;">🔐</span>'
-    +'<h3 style="font-size:1.1rem;font-weight:800;color:#e63946;margin:0;">Admin Control Panel</h3>'
-    +'<span style="background:#e63946;color:#fff;padding:3px 10px;border-radius:10px;font-size:0.72rem;font-weight:800;margin-left:auto;">ADMIN ONLY</span>'
+  panel.innerHTML = '<div class="admin-head">'
+    +'<span style="font-size:1.3rem;">🔐</span>'
+    +'<h3>Admin Control Panel</h3>'
+    +'<span class="admin-badge">ADMIN ONLY</span>'
     +'</div>'
-    // Pending section
-    +'<div style="margin-bottom:1.2rem;">'
-    +'<h4 style="font-size:0.9rem;font-weight:700;margin-bottom:0.6rem;color:#92400e;">⏳ Pending Approval ('+pending.length+')</h4>'
-    +pendingHTML
-    +'</div>'
-    // All donors section
-    +'<div style="margin-bottom:1.2rem;">'
-    +'<h4 style="font-size:0.9rem;font-weight:700;margin-bottom:0.6rem;color:#15803d;">✅ Approved Donors ('+allDonors.filter(function(d){return d.status!=='pending';}).length+')</h4>'
-    +'<div style="max-height:300px;overflow-y:auto;">'+approvedHTML+'</div>'
-    +'</div>'
-    // Reports section placeholder
+    +'<div style="margin-bottom:1rem;">'
+    +'<div style="font-size:0.82rem;font-weight:700;color:#92400e;margin-bottom:0.5rem;">⏳ Pending Approval ('+pending.length+')</div>'
+    +pendingHTML+'</div>'
+    +'<div style="margin-bottom:1rem;">'
+    +'<div style="font-size:0.82rem;font-weight:700;color:#15803d;margin-bottom:0.5rem;">✅ Approved Donors ('+allDonors.filter(function(d){return d.status!=='pending';}).length+')</div>'
+    +'<div style="max-height:280px;overflow-y:auto;">'+approvedHTML+'</div></div>'
     +'<div id="admin-reports-section">'
-    +'<h4 style="font-size:0.9rem;font-weight:700;margin-bottom:0.6rem;color:#7c3aed;">🚩 Donor Reports</h4>'
-    +'<div id="admin-reports-list" style="font-size:0.82rem;color:#9ca3af;">Loading reports...</div>'
+    +'<div style="font-size:0.82rem;font-weight:700;color:#7c3aed;margin-bottom:0.5rem;">🚩 Donor Reports</div>'
+    +'<div id="admin-reports-list" style="font-size:0.82rem;color:#9ca3af;">Loading...</div>'
     +'</div>';
 
   dash.insertBefore(panel, dash.firstChild);
-  // Load reports async
   loadAdminReports();
 }
 

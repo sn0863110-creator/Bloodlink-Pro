@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard — BloodLink Pro | Your Donor Network Hub</title>
-  <meta name="description" content="BloodLink Pro dashboard — view donor stats, blood group distribution, recent activity, and manage the donor network." />
+  <title>Dashboard — BloodLink Pro</title>
   <meta name="robots" content="noindex, follow" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩸</text></svg>" />
   <link rel="stylesheet" href="style.css" />
@@ -12,20 +11,214 @@
   <link rel="apple-touch-icon" href="icon-192.svg" />
   <meta name="theme-color" content="#e63946" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="BloodLink Pro" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <!-- Firebase Compat SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
+  <style>
+    /* ── DASHBOARD PAGE STYLES ── */
+    .dash-page { min-height: 100vh; background: #f8fafc; }
+    .dash-hero {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+      padding: 2rem 2rem 1.5rem; color: #fff;
+      display: flex; align-items: flex-start; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .dash-hero-label { font-size: 0.65rem; font-weight: 800; letter-spacing: 2.5px;
+      text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 6px; }
+    .dash-hero h1 { font-size: 1.6rem; font-weight: 900; color: #fff; margin-bottom: 4px; }
+    .dash-hero .welcome { font-size: 0.9rem; color: rgba(255,255,255,0.65); margin-bottom: 4px; }
+    .dash-hero .welcome span { color: #e63946; font-weight: 700; }
+    .dash-hero .updated { font-size: 0.72rem; color: rgba(255,255,255,0.3); }
+    .dash-hero-actions { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+    .dash-body { padding: 1.5rem 2rem 3rem; max-width: 1200px; margin: 0 auto; }
+    @media (max-width: 768px) {
+      .dash-hero { padding: 1.2rem 1rem; }
+      .dash-body { padding: 1rem 0.8rem 2rem; }
+      .dash-hero h1 { font-size: 1.3rem; }
+    }
+
+    /* ── STAT CARDS ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card {
+      background: #fff; border-radius: 14px; padding: 1.2rem 1rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06); border: 1px solid #f0f0f0;
+      display: flex; align-items: center; gap: 0.9rem;
+      transition: transform 0.18s, box-shadow 0.18s; cursor: default;
+    }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 6px 24px rgba(0,0,0,0.1); }
+    .stat-icon { width: 46px; height: 46px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; flex-shrink: 0; }
+    .stat-icon.red   { background: rgba(230,57,70,0.1); }
+    .stat-icon.green { background: rgba(22,163,74,0.1); }
+    .stat-icon.blue  { background: rgba(29,78,216,0.1); }
+    .stat-icon.orange{ background: rgba(234,88,12,0.1); }
+    .stat-icon.purple{ background: rgba(139,92,246,0.1); }
+    .stat-icon.teal  { background: rgba(20,184,166,0.1); }
+    .stat-num { font-size: 1.7rem; font-weight: 900; color: #1a1a2e; line-height: 1; }
+    .stat-lbl { font-size: 0.72rem; color: #6b7280; font-weight: 600; margin-top: 3px; }
+    .stat-trend { font-size: 0.65rem; font-weight: 700; margin-top: 4px; }
+    .stat-trend.up { color: #16a34a; }
+    .stat-trend.down { color: #e63946; }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .stat-num { font-size: 1.4rem; }
+    }
+
+    /* ── SECTION CARD ── */
+    .section-card {
+      background: #fff; border-radius: 16px; padding: 1.4rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06); border: 1px solid #f0f0f0;
+      margin-bottom: 1.5rem;
+    }
+    .section-card-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.5rem;
+    }
+    .section-card-head h3 { font-size: 0.95rem; font-weight: 800; color: #1a1a2e; margin: 0; }
+    .section-card-head .badge {
+      font-size: 0.68rem; font-weight: 700; padding: 3px 10px;
+      border-radius: 20px; background: #f3f4f6; color: #6b7280;
+    }
+
+    /* ── CHARTS ── */
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+    .chart-wrap { position: relative; height: 200px; }
+    .donut-center {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%); text-align: center; pointer-events: none;
+    }
+    .donut-pct { font-size: 1.5rem; font-weight: 900; color: #16a34a; line-height: 1; }
+    .donut-sub { font-size: 0.6rem; color: #9ca3af; font-weight: 600; }
+    @media (max-width: 640px) {
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── CITY GRID ── */
+    .city-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.8rem; }
+    .city-card {
+      background: #f9fafb; border-radius: 10px; padding: 0.9rem;
+      text-align: center; border: 1.5px solid #f0f0f0; transition: 0.18s;
+    }
+    .city-card:hover { border-color: #e63946; transform: translateY(-2px); }
+    .city-name { font-weight: 800; font-size: 0.82rem; color: #1a1a2e; margin-bottom: 4px; }
+    .city-num { font-size: 1.3rem; font-weight: 900; line-height: 1; }
+    .city-sub { font-size: 0.65rem; color: #9ca3af; font-weight: 600; margin-top: 2px; }
+    .city-bar { background: #e5e7eb; border-radius: 4px; height: 4px; margin-top: 6px; overflow: hidden; }
+    .city-bar-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
+
+    /* ── ACTIVITY LIST ── */
+    .activity-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0; border-bottom: 1px solid #f3f4f6;
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .activity-text { font-size: 0.83rem; color: #374151; flex: 1; }
+    .activity-text strong { color: #1a1a2e; }
+    .activity-time { font-size: 0.7rem; color: #9ca3af; white-space: nowrap; }
+    .activity-badge {
+      font-size: 0.65rem; font-weight: 700; padding: 2px 8px;
+      border-radius: 8px; flex-shrink: 0;
+    }
+
+    /* ── EMERGENCY PANEL ── */
+    .emer-panel {
+      background: linear-gradient(135deg, #fff5f5, #ffe4e4);
+      border: 2px solid #e63946; border-radius: 14px;
+      padding: 1.4rem; margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap;
+    }
+    .emer-panel-text h3 { font-size: 1rem; font-weight: 800; color: #e63946; margin-bottom: 4px; }
+    .emer-panel-text p { font-size: 0.82rem; color: #6b7280; margin: 0; }
+    .emer-panel .sos-btn { margin-left: auto; flex-shrink: 0; }
+    @media (max-width: 480px) {
+      .emer-panel { flex-direction: column; text-align: center; }
+      .emer-panel .sos-btn { margin: 0 auto; }
+    }
+
+    /* ── QUICK ACTIONS ── */
+    .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+    .qa-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 1rem; border-radius: 12px; font-size: 0.88rem; font-weight: 700;
+      text-decoration: none; transition: 0.18s; border: 2px solid transparent;
+    }
+    .qa-btn.primary { background: #e63946; color: #fff; }
+    .qa-btn.primary:hover { background: #c1121f; transform: translateY(-2px); }
+    .qa-btn.outline { background: #fff; color: #e63946; border-color: #e63946; }
+    .qa-btn.outline:hover { background: #fff5f5; transform: translateY(-2px); }
+    .qa-btn.ghost { background: #f9fafb; color: #374151; border-color: #e5e7eb; }
+    .qa-btn.ghost:hover { background: #f3f4f6; transform: translateY(-2px); }
+
+    /* ── LOADING SKELETON ── */
+    .skel { background: linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
+      background-size: 200% 100%; animation: skel-shine 1.4s infinite;
+      border-radius: 6px; }
+    @keyframes skel-shine { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* ── ADMIN PANEL ── */
+    .admin-panel {
+      background: #fff; border-radius: 16px; padding: 1.4rem;
+      box-shadow: 0 2px 12px rgba(230,57,70,0.08);
+      border: 2px solid #e63946; margin-bottom: 1.5rem;
+    }
+    .admin-head { display: flex; align-items: center; gap: 10px; margin-bottom: 1.2rem; }
+    .admin-head h3 { font-size: 1rem; font-weight: 800; color: #e63946; margin: 0; }
+    .admin-badge { background: #e63946; color: #fff; font-size: 0.65rem; font-weight: 800;
+      padding: 3px 10px; border-radius: 10px; margin-left: auto; }
+    .donor-row {
+      display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+      background: #f9fafb; border-radius: 8px; margin-bottom: 6px; flex-wrap: wrap;
+    }
+    .donor-row-info { flex: 1; min-width: 160px; }
+    .donor-row-info .dname { font-size: 0.85rem; font-weight: 700; color: #1a1a2e; }
+    .donor-row-info .dmeta { font-size: 0.72rem; color: #6b7280; margin-top: 2px; }
+    .blood-pill { background: #e63946; color: #fff; padding: 2px 8px;
+      border-radius: 8px; font-size: 0.68rem; font-weight: 800; }
+    .btn-approve { background: #16a34a; color: #fff; border: none; padding: 5px 12px;
+      border-radius: 7px; font-size: 0.75rem; font-weight: 700; cursor: pointer;
+      font-family: inherit; transition: 0.15s; }
+    .btn-approve:hover { background: #15803d; }
+    .btn-del { background: #fee2e2; color: #e63946; border: 1.5px solid #fca5a5;
+      padding: 5px 12px; border-radius: 7px; font-size: 0.75rem; font-weight: 700;
+      cursor: pointer; font-family: inherit; transition: 0.15s; }
+    .btn-del:hover { background: #fecaca; }
+
+    /* ── DARK MODE ── */
+    body.dark-mode .dash-page { background: #0f172a; }
+    body.dark-mode .section-card,
+    body.dark-mode .stat-card,
+    body.dark-mode .admin-panel { background: #1e293b; border-color: #334155; }
+    body.dark-mode .stat-num,
+    body.dark-mode .section-card-head h3,
+    body.dark-mode .city-name,
+    body.dark-mode .donor-row-info .dname { color: #f1f5f9; }
+    body.dark-mode .city-card,
+    body.dark-mode .donor-row { background: #0f172a; border-color: #334155; }
+    body.dark-mode .activity-text { color: #cbd5e1; }
+    body.dark-mode .activity-text strong { color: #f1f5f9; }
+    body.dark-mode .activity-item { border-bottom-color: #1e293b; }
+    body.dark-mode .emer-panel { background: linear-gradient(135deg,#1a0a0a,#2d0f0f); border-color: #7f1d1d; }
+    body.dark-mode .qa-btn.ghost { background: #1e293b; color: #cbd5e1; border-color: #334155; }
+    body.dark-mode .qa-btn.outline { background: #1e293b; }
+    body.dark-mode .skel { background: linear-gradient(90deg,#1e293b 25%,#334155 50%,#1e293b 75%); background-size:200% 100%; }
+  </style>
 </head>
 <body data-page="dashboard">
 
+<!-- NAVBAR -->
 <nav class="navbar">
-  <a href="index.html" class="nav-brand"><span class="drop-icon">🩸</span> BloodLink<span style="color:#1a1a2e;font-weight:400">Pro</span></a>
+  <a href="index.html" class="nav-brand">
+    <span class="drop-icon">🩸</span> BloodLink<span style="color:#1a1a2e;font-weight:400">Pro</span>
+  </a>
   <div class="nav-links" id="nav-links">
     <a href="index.html">🏠 Home</a>
     <a href="search.html">🔍 Find Donors</a>
@@ -33,9 +226,8 @@
     <a href="banks.html">🏥 Blood Banks</a>
     <a href="pricing.html">📊 Market</a>
     <a href="about.html">ℹ️ About</a>
-    <a href="donor.html" class="btn btn-outline btn-sm">+ Add Donor</a>
     <span id="nav-user" style="display:none;"></span>
-    <a href="dashboard.html" id="nav-dashboard" class="btn btn-ghost btn-sm" style="display:none;">📊 Dashboard</a>
+    <a href="dashboard.html" id="nav-dashboard" class="btn btn-ghost btn-sm active" style="display:none;">📊 Dashboard</a>
     <a href="profile.html" id="nav-profile" class="btn btn-ghost btn-sm" style="display:none;">👤 Profile</a>
     <a href="login.html" id="nav-login" class="btn btn-outline btn-sm">Login</a>
     <a href="register.html" id="nav-register" class="btn btn-primary btn-sm">Register</a>
@@ -45,114 +237,134 @@
       <button id="dark-toggle" onclick="toggleDarkMode()" title="Dark Mode">🌙</button>
     </div>
   </div>
-  <button class="nav-toggle" id="nav-toggle" type="button" aria-label="Open navigation menu"><span></span><span></span><span></span></button>
+  <button class="nav-toggle" id="nav-toggle" type="button" aria-label="Open navigation menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
 
-<div class="dashboard">
-  <div class="dash-header" style="background:linear-gradient(135deg,#1a1a2e,#0f172a);color:#fff;border-bottom:none;">
+<div class="dash-page">
+
+  <!-- HERO HEADER -->
+  <div class="dash-hero">
     <div>
-      <div style="font-size:0.7rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:4px;">BloodLink Pro</div>
-      <h1 style="color:#fff;">📊 Dashboard</h1>
-      <p style="color:rgba(255,255,255,0.6);">Welcome back, <span id="user-name" style="color:#e63946;font-weight:700;">Guest</span></p>
-      <p id="last-updated" style="font-size:0.78rem;color:rgba(255,255,255,0.35);">Loading...</p>
+      <div class="dash-hero-label">BloodLink Pro</div>
+      <h1>📊 Dashboard</h1>
+      <p class="welcome">Welcome back, <span id="user-name">Guest</span></p>
+      <p class="updated" id="last-updated">Loading data...</p>
     </div>
-    <div style="display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;margin-top:0.5rem;">
+    <div class="dash-hero-actions">
       <a href="donor.html" class="btn btn-primary btn-sm">+ Register Donor</a>
-      <a href="search.html" class="btn btn-sm" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);">🔍 Search</a>
+      <a href="search.html" class="btn btn-sm" style="background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.2);">🔍 Search</a>
+      <button onclick="refreshDashboard()" class="btn btn-sm" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.15);" title="Refresh data">🔄</button>
     </div>
   </div>
 
   <div class="dash-body">
 
-    <!-- Stats -->
-    <div class="stats-grid">
+    <!-- STAT CARDS -->
+    <div class="stats-grid" id="stats-grid">
       <div class="stat-card">
         <div class="stat-icon red">🩸</div>
-        <div class="stat-info"><div class="num" id="total-donors">—</div><div class="lbl">Total Donors</div></div>
+        <div><div class="stat-num" id="total-donors">—</div><div class="stat-lbl">Total Donors</div></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon green">✅</div>
-        <div class="stat-info"><div class="num" id="stat-available">—</div><div class="lbl">Available Now</div></div>
+        <div><div class="stat-num" id="stat-available">—</div><div class="stat-lbl">Available Now</div></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon orange">🚨</div>
-        <div class="stat-info"><div class="num" id="total-transactions">—</div><div class="lbl">Transactions</div></div>
+        <div><div class="stat-num" id="stat-requests">—</div><div class="stat-lbl">Emergency Requests</div></div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon blue">🏙️</div>
-        <div class="stat-info"><div class="num" id="total-units">—</div><div class="lbl">Units Traded</div></div>
+        <div class="stat-icon blue">💉</div>
+        <div><div class="stat-num" id="total-units">—</div><div class="stat-lbl">Units Traded</div></div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon" style="background:rgba(139,92,246,0.1);">👥</div>
-        <div class="stat-info"><div class="num" id="visitor-count">—</div><div class="lbl">Total Visitors</div></div>
+        <div class="stat-icon purple">👥</div>
+        <div><div class="stat-num" id="visitor-count">—</div><div class="stat-lbl">Total Visitors</div></div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon" style="background:rgba(220,38,38,0.1);">🚨</div>
-        <div class="stat-info"><div class="num" id="stat-requests">—</div><div class="lbl">Emergency Requests</div></div>
+        <div class="stat-icon teal">📊</div>
+        <div><div class="stat-num" id="total-transactions">—</div><div class="stat-lbl">Transactions</div></div>
       </div>
     </div>
 
-    <!-- Emergency SOS Panel -->
-    <div class="emergency-panel" style="margin-bottom:2rem;">
-      <h2>🚨 Emergency Blood Request</h2>
-      <p>Critical situation? Send an instant SOS to all available donors in your network.</p>
-      <button class="sos-btn" id="sos-btn">🆘 Send Emergency SOS</button>
-      <div class="sos-alert" id="sos-alert"></div>
+    <!-- EMERGENCY PANEL -->
+    <div class="emer-panel">
+      <div class="emer-panel-text">
+        <h3>🚨 Emergency Blood Request</h3>
+        <p>Critical situation? Send instant SOS to all available donors.</p>
+      </div>
+      <button class="sos-btn" id="sos-btn">🆘 Send SOS</button>
     </div>
+    <div class="sos-alert" id="sos-alert"></div>
 
-    <!-- Charts + Recent -->
-    <div class="dash-grid">
-      <div class="dash-card">
-        <h3>🩸 Blood Group Distribution</h3>
+    <!-- CHARTS -->
+    <div class="charts-grid">
+      <div class="section-card">
+        <div class="section-card-head">
+          <h3>🩸 Blood Group Distribution</h3>
+          <span class="badge" id="chart-total-badge">Loading...</span>
+        </div>
         <div class="chart-wrap"><canvas id="bloodTypeChart"></canvas></div>
       </div>
-      <div class="dash-card">
-        <h3>📊 Donor Availability</h3>
-        <div id="chart-total-badge" style="font-size:0.78rem;color:#9ca3af;font-weight:600;margin-bottom:6px;"></div>
+      <div class="section-card">
+        <div class="section-card-head">
+          <h3>📊 Donor Availability</h3>
+        </div>
         <div class="chart-wrap" style="position:relative;">
           <canvas id="marketChart"></canvas>
-          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;">
-            <div id="donut-pct" style="font-size:1.6rem;font-weight:900;color:#16a34a;line-height:1;">0%</div>
-            <div style="font-size:0.65rem;color:#9ca3af;font-weight:600;">Available</div>
+          <div class="donut-center">
+            <div class="donut-pct" id="donut-pct">0%</div>
+            <div class="donut-sub">Available</div>
           </div>
         </div>
         <div id="donut-legend" style="display:flex;gap:1rem;justify-content:center;margin-top:10px;font-size:0.78rem;"></div>
       </div>
     </div>
 
-    <!-- City-wise Stats -->
-    <div class="dash-card" style="margin-bottom:2rem;">
-      <h3 style="margin-bottom:1rem;">🏙️ City-wise Donor Distribution</h3>
-      <div id="city-stats-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:0.8rem;">
-        <div style="text-align:center;padding:1.5rem;color:#9ca3af;">Loading...</div>
+    <!-- CITY STATS -->
+    <div class="section-card">
+      <div class="section-card-head">
+        <h3>🏙️ City-wise Distribution</h3>
+        <span class="badge" id="city-count-badge">—</span>
+      </div>
+      <div class="city-grid" id="city-stats-list">
+        <div class="skel" style="height:80px;"></div>
+        <div class="skel" style="height:80px;"></div>
+        <div class="skel" style="height:80px;"></div>
+        <div class="skel" style="height:80px;"></div>
       </div>
     </div>
 
-    <!-- Recent Donors -->
-    <div class="dash-card" style="margin-bottom:2rem;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
-        <h3 style="margin:0;">🕐 Recent Activity</h3>
+    <!-- RECENT ACTIVITY -->
+    <div class="section-card">
+      <div class="section-card-head">
+        <h3>🕐 Recent Activity</h3>
         <a href="search.html" class="btn btn-ghost btn-sm">View All →</a>
       </div>
-      <div class="recent-list" id="recent-activity">
-        <div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading...</div>
+      <div id="recent-activity">
+        <div class="skel" style="height:40px;margin-bottom:8px;"></div>
+        <div class="skel" style="height:40px;margin-bottom:8px;"></div>
+        <div class="skel" style="height:40px;"></div>
       </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;">
-      <a href="donor.html" class="btn btn-primary btn-lg" style="justify-content:center;">🩸 Register New Donor</a>
-      <a href="search.html" class="btn btn-outline btn-lg" style="justify-content:center;">🔍 Search Donors</a>
-      <a href="banks.html" class="btn btn-ghost btn-lg" style="justify-content:center;border:1.5px solid var(--border);">🏥 Blood Banks</a>
+    <!-- QUICK ACTIONS -->
+    <div class="quick-actions">
+      <a href="donor.html" class="qa-btn primary">🩸 Register New Donor</a>
+      <a href="search.html" class="qa-btn outline">🔍 Search Donors</a>
+      <a href="banks.html" class="qa-btn ghost">🏥 Blood Banks</a>
+      <a href="emergency.html" class="qa-btn ghost">🚨 Emergency</a>
     </div>
 
-  </div>
-</div>
+  </div><!-- /dash-body -->
+</div><!-- /dash-page -->
 
 <footer class="footer">
   <div class="footer-inner">
     <div class="footer-brand">
-      <div style="font-size:1.4rem;font-weight:900;color:#fff;margin-bottom:0.3rem;">🩸 BloodLink<span style="color:#e63946;">Pro</span></div>
+      <div style="font-size:1.3rem;font-weight:900;color:#fff;margin-bottom:0.3rem;">🩸 BloodLink<span style="color:#e63946;">Pro</span></div>
       <div style="font-size:0.8rem;color:#9ca3af;max-width:260px;line-height:1.6;">India's smart blood donation network. Connecting donors to those in need, 24/7.</div>
     </div>
     <div class="footer-links">
@@ -180,13 +392,22 @@
   </div>
   <div class="footer-bottom">
     <span>© 2025 BloodLink Pro — Built with ❤️ by <strong style="color:#e63946;">Satish Kumar Nishad · Team HackForce</strong></span>
-    <span style="color:#4b5563;font-size:0.78rem;">Allenhouse Business School · UP State Hackathon 2025 &nbsp;|&nbsp; <a href="privacy.html" style="color:#6b7280;">Privacy</a> · <a href="terms.html" style="color:#6b7280;">Terms</a></span>
+    <span style="color:#4b5563;font-size:0.78rem;">Allenhouse Business School · UP State Hackathon 2025 &nbsp;|&nbsp;
+      <a href="privacy.html" style="color:#6b7280;">Privacy</a> · <a href="terms.html" style="color:#6b7280;">Terms</a></span>
   </div>
 </footer>
 
 <script src="script.js"></script>
 <script>
-// script.js handles initDashboard() via DOMContentLoaded
+// ── Dashboard refresh button ──
+function refreshDashboard() {
+  var lu = document.getElementById('last-updated');
+  if (lu) lu.textContent = 'Refreshing...';
+  // Reset charts
+  if (window._barChart) { window._barChart.destroy(); window._barChart = null; }
+  if (window._donutChart) { window._donutChart.destroy(); window._donutChart = null; }
+  initDashboard();
+}
 </script>
 </body>
 </html>
