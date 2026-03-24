@@ -1,5 +1,5 @@
 // BloodLink Pro — Service Worker v3 (Production Ready)
-const CACHE = 'blp-v7';
+const CACHE = 'blp-v9';
 const OFFLINE_URL = 'offline.html';
 const ASSETS = [
   'index.html', 'search.html', 'donor.html', 'login.html',

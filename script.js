@@ -323,6 +323,8 @@ function showToast(msg, type) {
 }
 
 // ── HAMBURGER MENU ─────────────────────────────────────────
+var _drawerReady = false;
+
 function blpCloseMenu() {
   var menu = document.getElementById('nav-links');
   var btn  = document.getElementById('nav-toggle');
@@ -353,6 +355,11 @@ function setupHamburger() {
   var btn  = document.getElementById('nav-toggle');
   var menu = document.getElementById('nav-links');
   if (!btn || !menu) return;
+  if (_drawerReady) return;
+  _drawerReady = true;
+
+  // ── Add mobile-drawer class ──
+  menu.classList.add('mobile-drawer');
 
   // ── Overlay ──
   var ov = document.getElementById('drawer-overlay');
@@ -369,27 +376,14 @@ function setupHamburger() {
     var hdr = document.createElement('div');
     hdr.className = 'nav-drawer-header';
     hdr.innerHTML = '<span>🩸 BloodLink<span style="font-weight:400">Pro</span></span>'
-      + '<button class="close-btn" type="button">✕</button>';
+      + '<button class="close-btn" type="button" aria-label="Close menu">✕</button>';
     hdr.querySelector('.close-btn').onclick = blpCloseMenu;
     menu.insertBefore(hdr, menu.firstChild);
   }
 
-  // ── Move util-row into drawer on mobile ──
-  function moveUtilRow() {
-    var utilRow = document.querySelector('.navbar > .nav-util-row') || document.querySelector('.nav-util-row');
-    if (!utilRow) return;
-    if (window.innerWidth <= 768) {
-      if (!menu.contains(utilRow)) {
-        menu.appendChild(utilRow);
-      }
-      utilRow.style.cssText = 'display:flex!important;padding:1rem 1.2rem;border-top:1px solid #f0d0d0;gap:8px;flex-wrap:wrap;width:100%;margin-top:auto;';
-    }
-  }
-  moveUtilRow();
-  window.addEventListener('resize', moveUtilRow);
-
   // ── Hamburger button ──
   btn.onclick = function(e) {
+    e.preventDefault();
     e.stopPropagation();
     blpToggleMenu();
   };
@@ -399,21 +393,29 @@ function setupHamburger() {
     if (e.target.closest('.nav-drawer-header')) return;
     if (e.target.closest('.nav-util-row')) return;
     var link = e.target.closest('a');
-    if (link) setTimeout(blpCloseMenu, 80);
+    if (link) setTimeout(blpCloseMenu, 100);
   });
 
   // ── Swipe right to close ──
-  var _sx = 0;
+  var _sx = 0, _sy = 0;
   menu.addEventListener('touchstart', function(e) {
     _sx = e.touches[0].clientX;
+    _sy = e.touches[0].clientY;
   }, { passive: true });
   menu.addEventListener('touchend', function(e) {
-    if (e.changedTouches[0].clientX - _sx > 60) blpCloseMenu();
+    var dx = e.changedTouches[0].clientX - _sx;
+    var dy = Math.abs(e.changedTouches[0].clientY - _sy);
+    if (dx > 60 && dy < 80) blpCloseMenu();
   }, { passive: true });
 
   // ── ESC key ──
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') blpCloseMenu();
+  });
+
+  // ── Reset on desktop resize ──
+  window.addEventListener('resize', function() {
+    if (window.innerWidth > 768) blpCloseMenu();
   });
 }
 

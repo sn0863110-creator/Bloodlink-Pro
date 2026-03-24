@@ -72,8 +72,21 @@ body {
   min-width: 0;
 }
 
-/* Drawer header — hidden on desktop, shown only in mobile drawer */
+/* Emergency link — always red */
+.nav-links a.nav-emergency { color: #e63946 !important; font-weight: 700 !important; }
+.nav-links a.nav-emergency:hover { background: #fff5f5 !important; }
+
+/* Drawer header — hidden on desktop */
 .nav-drawer-header { display: none; }
+
+/* nav-util-row inside nav-links — desktop styling */
+.nav-links .nav-util-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
 
 .nav-links a {
   text-decoration: none; color: var(--text-muted);
@@ -489,13 +502,13 @@ body {
   justify-content: center;
   align-items: center;
   gap: 5px;
-  background: none;
-  border: 2px solid var(--border);
+  background: var(--bg);
+  border: 1.5px solid var(--border);
   cursor: pointer;
-  padding: 7px;
-  border-radius: 8px;
-  min-width: 44px;
-  min-height: 44px;
+  padding: 8px;
+  border-radius: 10px;
+  width: 44px;
+  height: 44px;
   position: relative;
   z-index: 10010;
   flex-shrink: 0;
@@ -503,9 +516,10 @@ body {
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
-  background: var(--bg);
+  transition: background 0.15s, border-color 0.15s;
 }
-.nav-toggle:active { background: var(--bg-soft); }
+.nav-toggle:hover,
+.nav-toggle:active { background: var(--bg-soft); border-color: var(--primary); }
 .nav-toggle:hover { background: var(--bg-soft); }
 .nav-toggle span {
   display: block;
@@ -569,40 +583,41 @@ body {
   .navbar {
     padding: 0 1rem;
     height: 56px;
-    /* Brand left, toggle right — nothing else visible */
     justify-content: space-between;
-  }
-  .nav-brand { font-size: 1.1rem; margin-right: 0; }
-  .nav-brand .drop-icon { font-size: 1.2rem; }
-
-  /* ── RIGHT SLIDE DRAWER ── */
-  .nav-links {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: min(82vw, 300px);
-    background: var(--bg-card);
-    flex-direction: column;
-    align-items: stretch;
-    padding: 0 0 80px 0;
     gap: 0;
-    z-index: 9999;
-    box-shadow: -6px 0 40px rgba(0,0,0,0.22);
-    overflow-y: auto;
-    overflow-x: hidden;
-    /* Hidden: slide off to the right */
-    transform: translateX(110%);
-    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-    will-change: transform;
-    -webkit-overflow-scrolling: touch;
-    display: flex !important;
-    /* pointer-events none when closed so toggle button is always clickable */
-    pointer-events: none;
   }
-  .nav-links.open {
+  /* Hide desktop nav-links and util-row from navbar flow */
+  .navbar > .nav-links { display: none !important; }
+  .navbar > .nav-util-row { display: none !important; }
+  .nav-brand { font-size: 1.05rem; margin-right: 0; }
+  .nav-brand .drop-icon { font-size: 1.1rem; }
+
+  /* ── MOBILE DRAWER (right slide) ── */
+  .nav-links.mobile-drawer {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: min(80vw, 290px) !important;
+    background: var(--bg-card) !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    z-index: 9999 !important;
+    box-shadow: -8px 0 40px rgba(0,0,0,0.25) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    transform: translateX(110%) !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    will-change: transform !important;
+    -webkit-overflow-scrolling: touch !important;
+    display: flex !important;
+    pointer-events: none !important;
+  }
+  .nav-links.mobile-drawer.open {
     transform: translateX(0) !important;
-    pointer-events: all;
+    pointer-events: all !important;
   }
 
   /* Drawer header */
@@ -610,23 +625,23 @@ body {
     display: flex !important;
     align-items: center;
     gap: 8px;
-    padding: 1rem 1.2rem;
+    padding: 0 1.2rem;
     background: linear-gradient(135deg, #e63946, #c1121f);
     color: #fff;
     font-size: 1rem;
     font-weight: 800;
     letter-spacing: -0.3px;
-    margin-bottom: 0.5rem;
     flex-shrink: 0;
-    min-height: 60px;
+    height: 56px;
+    min-height: 56px;
   }
   .nav-drawer-header .close-btn {
     margin-left: auto;
     background: rgba(255,255,255,0.2);
     border: none;
     color: #fff;
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     font-size: 1.1rem;
     cursor: pointer;
@@ -636,16 +651,18 @@ body {
     flex-shrink: 0;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s;
   }
+  .nav-drawer-header .close-btn:active { background: rgba(255,255,255,0.35); }
 
-  /* All nav links full width */
-  .nav-links a,
-  .nav-links .btn {
+  /* All nav links full width in drawer */
+  .nav-links.mobile-drawer a,
+  .nav-links.mobile-drawer .btn {
     width: 100% !important;
     justify-content: flex-start !important;
     text-align: left !important;
-    padding: 0.8rem 1.2rem !important;
-    font-size: 0.92rem !important;
+    padding: 0.85rem 1.2rem !important;
+    font-size: 0.93rem !important;
     border-radius: 0 !important;
     margin: 0 !important;
     box-sizing: border-box !important;
@@ -657,79 +674,81 @@ body {
     border-top: none !important;
     color: var(--text) !important;
     background: transparent !important;
-    min-height: 48px;
+    min-height: 50px;
+    text-decoration: none !important;
+    font-weight: 500 !important;
   }
-  .nav-links a:hover,
-  .nav-links a.active {
+  .nav-links.mobile-drawer a:hover,
+  .nav-links.mobile-drawer a.active {
     background: var(--bg-soft) !important;
     color: var(--primary) !important;
     border-left: 3px solid var(--primary) !important;
     padding-left: calc(1.2rem - 3px) !important;
   }
-  /* Emergency link stays red */
-  .nav-links a[style*="color:#e63946"],
-  .nav-links a[style*="color: #e63946"] {
+  .nav-links.mobile-drawer a[style*="color:#e63946"],
+  .nav-links.mobile-drawer a[style*="color: #e63946"] {
     color: #e63946 !important;
+    font-weight: 700 !important;
   }
-
-  /* Logout button */
-  .nav-links button#nav-logout {
+  .nav-links.mobile-drawer button#nav-logout {
     width: 100% !important;
     justify-content: flex-start !important;
-    text-align: left !important;
-    padding: 0.8rem 1.2rem !important;
-    font-size: 0.92rem !important;
+    padding: 0.85rem 1.2rem !important;
+    font-size: 0.93rem !important;
     border-radius: 0 !important;
     margin: 0 !important;
     border-bottom: 1px solid var(--border) !important;
-    border-left: none !important;
-    border-right: none !important;
-    border-top: none !important;
+    border-left: none !important; border-right: none !important; border-top: none !important;
     background: transparent !important;
     color: #e63946 !important;
-    min-height: 48px;
+    min-height: 50px;
+    display: flex !important;
+    align-items: center !important;
+    font-weight: 600 !important;
   }
-
-  /* User badge in drawer */
   #nav-user {
     width: 100% !important;
     max-width: 100% !important;
-    text-align: left !important;
     justify-content: flex-start !important;
-    padding: 0.8rem 1.2rem !important;
+    padding: 0.85rem 1.2rem !important;
     font-size: 0.88rem !important;
     border-radius: 0 !important;
     display: flex !important;
     border-bottom: 1px solid var(--border) !important;
     background: var(--bg-soft) !important;
-    min-height: 48px;
+    min-height: 50px;
   }
 
-  /* Utility row — JS moves this inside drawer on mobile */
-  .nav-util-row {
-    padding: 1rem 1.2rem;
-    border-top: 1px solid var(--border);
-    gap: 8px !important;
-    flex-wrap: wrap;
+  /* Utility row inside drawer — at bottom */
+  .nav-links.mobile-drawer .nav-util-row {
     display: flex !important;
-    width: 100%;
-    background: var(--bg-card);
-    margin-top: auto;
-    flex-shrink: 0;
+    padding: 1rem 1.2rem !important;
+    border-top: 1px solid var(--border) !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    background: var(--bg-card) !important;
+    margin-top: auto !important;
+    flex-shrink: 0 !important;
+    margin-left: 0 !important;
   }
-  .nav-util-row button {
+  .nav-links.mobile-drawer .nav-util-row button {
     flex: 1 !important;
     min-width: 70px !important;
     padding: 0.6rem 0.5rem !important;
-    font-size: 0.82rem !important;
+    font-size: 0.85rem !important;
     border-radius: 8px !important;
     background: var(--bg-soft) !important;
     border: 1.5px solid var(--border) !important;
     justify-content: center !important;
     display: flex !important;
     align-items: center !important;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+    cursor: pointer !important;
+    font-weight: 700 !important;
+    color: var(--text-muted) !important;
+    font-family: var(--font) !important;
   }
 
   /* Hero */
@@ -1011,18 +1030,27 @@ body.dark-mode #nav-user {
 
 /* ===== DARK MODE NAV LINKS MOBILE ===== */
 @media (max-width: 768px) {
-  body.dark-mode .nav-links {
-    background: #0f172a;
+  body.dark-mode .nav-links.mobile-drawer {
+    background: #0f172a !important;
   }
-  body.dark-mode .nav-links a,
-  body.dark-mode .nav-links button:not(#lang-toggle):not(#dark-toggle):not(.nav-qr-btn):not(.close-btn) {
+  body.dark-mode .nav-links.mobile-drawer a,
+  body.dark-mode .nav-links.mobile-drawer button:not(.close-btn) {
     color: #e2e8f0 !important;
     border-bottom-color: #334155 !important;
   }
-  body.dark-mode .nav-links a:hover,
-  body.dark-mode .nav-links a.active {
+  body.dark-mode .nav-links.mobile-drawer a:hover,
+  body.dark-mode .nav-links.mobile-drawer a.active {
     background: #1e293b !important;
     color: #f87171 !important;
+  }
+  body.dark-mode .nav-links.mobile-drawer .nav-util-row {
+    background: #0f172a !important;
+    border-top-color: #334155 !important;
+  }
+  body.dark-mode .nav-links.mobile-drawer .nav-util-row button {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #94a3b8 !important;
   }
 }
 body.dark-mode .nav-drawer-header {
@@ -1035,15 +1063,16 @@ body.dark-mode .nav-util-row button {
 }
 
 
-/* ===== NAV UTILITY ROW (desktop: inline, mobile: hidden from navbar — JS moves into drawer) ===== */
+/* ===== NAV UTILITY ROW (inside nav-links — desktop shows inline, mobile shows in drawer) ===== */
 .nav-util-row {
   display: flex;
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
-  margin-left: 4px;
 }
+/* On mobile, nav-util-row is inside the drawer (nav-links.mobile-drawer) — already visible */
 @media (max-width: 768px) {
+  /* Hide the standalone nav-util-row if it's still outside (fallback) */
   .navbar > .nav-util-row {
     display: none !important;
   }
