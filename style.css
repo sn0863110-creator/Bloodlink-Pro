@@ -494,34 +494,28 @@ body {
   cursor: pointer;
   padding: 8px;
   border-radius: 8px;
-  transition: background var(--transition);
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
-  user-select: none;
-  -webkit-user-select: none;
   min-width: 44px;
   min-height: 44px;
   position: relative;
   z-index: 10002;
   flex-shrink: 0;
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-  pointer-events: all;
-  /* Ensure it's always on top and tappable */
-  isolation: isolate;
-}
-.nav-toggle:hover { background: var(--bg-soft); }
-.nav-toggle span {
-  display: block; width: 22px; height: 2px;
-  background: var(--text); border-radius: 2px;
-  transition: transform 0.22s ease, opacity 0.22s ease;
-  pointer-events: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
 }
+.nav-toggle:hover { background: var(--bg-soft); }
+.nav-toggle span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: transform 0.22s ease, opacity 0.22s ease;
+  pointer-events: none;
+}
 .nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-.nav-toggle.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.nav-toggle.open span:nth-child(2) { opacity: 0; }
 .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
 /* ===== PROFILE AVAIL TOGGLE CARD ===== */
