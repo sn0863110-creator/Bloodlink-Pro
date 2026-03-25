@@ -727,6 +727,19 @@ body {
   }
   #blp-overlay.blp-open { display: block; }
 
+  /* Active page highlight in drawer */
+  #blp-drawer a.active {
+    background: #fff5f5;
+    color: #e63946 !important;
+    border-left: 3px solid #e63946;
+    font-weight: 700;
+  }
+  body.dark-mode #blp-drawer a.active {
+    background: #1e293b;
+    color: #f87171 !important;
+    border-left-color: #f87171;
+  }
+
   /* Dark mode drawer */
   body.dark-mode #blp-drawer { background: #0f172a; }
   body.dark-mode #blp-drawer a,

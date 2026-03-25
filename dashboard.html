@@ -192,7 +192,49 @@
       cursor: pointer; font-family: inherit; transition: 0.15s; }
     .btn-del:hover { background: #fecaca; }
 
-    /* ── DARK MODE ── */
+    /* ── NAV TOGGLE X ANIMATION ── */
+    .nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .nav-toggle.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    /* ── LOADING SPINNER ── */
+    .dash-loading {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 3rem; gap: 1rem;
+    }
+    .dash-spinner {
+      width: 40px; height: 40px;
+      border: 3px solid #f0f0f0;
+      border-top-color: #e63946;
+      border-radius: 50%;
+      animation: dash-spin 0.7s linear infinite;
+    }
+    @keyframes dash-spin { to { transform: rotate(360deg); } }
+    .dash-loading-text { font-size: 0.85rem; color: #9ca3af; font-weight: 600; }
+
+    /* ── STAT CARD LOADING STATE ── */
+    .stat-num.loading { color: transparent; position: relative; }
+    .stat-num.loading::after {
+      content: ''; position: absolute; left: 0; top: 50%;
+      transform: translateY(-50%);
+      width: 48px; height: 20px;
+      border-radius: 4px;
+    }
+
+    /* ── ACTIVE NAV ITEM ── */
+    #blp-drawer a.active {
+      background: #fff5f5 !important;
+      color: #e63946 !important;
+      border-left: 3px solid #e63946;
+      font-weight: 700 !important;
+    }
+
+    /* ── STAT CARD COUNTER ANIMATION ── */
+    .stat-num { transition: color 0.3s; }
+
+    /* ── DASHBOARD DARK MODE EXTRAS ── */
+    body.dark-mode .dash-spinner { border-color: #334155; border-top-color: #e63946; }
+    body.dark-mode .skel { background: linear-gradient(90deg,#1e293b 25%,#334155 50%,#1e293b 75%); background-size:200% 100%; animation: skel-shine 1.4s infinite; }
     body.dark-mode .dash-page { background: #0f172a; }
     body.dark-mode .section-card,
     body.dark-mode .stat-card,
@@ -403,11 +445,61 @@
 function refreshDashboard() {
   var lu = document.getElementById('last-updated');
   if (lu) lu.textContent = 'Refreshing...';
+  // Show loading skeletons on stat cards
+  ['total-donors','stat-available','stat-requests','total-units','visitor-count','total-transactions'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) { el.textContent = '—'; el.classList.add('loading'); }
+  });
   // Reset charts
   if (window._barChart) { window._barChart.destroy(); window._barChart = null; }
   if (window._donutChart) { window._donutChart.destroy(); window._donutChart = null; }
+  // Show skeleton in city/activity
+  var ca = document.getElementById('city-stats-list');
+  if (ca) ca.innerHTML = '<div class="skel" style="height:80px;"></div><div class="skel" style="height:80px;"></div><div class="skel" style="height:80px;"></div><div class="skel" style="height:80px;"></div>';
+  var ra = document.getElementById('recent-activity');
+  if (ra) ra.innerHTML = '<div class="skel" style="height:40px;margin-bottom:8px;"></div><div class="skel" style="height:40px;margin-bottom:8px;"></div><div class="skel" style="height:40px;"></div>';
   initDashboard();
 }
+
+// ── Animated counter ──
+function animateCount(el, target) {
+  if (!el) return;
+  el.classList.remove('loading');
+  var start = 0;
+  var duration = 600;
+  var startTime = null;
+  function step(ts) {
+    if (!startTime) startTime = ts;
+    var progress = Math.min((ts - startTime) / duration, 1);
+    var ease = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(start + (target - start) * ease);
+    if (progress < 1) requestAnimationFrame(step);
+    else el.textContent = target;
+  }
+  requestAnimationFrame(step);
+}
+
+// Override initDashboard to use animated counters
+var _origInitDashboard = null;
+document.addEventListener('DOMContentLoaded', function() {
+  // Patch stat updates after initDashboard runs
+  var _patchInterval = setInterval(function() {
+    if (typeof initDashboard !== 'function') return;
+    clearInterval(_patchInterval);
+    var _orig = initDashboard;
+    window.initDashboard = async function() {
+      await _orig();
+      // Animate all stat numbers
+      ['total-donors','stat-available','stat-requests','total-units','visitor-count','total-transactions'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el && !isNaN(parseInt(el.textContent))) {
+          var val = parseInt(el.textContent);
+          animateCount(el, val);
+        }
+      });
+    };
+  }, 50);
+});
 </script>
 </body>
 </html>
