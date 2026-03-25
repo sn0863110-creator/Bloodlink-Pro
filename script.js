@@ -1,5 +1,6 @@
-// BloodLink Pro — script.js v4 (Firebase + JSONBin fallback)
-// ── Firebase is PRIMARY database. JSONBin kept as fallback. ──
+// BloodLink Pro — script.js v5 (Hamburger Fixed + All Features)
+// BUILD: 2025-03-25 | Cache bust: BLP_V5_FINAL
+console.log('BloodLink Pro script.js v5 loaded ✅');
 
 // ── JSONBIN FALLBACK CONFIG (kept for offline/migration) ──
 const API_KEY    = '$2a$10$gnr12wuvoYipciglW9hglOFE5FfQ9q0yU01ZBv8dwhwaNMfUSU.NW';
